@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.21 2002/11/20 21:44:26 quozl Exp $
+ * $Id: pptp_gre.c,v 1.22 2003/01/02 00:30:08 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -367,8 +367,8 @@ int dequeue_gre (callback_t callback, int cl) {
 	    (head->expires < now) 
 	  )
 	) {
-    if (head->seq != seq_recv+1 && !WRAPPED(head->seq, seq_recv))
 #ifdef REORDER_LOGGING
+    if (head->seq != seq_recv+1 && !WRAPPED(head->seq, seq_recv))
       log("timeout waiting for %d packets", head->seq - seq_recv - 1);
 #endif
 
@@ -378,7 +378,7 @@ int dequeue_gre (callback_t callback, int cl) {
     seq_recv = head->seq;
     status = callback(cl, head->packet, head->packlen);
     pqueue_del(head);
-    if (status != 0)
+    if (status < 0)
       return status;
 
     head = pqueue_head();
