@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.7 2001/12/26 23:01:23 quinot Exp $
+ * $Id: pptp_ctrl.c,v 1.8 2002/03/01 01:23:36 quozl Exp $
  */
 
 #include <errno.h>
@@ -490,7 +490,7 @@ void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size) {
     break;
   default:
     log("Unknown PPTP control message type received: %u", 
-	(unsigned) ntoh16(header->pptp_type));
+	(unsigned int) ntoh16(header->pptp_type));
     break;
   }
 }
@@ -748,7 +748,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	break; /* this is what we expect. */
       /* log it, otherwise. */
       log("PPTP_SET_LINK_INFO recieved from peer_callid %u",
-	  (unsigned) ntoh16(packet->call_id_peer));
+	  (unsigned int) ntoh16(packet->call_id_peer));
       log("  send_accm is %08lX, recv_accm is %08lX",
 	  (unsigned long) ntoh32(packet->send_accm),
 	  (unsigned long) ntoh32(packet->recv_accm));

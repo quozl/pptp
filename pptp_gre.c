@@ -2,13 +2,13 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.8 2001/11/20 05:46:30 quozl Exp $
+ * $Id: pptp_gre.c,v 1.9 2002/03/01 01:23:36 quozl Exp $
  */
 
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -30,16 +30,16 @@ static u_int16_t pptp_gre_call_id, pptp_gre_peer_call_id;
 
 /* decaps gets all the packets possible with ONE blocking read */
 /* returns <0 if read() call fails */
-int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl);
-int encaps_hdlc(int fd, void *pack, unsigned len);
-int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl);
-int encaps_gre (int fd, void *pack, unsigned len);
+int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl);
+int encaps_hdlc(int fd, void *pack, unsigned int len);
+int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl);
+int encaps_gre (int fd, void *pack, unsigned int len);
 
 #if 1
 #include <stdio.h>
-void print_packet(int fd, void *pack, unsigned len) {
+void print_packet(int fd, void *pack, unsigned int len) {
   unsigned char *b = (unsigned char *)pack;
-  unsigned i,j;
+  unsigned int i,j;
   FILE *out = fdopen(fd, "w");
 
   fprintf(out,"-- begin packet (%u) --\n", len);
@@ -47,9 +47,9 @@ void print_packet(int fd, void *pack, unsigned len) {
     for (j=0; j<8; j++)
       if (i+2*j+1<len)
 	fprintf(out, "%02x%02x ", 
-		(unsigned) b[i+2*j], (unsigned) b[i+2*j+1]);
+		(unsigned int) b[i+2*j], (unsigned int) b[i+2*j+1]);
       else if (i+2*j<len)
-	fprintf(out, "%02x ", (unsigned) b[i+2*j]);
+	fprintf(out, "%02x ", (unsigned int) b[i+2*j]);
     fprintf(out, "\n");
   }
   fprintf(out, "-- end packet --\n");
@@ -113,13 +113,13 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 
 /* ONE blocking read per call; dispatches all packets possible */
 /* returns 0 on success, or <0 on read failure                 */
-int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
+int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl) {
   unsigned char buffer[PACKET_MAX];
-  unsigned start = 0;
+  unsigned int start = 0;
   int end;
   int status;
 
-  static unsigned len = 0, escape = 0;
+  static unsigned int len = 0, escape = 0;
   static unsigned char copy[PACKET_MAX];
   
   /* start is start of packet.  end is end of buffer data */
@@ -174,10 +174,10 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
 }
 
 /* Make stripped packet into HDLC packet */
-int encaps_hdlc(int fd, void *pack, unsigned len) {
+int encaps_hdlc(int fd, void *pack, unsigned int len) {
   unsigned char *source = (unsigned char *)pack;
   unsigned char dest[2*PACKET_MAX+2]; /* largest expansion possible */
-  unsigned pos=0, i;
+  unsigned int pos=0, i;
   u_int16_t fcs;
 
   /* Compute the FCS */
@@ -205,7 +205,7 @@ int encaps_hdlc(int fd, void *pack, unsigned len) {
   return write(fd, dest, pos);
 }
 
-int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
+int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl) {
   unsigned char buffer[PACKET_MAX+64/*ip header*/];
   struct pptp_gre_header *header;
   int status, ip_len=0;
@@ -245,8 +245,8 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     if (WRAPPED(ack,ack_recv)) ack_recv=ack;
   }
   if (PPTP_GRE_IS_S(ntoh8(header->flags))) { /* payload present */
-    unsigned headersize = sizeof(*header);
-    unsigned payload_len= ntoh16(header->payload_len);
+    unsigned int headersize = sizeof(*header);
+    unsigned int payload_len= ntoh16(header->payload_len);
     u_int32_t seq       = ntoh32(header->seq);
     if (!PPTP_GRE_IS_A(ntoh8(header->ver))) headersize-=sizeof(header->ack);
     /* check for incomplete packet (length smaller than expected) */
@@ -265,13 +265,13 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
   }
   return 0; /* ack, but no payload */
 }
-int encaps_gre (int fd, void *pack, unsigned len) {
+int encaps_gre (int fd, void *pack, unsigned int len) {
   union {
     struct pptp_gre_header header;
     unsigned char buffer[PACKET_MAX+sizeof(struct pptp_gre_header)];
   } u;
   static u_int32_t seq=0;
-  unsigned header_len;
+  unsigned int header_len;
 
   /* package this up in a GRE shell. */
   u.header.flags	= hton8 (PPTP_GRE_FLAG_K);

@@ -1,3 +1,13 @@
+Fri Mar  1 12:13:03 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.c: move #include <sys/types.h> higher up
+	* pptp_gre.c, pptp_ctrl.c: change unsigned to unsigned int
+	* pptp.c: what we need from pty.h is in libutil.h for FreeBSD and
+	util.h for NetBSD (ideally this should be in autoconf)
+	* pptp.c: synchronisation changes
+	* orckit_quirks.c: #include <sys/types.h>
+	From: rhialto@azenomei.knuffel.net
+
 Fri Nov 23 14:42:07 2001  James Cameron  <quozl@us.netrek.org>
 
 	* USING: reformat, add version header.

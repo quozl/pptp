@@ -1,10 +1,11 @@
 /* orckit_quirks.c ...... fix quirks in orckit adsl modems
  *                        mulix <mulix@actcom.co.il>
  *
- * $Id: orckit_quirks.c,v 1.2 2001/11/23 03:42:51 quozl Exp $
+ * $Id: orckit_quirks.c,v 1.3 2002/03/01 01:23:36 quozl Exp $
  */
 
 #include <string.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include "pptp_msg.h"
 #include "pptp_options.h"

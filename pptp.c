@@ -2,13 +2,15 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.9 2001/11/23 03:42:51 quozl Exp $
+ * $Id: pptp.c,v 1.10 2002/03/01 01:23:36 quozl Exp $
  */
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__)
 #include <libutil.h>
+#elif defined(__NetBSD__)
+#include <util.h>
 #else
 #include <pty.h>
 #endif
@@ -43,7 +45,7 @@
 struct in_addr get_ip_address(char *name);
 int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
 void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
-void get_call_id(int sock, pid_t gre, pid_t pppd, 
+int get_call_id(int sock, pid_t gre, pid_t pppd, 
 		 u_int16_t *call_id, u_int16_t *peer_call_id);
 void launch_pppd(char *ttydev, int argc, char **argv);
 
@@ -136,11 +138,6 @@ int main(int argc, char **argv, char **envp) {
   pppdargc = argc - optind;
   pppdargv = argv + optind;
  
-  /* Step 2: Open connection to call manager
-   *         (Launch call manager if necessary.)
-   */
-  callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp);
-
   /* Step 3: Find an open pty/tty pair. */
   if(launchpppd){
       rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
@@ -180,9 +177,17 @@ int main(int argc, char **argv, char **envp) {
       child_pid=getpid();
       parent_pid=0; /* don't kill pppd */
   }
+
+  do {
+    /*
+     * Step 2: Open connection to call manager
+     *         (Launch call manager if necessary.)
+     */
+    callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp);
+
   /* Step 5: Exchange PIDs, get call ID */
-  get_call_id(callmgr_sock, parent_pid, child_pid, 
-	      &call_id, &peer_call_id);
+  } while (get_call_id(callmgr_sock, parent_pid, child_pid, 
+	               &call_id, &peer_call_id) < 0);
 
   /* Step 5b: Send signal to wake up pppd task */
   if(launchpppd){
@@ -300,7 +305,7 @@ void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,
 }
 
 /* XXX need better error checking XXX */
-void get_call_id(int sock, pid_t gre, pid_t pppd, 
+int get_call_id(int sock, pid_t gre, pid_t pppd, 
 		 u_int16_t *call_id, u_int16_t *peer_call_id)
 {
   u_int16_t m_call_id, m_peer_call_id;
@@ -308,13 +313,30 @@ void get_call_id(int sock, pid_t gre, pid_t pppd,
   /* don't bother with network byte order, because pid's are meaningless
    * outside the local host.
    */
-  write(sock, &gre, sizeof(gre));
-  write(sock, &pppd, sizeof(pppd));
-  read(sock,  &m_call_id, sizeof(m_call_id));
-  read(sock,  &m_peer_call_id, sizeof(m_peer_call_id));
-  /* XXX FIX ME ... DO ERROR CHECKING & TIME-OUTS XXX */
+  int rc;
+  rc = write(sock, &gre, sizeof(gre));
+  if (rc != sizeof(gre))
+      return -1;
+  rc = write(sock, &pppd, sizeof(pppd));
+  if (rc != sizeof(pppd))
+      return -1;
+  rc = read(sock,  &m_call_id, sizeof(m_call_id));
+  if (rc != sizeof(m_call_id))
+      return -1;
+  rc = read(sock,  &m_peer_call_id, sizeof(m_peer_call_id));
+  if (rc != sizeof(m_peer_call_id))
+      return -1;
+  /*
+   * XXX FIX ME ... DO ERROR CHECKING & TIME-OUTS XXX
+   * (Rhialto: I am assuming for now that timeouts are not relevant
+   * here, because the read and write calls would return -1 (fail) when
+   * the peer goes away during the process. We know it is (or was)
+   * running because the connect() call succeeded.)
+   */
   *call_id = m_call_id;
   *peer_call_id = m_peer_call_id;
+
+  return 0;
 }
 
 void launch_pppd(char *ttydev, int argc, char **argv) {
