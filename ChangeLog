@@ -63,7 +63,7 @@ Fri Feb 14 16:08:26 CET 2003 Rein Klazes <rklazes@xs4all.nl>
 	* pptp_ctrl.c, pptp_msg.h: tweak the outgoing call reply messages
 	once more. Print the error text that comes with the result code. 
 
-	* pptp.c: close all unused file descriptors beloging to the pty.
+	* pptp.c: close all unused file descriptors belonging to the pty.
 
 	* pptp_gre.c: Convert received acknowledgement numbers from network
 	to host order.
