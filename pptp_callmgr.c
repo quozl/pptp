@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.2 2000/12/23 08:32:15 scott Exp $
+ * $Id: pptp_callmgr.c,v 1.3 2001/04/30 03:42:36 scott Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -85,6 +85,7 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state) {
   case CALL_CLOSE_RQST:
   case CALL_CLOSE_DONE:
     /* don't need to do anything here, except make sure tables are sync'ed */
+    log("Closing connection");
     conninfo = pptp_conn_closure_get(conn);
     lci = pptp_call_closure_get(conn, call); 
     assert(lci != NULL && conninfo != NULL);
@@ -113,10 +114,12 @@ int main(int argc, char **argv, char **envp) {
   int first=1;
   int retval;
   int i;
+  char *phonenr;
 
   /* Step 0: Check arguments */
-  if (argc!=2) 
-    fatal("Usage: %s ip.add.ress.here", argv[0]);
+  if (argc < 2) 
+    fatal("Usage: %s ip.add.ress.here [--phone <phone number>]", argv[0]);
+  phonenr = argc==3 ? argv[2] : NULL;
   if (inet_aton(argv[1], &inetaddr)==0)
     fatal("Invalid IP address: %s", argv[1]);
 
@@ -211,7 +214,7 @@ int main(int argc, char **argv, char **envp) {
       lci->unix_sock = s;
 
       /* Give the initiator time to write the PIDs while we open the call */
-      call = pptp_call_open(conn, call_callback);
+      call = pptp_call_open(conn, call_callback, phonenr);
       /* Read and store the associated pids */
       read(s, &lci->pid[0], sizeof(lci->pid[0]));
       read(s, &lci->pid[1], sizeof(lci->pid[1]));
@@ -234,6 +237,7 @@ int main(int argc, char **argv, char **envp) {
 	retval = vector_search(call_list, i, &call);
 	if (retval) {
 	  struct local_callinfo *lci = pptp_call_closure_get(conn, call);
+          log("Closing connection");
 	  kill(lci->pid[0], SIGTERM);
 	  kill(lci->pid[1], SIGTERM);
 	  free(lci);
@@ -255,6 +259,7 @@ shutdown:
     for (i=0; i<vector_size(call_list); i++) {
       PPTP_CALL *call = vector_get_Nth(call_list, i);
       struct local_callinfo *lci = pptp_call_closure_get(conn, call);
+      log("Closing connection");
       pptp_call_close(conn, call);
       kill(lci->pid[0], SIGTERM);
       kill(lci->pid[1], SIGTERM);

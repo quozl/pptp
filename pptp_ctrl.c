@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.3 2001/04/09 12:17:00 jeffw Exp $
+ * $Id: pptp_ctrl.c,v 1.4 2001/04/30 03:42:36 scott Exp $
  */
 
 #include <errno.h>
@@ -183,7 +183,8 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
  * We need to do something else to allocate calls for incoming requests.
  */
 PPTP_CALL * pptp_call_open(PPTP_CONN * conn,
-			   pptp_call_cb callback){
+			   pptp_call_cb callback, char *phonenr)
+{
   PPTP_CALL * call;
   int i;
   assert(conn && conn->call);
@@ -211,6 +212,15 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn,
       hton32(PPTP_BEARER_CAP), hton32(PPTP_FRAME_CAP), 
       hton16(PPTP_WINDOW), 0, 0, 0, {0}, {0}
     };
+
+    /* fill in the phone number if it was specified */
+    if( phonenr ){
+        strncpy(packet.phone_num, phonenr, sizeof(packet.phone_num));
+        packet.phone_len = strlen(phonenr);
+        if( packet.phone_len > sizeof(packet.phone_num))
+            packet.phone_len = sizeof(packet.phone_num);
+    }
+
     if (pptp_send_ctrl_packet(conn, &packet, sizeof(packet))) {
       pptp_reset_timer();
       call->state.pns = PNS_WAIT_REPLY;

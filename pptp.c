@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.2 2000/12/23 08:32:15 scott Exp $
+ * $Id: pptp.c,v 1.3 2001/04/30 03:42:36 scott Exp $
  */
 
 #include <sys/types.h>
@@ -20,6 +20,7 @@
 #include <setjmp.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <getopt.h>
 #include "pptp_callmgr.h"
 #include "pptp_gre.h"
 #include "version.h"
@@ -32,8 +33,8 @@
 #endif
 
 struct in_addr get_ip_address(char *name);
-int open_callmgr(struct in_addr inetaddr, int argc,char **argv,char **envp);
-void launch_callmgr(struct in_addr inetaddr, int argc,char **argv,char **envp);
+int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
+void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
 void get_call_id(int sock, pid_t gre, pid_t pppd, 
 		 u_int16_t *call_id, u_int16_t *peer_call_id);
 void launch_pppd(char *ttydev, int argc, char **argv);
@@ -42,7 +43,9 @@ void usage(char *progname) {
   fprintf(stderr,
 	  "%s\n"
 	 "Usage:\n"
-	 " %s hostname [pppd options]\n", version, progname);
+  	 " %s hostname [[--phone <phone number>] -- ][ pppd options]\n",
+         version, progname);
+
   exit(1);
 }
 
@@ -65,17 +68,60 @@ int main(int argc, char **argv, char **envp) {
   int pty_fd, tty_fd, rc;
   pid_t parent_pid, child_pid;
   u_int16_t call_id, peer_call_id;
+  int pppdargc;
+  char **pppdargv;
+  char phonenrbuf[65]; /* maximum length of field plus one for the trailing
+                        * '\0' 
+                        */
+  char *phonenr = NULL;
   
   if (argc < 2)
     usage(argv[0]);
 
-  /* Step 1: Get IP address for the hostname in argv[1] */
+  /* Step 1a: Get IP address for the hostname in argv[1] */
   inetaddr = get_ip_address(argv[1]);
 
+  /* step 1b: Find the ppp options, extract phone number */
+  argc--;
+  argv++;
+  while(1){ 
+      /* structure with all recognised options for pptp */
+      static struct option long_options[] = {
+          {"phone", 1, 0, 0},  
+          {0, 0, 0, 0}
+      };
+      int option_index = 0;
+      int c;
+      opterr=0; /* suppress "unrecognised option" message, here
+                 * we assume that it is a pppd option */
+      c = getopt_long (argc, argv, "", long_options, &option_index);
+      if( c==-1) break;  /* no more options */
+      switch (c) {
+        case 0: 
+            if(option_index == 0) { /* --phone specified */
+                /* copy it to a buffer, as the argv's will be overwritten by 
+                 * inststr() */
+                strncpy(phonenrbuf,optarg,sizeof(phonenrbuf));
+                phonenrbuf[sizeof(phonenrbuf)-1]='\0';
+                phonenr=phonenrbuf;
+            } 
+            /* other pptp options come here */
+            break;
+        case '?': /* unrecognised option, treat it as the first pppd option */
+            /* fall through */
+        default:
+            c = -1;
+            break;
+      }
+      if( c==-1) break;  /* no more options for pptp */
+    }
+  pppdargc = argc - optind;
+  pppdargv = argv + optind;
+ 
   /* Step 2: Open connection to call manager
    *         (Launch call manager if necessary.)
    */
-  callmgr_sock = open_callmgr(inetaddr, argc,argv,envp);
+  callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp);
 
   /* Step 3: Find an open pty/tty pair. */
   /* pty_fd = getpseudotty(ttydev, ptydev); */
@@ -104,7 +150,7 @@ int main(int argc, char **argv, char **envp) {
     if (!signaled) {
 	pause(); /* wait for the signal */
     }
-    launch_pppd(ttydev, argc-2, argv+2); /* launch pppd */
+    launch_pppd(ttydev, pppdargc, pppdargv); /* launch pppd */
     perror("Error");
     fatal("Could not launch pppd");
   }
@@ -158,7 +204,7 @@ struct in_addr get_ip_address(char *name) {
   return retval;
 }
 
-int open_callmgr(struct in_addr inetaddr, int argc, char **argv, char **envp) {
+int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, char **envp) {
   /* Try to open unix domain socket to call manager. */
   struct sockaddr_un where;
   const int NUM_TRIES = 3;
@@ -189,7 +235,7 @@ int open_callmgr(struct in_addr inetaddr, int argc, char **argv, char **envp) {
       case 0: /* child */
 	  {
 	      close (fd);
-	      launch_callmgr(inetaddr, argc,argv,envp);
+	      launch_callmgr(inetaddr, phonenr, argc,argv,envp);
 	  }
       default: /* parent */
 	  waitpid(pid, &status, 0);
@@ -206,13 +252,15 @@ int open_callmgr(struct in_addr inetaddr, int argc, char **argv, char **envp) {
   return -1;   /* make gcc happy */
 }
 
-void launch_callmgr(struct in_addr inetaddr, int argc,char**argv,char**envp) {
+void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,
+        char**argv,char**envp) 
+{
       int callmgr_main(int argc, char**argv, char**envp);
-      char *my_argv[2] = { argv[0], inet_ntoa(inetaddr) };
+      char *my_argv[3] = { argv[0], inet_ntoa(inetaddr), phonenr };
       char buf[128];
       snprintf(buf, sizeof(buf), "pptp: call manager for %s", my_argv[1]);
       inststr(argc,argv,envp,buf);
-      exit(callmgr_main(2, my_argv, envp));
+      exit(callmgr_main(3, my_argv, envp));
       /*
       const char *callmgr = PPTP_CALLMGR_BINARY;
       execlp(callmgr, callmgr, inet_ntoa(inetaddr), NULL);
