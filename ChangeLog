@@ -1,3 +1,9 @@
+Mon Mar 11 10:21:00 2002  mulix  <mulix@actcom.co.il>
+
+	* Makefile (all): make config.h before making $(PPTP_BIN). 
+	* Makefile (config.h): truncate the file if it exists before
+	inputing to it - '>' instead of '>>'
+
 Mon Mar 11 12:48:16 2002  James Cameron  <quozl@us.netrek.org>
 
 	* DEVELOPERS: add mailing lists.

@@ -23,13 +23,13 @@ PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
 PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
 	    pptp_quirks.h orckit_quirks.h config.h
 
-all: $(PPTP_BIN)
+all: config.h $(PPTP_BIN)
 
 $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
 
-config.h:
-	echo "/* text added by Makefile target config.h */" >> config.h
+config.h: 
+	echo "/* text added by Makefile target config.h */" > config.h
 	echo "#define PPTP_LINUX_VERSION \"$(VERSION)\"" >> config.h
 	echo "#define PPPD_BINARY \"$(PPPD)\"" >> config.h
 
