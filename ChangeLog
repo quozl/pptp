@@ -1,4 +1,6 @@
-Sat Mar  2 03:19:24 2002  James Cameron  <quozl@us.netrek.org>
+Sat Mar  2 03:51:15 2002  James Cameron  <quozl@us.netrek.org>
+
+	* USING: include psuedo-tty activation instructions.
 
 	* Makefile: increment version, avoid clobbering editor backup
 	files on clean.

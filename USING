@@ -1,11 +1,18 @@
-$Id: USING,v 1.2 2001/11/23 03:42:51 quozl Exp $	
+$Id: USING,v 1.3 2002/03/01 16:55:57 quozl Exp $	
 
-pptp-linux is based on pppd, so invocation is very similar:
+pptp is started as a psuedo-tty child process using pppd's pty option:
 
-	pptp hostname [--phone-number] [--quirks ...] [ppp-options]
+	pppd call provider [pppd-options] \
+	pty "/usr/sbin/pptp hostname --nolaunchpppd [pptp-options]"
 
-Note: the hostname comes *before* the pptp options, and the pppd
-options come last.
+where hostname is the host name or IP address of the PPTP server.
+
+pptp can also start pppd itself:
+
+	pptp hostname [pptp-options] [pppd-options]
+
+Note the unusual order of arguments, the hostname comes before the
+pptp options, and the pppd options come last.
 
 So, for example:
 
