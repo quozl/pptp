@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.4 2001/05/12 00:15:16 thomas Exp $
+ * $Id: pptp_gre.c,v 1.5 2001/05/31 13:50:36 thomas Exp $
  */
 
 #include <netinet/in.h>
@@ -135,14 +135,12 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     while (buffer[start] != HDLC_FLAG) {
       if (!escape && buffer[start] == HDLC_ESCAPE) {
 	escape = 1;
-        start++;
-        continue;
+      } else {
+        if (len < PACKET_MAX)
+	  copy [len++] = buffer[start] ^ ((escape) ? 0x20 : 0x00); 
+        escape = 0;
       }
-
-      if (len < PACKET_MAX)
-	copy [len++] = buffer[start] ^ ((escape) ? 0x20 : 0x00); 
       start++;
-      escape = 0;
 
       if (start >= end)
         return 0; /* No more data, but the frame is not complete yet. */
