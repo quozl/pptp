@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.36 2005/02/18 00:32:19 quozl Exp $
+# $Id: Makefile,v 1.37 2005/02/18 01:40:23 quozl Exp $
 VERSION=1.6.0
 RELEASE=
 
@@ -9,6 +9,7 @@ PPPD = /usr/sbin/pppd
 
 BINDIR=$(DESTDIR)/usr/sbin
 MANDIR=$(DESTDIR)/usr/share/man/man8
+PPPDIR=$(DESTDIR)/etc/ppp
 
 CC	= gcc
 RM	= rm -f
@@ -57,6 +58,8 @@ install:
 	install -o root -m 555 pptp $(BINDIR)
 	mkdir -p $(MANDIR)
 	install -m 644 pptp.8 $(MANDIR)
+	mkdir -p $(PPPDIR)
+	install -m 644 options.pptp $(PPPDIR)
 
 uninstall:
 	$(RM) $(BINDIR)/pptp $(MANDIR)/pptp.8
@@ -65,9 +68,10 @@ dist: clobber
 	$(RM) pptp-$(VERSION)$(RELEASE).tar.gz
 	$(RM) -r pptp-$(VERSION)
 	mkdir pptp-$(VERSION)
-	cp --recursive ChangeLog Makefile *.c *.h pptp.8 Documentation \
-Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TODO USING \
-	pptp-$(VERSION)/
+	cp --recursive ChangeLog Makefile *.c *.h options.pptp pptp.8 \
+		Documentation Reference AUTHORS COPYING INSTALL NEWS \
+		README DEVELOPERS TODO USING \
+		pptp-$(VERSION)/
 	$(RM) -r pptp-$(VERSION)/CVS pptp-$(VERSION)/*/CVS
 	tar czf pptp-$(VERSION)$(RELEASE).tar.gz pptp-$(VERSION)
 	$(RM) -r pptp-$(VERSION)
