@@ -8,6 +8,8 @@ Build-Depends: debhelper
 Package: pptp-linux
 Architecture: any
 Depends: ${shlibs:Depends}, ppp
-Description: PPTP Microsoft Compatible Tunneling Protocol
- pptp-linux is an implementation of the PPTP protocol for Linux and
- other Unix systems.
+Description: Point-to-Point Tunneling Protocol (PPTP) Client
+ Client for the proprietary Microsoft Point-to-Point Tunneling
+ Protocol, PPTP.  Allows connection to a PPTP based VPN as used
+ by employers and some cable and ADSL service providers.
+ Requires MPPE support in kernel, use package kernel-patch-mppe.
