@@ -1,3 +1,7 @@
+Tue Jun 10 18:43:34 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp-linux-1.3.0 released.
+
 Tue Jun  3 19:16:52 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.8, pptp.c: change SIGHUP to SIGUSR1 for dumping stats.
