@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.32 2003/06/17 17:25:47 reink Exp $
+ * $Id: pptp.c,v 1.33 2003/06/17 17:39:47 reink Exp $
  */
 
 #include <sys/types.h>
@@ -140,6 +140,7 @@ int main(int argc, char **argv, char **envp)
     int pty_fd, tty_fd, gre_fd, rc;
     volatile pid_t parent_pid, child_pid;
     u_int16_t call_id, peer_call_id;
+    char buf[128];
     int pppdargc;
     char **pppdargv;
     char phonenrbuf[65]; /* maximum length of field plus one for the trailing
@@ -283,7 +284,7 @@ int main(int argc, char **argv, char **envp)
     } while (get_call_id(callmgr_sock, parent_pid, child_pid, 
                 &call_id, &peer_call_id) < 0);
     /* Step 5b: Send signal to wake up pppd task */
-    if (launchpppd){
+    if (launchpppd) {
         kill(parent_pid, SIGUSR1);
         sleep(2);
         /* become a daemon */
@@ -294,12 +295,9 @@ int main(int argc, char **argv, char **envp)
         /* re-open stderr as /dev/null to release it */
         file2fd("/dev/null", "wb", STDERR_FILENO);
     }
-    {
-        char buf[128];
-        snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", 
-                ttyname(tty_fd));
-        inststr(argc, argv, envp, buf);
-    }
+    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", 
+            ttyname(tty_fd));
+    inststr(argc, argv, envp, buf);
     if (sigsetjmp(env, 1)!= 0) goto shutdown;
     signal(SIGINT,  sighandler);
     signal(SIGTERM, sighandler);
