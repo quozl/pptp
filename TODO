@@ -1,3 +1,7 @@
+20th May 2003
+
+- GRE stats to a pipe or shared memory, for GUI to use
+
 15th February 2003
 
 - pptp.8 update man page for new options
@@ -26,4 +30,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.12 2003/05/12 07:03:35 quozl Exp $	
+$Id: TODO,v 1.13 2003/05/20 01:51:20 quozl Exp $	

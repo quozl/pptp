@@ -45,8 +45,12 @@ Sat Feb 15 14:59:20 2003  James Cameron  <quozl@us.netrek.org>
 	support multiple clients from separate alias IP addresses.  
 	From: Ed Marcotte <epm@cisco.com>
 
+Fri Feb 14 10:11:27 2003  James Cameron  <quozl@us.netrek.org>
+	
+	* pptp-linux-1.2.0 released.
+	
 Fri Feb 14 16:08:26 CET 2003 Rein Klazes <rklazes@xs4all.nl>
-
+	
 	* pptp_ctrl.c, pptp_msg.h: tweak the outgoing call reply messages
 	once more. Print the error text that comes with the result code. 
 
