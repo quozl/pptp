@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.33 2003/06/17 17:39:47 reink Exp $
+ * $Id: pptp.c,v 1.34 2003/08/19 05:17:28 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -52,6 +52,7 @@
 #endif
 
 int syncppp = 0;
+int log_level = 1;
 
 struct in_addr get_ip_address(char *name);
 int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd);
@@ -80,7 +81,9 @@ void usage(char *progname)
             "  --sync		Enable Synchronous HDLC (pppd must use it too)\n"
             "  --timeout <secs>	Time to wait for reordered packets (0.01 to 10 secs)\n"
             "  --logstring <name>	Use <name> instead of 'anon' in syslog messages\n"
-            "  --localbind <addr>	Bind to specified IP address instead of wildcard\n",
+            "  --localbind <addr>	Bind to specified IP address instead of wildcard\n"
+            "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n",
+
             version, progname, progname);
     log("%s called with wrong arguments, program not started.", progname);
     exit(1);
@@ -166,6 +169,7 @@ int main(int argc, char **argv, char **envp)
             {"timeout", 1, 0, 0},
             {"logstring", 1, 0, 0},
             {"localbind", 1, 0, 0},
+            {"loglevel", 1, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -213,6 +217,10 @@ int main(int argc, char **argv, char **envp)
                         log("Local bind address %s invalid\n", optarg);
                         exit(2);
                     }
+                } else if (option_index == 8) { /* --loglevel */
+                    log_level = atoi(optarg);
+                    if (log_level < 0 || log_level > 2)
+                        usage(argv[0]);
                 }
                 break;
             case '?': /* unrecognised option,

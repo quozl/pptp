@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.33 2003/08/07 02:27:49 quozl Exp $
+ * $Id: pptp_gre.c,v 1.34 2003/08/19 05:17:28 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -26,7 +26,6 @@
 #define WRAPPED( curseq, lastseq) \
     ((((curseq) & 0xffffff00) == 0) && \
      (((lastseq) & 0xffffff00 ) == 0xffffff00))
-#undef REORDER_LOGGING
 
 static u_int32_t ack_sent, ack_recv;
 static u_int32_t seq_sent, seq_recv;
@@ -202,10 +201,11 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
     if( !checkedsync) {
         checkedsync = 1;
         if( buffer[0] == HDLC_FLAG){
-            if( syncppp)
+            if( syncppp )
                 warn( "pptp --sync option is active, "
                         "yet the ppp mode is asynchronous!\n");
-        } else if( !syncppp)
+        }
+	else if( !syncppp )
             warn( "The ppp mode is synchronous, "
                     "yet no pptp --sync option is specified!\n");
     }
@@ -367,9 +367,8 @@ int decaps_gre (int fd, callback_t callback, int cl)
     }
     /* check for expected sequence number */
     if ( first || (seq == seq_recv + 1)) { /* wrap-around safe */
-#if REORDER_LOGGING_VERBOSE
-        log("accepting packet %d", seq);
-#endif
+	if ( log_level >= 2 )
+            log("accepting packet %d", seq);
         stats.rx_accepted++;
         first = 0;
         seq_recv = seq;
@@ -377,21 +376,23 @@ int decaps_gre (int fd, callback_t callback, int cl)
     /* out of order, check if the number is too low and discard thepacket. 
      * (handle sequence number wrap-around, and try to do it right) */
     } else if ( seq < seq_recv + 1 || WRAPPED(seq_recv, seq) ) {
-        log("discarding duplicate or old packet %d (expecting %d)",
+	if ( log_level >= 1 )
+            log("discarding duplicate or old packet %d (expecting %d)",
                 seq, seq_recv + 1);
         stats.rx_underwin++;
     /* sequence number too high, is it reasonably close? */
     } else if ( seq < seq_recv + MISSING_WINDOW ||
-            WRAPPED(seq, seq_recv + MISSING_WINDOW) ) {
-#if 1 /* some logging of reordening is required, we might miss some "side effects" */
-        log("buffering packet %d (expecting %d, lost or reordered)", seq, seq_recv+1);
-
-#endif
+                WRAPPED(seq, seq_recv + MISSING_WINDOW) ) {
+        if ( log_level >= 1 )
+	    log("buffering packet %d (expecting %d, lost or reordered)", 
+		seq, seq_recv+1);
         pqueue_add(seq, buffer + ip_len + headersize, payload_len);
         stats.rx_buffered++;
     /* no, packet must be discarded */
     } else {
-        warn("discarding bogus packet %d (expecting %d)", seq, seq_recv + 1);
+	if ( log_level >= 1 )
+            warn("discarding bogus packet %d (expecting %d)", 
+		 seq, seq_recv + 1);
         stats.rx_overwin++;
     }
     return 0;
@@ -413,13 +414,11 @@ int dequeue_gre (callback_t callback, int cl)
         /* if it is timed out... */
         if (head->seq != seq_recv + 1 ) {  /* wrap-around safe */          
             stats.rx_lost += head->seq - seq_recv - 1;
-#ifdef REORDER_LOGGING
-            log("timeout waiting for %d packets", head->seq - seq_recv - 1);
-#endif
+	    if (log_level >= 2)
+                log("timeout waiting for %d packets", head->seq - seq_recv - 1);
         }
-#ifdef REORDER_LOGGING
-        log("accepting %d from queue", head->seq);
-#endif
+	if (log_level >= 2)
+            log("accepting %d from queue", head->seq);
         seq_recv = head->seq;
         status = callback(cl, head->packet, head->packlen);
         pqueue_del(head);

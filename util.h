@@ -1,7 +1,7 @@
 /* util.h ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.h,v 1.3 2002/12/09 05:50:37 quozl Exp $
+ * $Id: util.h,v 1.4 2003/08/19 05:17:28 quozl Exp $
  */
 
 #ifndef INC_UTIL_H
@@ -11,6 +11,10 @@
    command line using --log-string=X, and included with every log message.
    Useful for people with multiple pptp sessions open at a time */
 extern char * log_string;
+
+/* log_level sets the logging verbosity. Values range from 0 (errors only)
+   to 1 (errors and warnings) to 2 (high verbosity, for debugging) */
+extern int    log_level;
 
 void _log(char *func, char *file, int line, char *format, ...)
      __attribute__ ((format (printf, 4, 5)));
