@@ -1,7 +1,7 @@
 /*  pptp.h:  packet structures and magic constants for the PPTP protocol 
  *           C. Scott Ananian <cananian@alumni.princeton.edu>            
  *
- * $Id: pptp_msg.h,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: pptp_msg.h,v 1.2 2003/02/14 14:25:17 reink Exp $
  */
 
 #ifndef INC_PPTP_H
@@ -73,6 +73,7 @@
 
 /* PPTP error codes: ----------------------------------------------*/
 
+#define PPTP_RESULT_GENERAL_ERROR 2
 /* (General Error Codes) */
 static const struct {
   const char *name, *desc;

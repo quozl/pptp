@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.13 2002/11/20 10:58:35 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.14 2003/02/14 14:25:16 reink Exp $
  */
 
 #include <errno.h>
@@ -104,6 +104,19 @@ struct PPTP_CALL {
   pptp_call_cb callback;
   void * closure;
 };
+
+/* Outgoing Call Reply Result Codes */
+static const char *pptp_out_call_reply_result[] = {
+/* 0 */	"Unknown Result Code",
+/* 1 */	"Connected",
+/* 2 */	"General Error",
+/* 3 */	"No Carrier Detected",
+/* 4 */	"Busy Signal",
+/* 5 */	"No Dial Tone",
+/* 6 */	"Time Out",
+/* 7 */	"Not Accepted, Call is administratively prohibited" };
+
+#define MAX_OUT_CALL_REPLY_RESULT 7
 
 /* Local prototypes */
 static void pptp_reset_timer(void);
@@ -680,17 +693,18 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	  unsigned int legal_error_value =
 	       sizeof(pptp_general_errors)/sizeof(pptp_general_errors[0]);
 	  int err = packet->error_code;
-          log("Our outgoing call request has not been accepted. Reply result code is %d. [callid %d]",
-	      packet->result_code, (int) callid);
-          log("Error code is '%d', Cause code is '%d'", err,
-	      packet->cause_code);
+          log("Our outgoing call request [callid %d] has not been accepted.", (int) callid);
+          log("Reply result code is %d '%s'. Error code is %d, Cause code is %d",
+	      packet->result_code,
+	      pptp_out_call_reply_result[packet->result_code <=  MAX_OUT_CALL_REPLY_RESULT ? packet->result_code : 0],
+	      err, packet->cause_code );
           if ((err > 0) && (err < legal_error_value)){
-            log("Error is '%s', Error message: '%s'",
-            pptp_general_errors[err].name,
-            pptp_general_errors[err].desc);
+	    if( packet->result_code != PPTP_RESULT_GENERAL_ERROR )
+		  log("Result code is something else then \"general error\", so the following error is probably bogus.");
+	    log("Error is '%s', Error message: '%s'",
+	    pptp_general_errors[err].name,
+	    pptp_general_errors[err].desc);
 	  }
-
-
 	  call->state.pns = PNS_IDLE;
 	  if (call->callback!=NULL) call->callback(conn, call, CALL_OPEN_FAIL);
 	  pptp_call_destroy(conn, call);
