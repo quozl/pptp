@@ -1,8 +1,8 @@
-pptp-linux (1.1.0-rc5) frozen unstable; urgency=low
+pptp-linux (1.1.0-1) frozen unstable; urgency=low
 
   * New upstream release.
 
- -- James Cameron <james.cameron@compaq.com>  Fri,  8 Mar 2002 11:30:55 +1100
+ -- James Cameron <james.cameron@compaq.com>  Fri, 20 Mar 2002 11:30:55 +1100
 
 pptp-linux (1.0.3-2) frozen unstable; urgency=low
 
