@@ -1,0 +1,264 @@
+# release process for pptp-linux and pptp-extras package (ppp below)
+
+# make local repository up to date in case of other changes
+pushd pptp-linux && cvs update -d && popd && \
+pushd specs && cvs update -d && popd && \
+pushd pptp-extras && cvs update -d && popd
+
+# set shell variables for version
+# (use -rc1 for release candidate 1, or blank for final release)
+VERSION=1.5.0
+RELEASE=-rc1
+
+TAG_VERSION=`echo ${VERSION}|tr . _`
+export VERSION RELEASE TAG_VERSION
+echo "VERSION=${VERSION} RELEASE=${RELEASE} TAG_VERSION=${TAG_VERSION}"
+
+# check and fix versions
+egrep "Version|Release" specs/pptp-linux.spec
+emacsclient specs/pptp-linux.spec
+#head -1 pptp-linux/debian/changelog 
+#emacsclient pptp-linux/debian/changelog 
+egrep "VERSION=|RELEASE=" pptp-linux/Makefile
+emacsclient pptp-linux/Makefile
+egrep "VERSION=|RELEASE=" pptp-extras/Makefile
+emacsclient pptp-extras/Makefile
+
+# If not a release candidate, update ChangeLog and NEWS with a release date
+emacsclient pptp-linux/NEWS
+emacsclient pptp-linux/ChangeLog
+pushd pptp-linux && cvs commit -m "release $VERSION$RELEASE" NEWS ChangeLog && popd && \
+
+# commit changes as required
+pushd specs && cvs commit -m "release $VERSION$RELEASE" pptp-linux.spec && popd && \
+pushd pptp-linux && cvs commit -m "release $VERSION$RELEASE" Makefile && popd && \
+pushd pptp-extras && cvs commit -m "release $VERSION$RELEASE" Makefile && popd
+
+# tag
+TAG=pptp-linux-${TAG_VERSION}${RELEASE}
+echo "TAG=${TAG}"
+cd pptp-linux &&  cvs tag -F ${TAG} && cd .. && \
+cd specs && cvs tag -F ${TAG} pptp-linux.spec && cd .. && \
+cd pptp-extras && cvs tag -F ${TAG} && cd ..
+
+# mkdist
+cd pptp-linux && make dist && cd .. && \
+mv pptp-linux/pptp-linux-${VERSION}${RELEASE}.tar.gz ./
+
+cd pptp-extras && make dist && cd .. && \
+mv pptp-extras/pptp-extras-${VERSION}${RELEASE}.tar.gz ./
+
+# send to my build machines
+#scp \
+#pptp-linux-${VERSION}${RELEASE}.tar.gz \
+#pptp-extras-${VERSION}${RELEASE}.tar.gz \
+#specs/pptp-linux.spec \
+#quozl:/tmp/
+#
+#scp \
+#pptp-linux-${VERSION}${RELEASE}.tar.gz \
+#pptp-extras-${VERSION}${RELEASE}.tar.gz \
+#jander:/tmp/
+
+# deb pptp-linux
+# on intel and alpha
+#cd pptp-linux
+# apt-get install debhelper fakeroot
+#fakeroot dpkg-buildpackage
+#fakeroot dpkg-buildpackage -us -uc
+#cd ..
+
+# rpm pptp-linux
+# on intel and alpha
+# (set variables)
+su
+cd /home/james/pptp-client
+cp pptp-linux-${VERSION}${RELEASE}.tar.gz /usr/src/rpm/SOURCES/pptp-linux-${VERSION}.tar.gz 
+cd /tmp
+tar xfz /home/james/pptp-client/pptp-extras-${VERSION}${RELEASE}.tar.gz 
+cd pptp-extras-${VERSION}/
+cp pptp-command options.pptp pptp_fe.pl xpptp_fe.pl /usr/src/rpm/SOURCES/
+cd ..
+rm -rf pptp-extras-${VERSION}/
+cd /home/james/pptp-client/specs
+rpmbuild -ba pptp-linux.spec
+
+# cross build onto alpha from intel
+#cd /usr/src/rpm/SRPMS
+#scp *.src.rpm alpha:/tmp/
+#cd /tmp
+#rpm --rebuild pptp-linux-${VERSION}${RELEASE}.src.rpm 
+#cd /usr/src/rpm/RPMS/alpha
+
+# publish
+# on intel
+#su - james
+# (or ^d)
+# (set variables)
+cd ~/public_html/external/mine/pptp/
+cp /home/james/pptp-client/pptp-linux-${VERSION}${RELEASE}.tar.gz ./
+# only if final release
+cp /home/james/pptp-client/pptp-extras-${VERSION}${RELEASE}.tar.gz ./
+#cp /tmp/pptp-linux-${VERSION}${RELEASE}/pptp-linux_${VERSION}${RELEASE}* ./
+cp /usr/src/rpm/SRPMS/pptp-linux-${VERSION}${RELEASE}.src.rpm ./
+cp /usr/src/rpm/RPMS/i386/pptp-linux-${VERSION}${RELEASE}.i386.rpm ./
+# debian packages
+#cp ~/pptp-client/pptp-linux_${VERSION}${RELEASE}_i386.deb ./
+#cp ~/pptp-client/pptp-linux_${VERSION}${RELEASE}_i386.changes ./
+#cp ~/pptp-client/pptp-linux_${VERSION}${RELEASE}.dsc ./
+# on alpha
+#su - james
+#cd public_html/external/mine/pptp/
+#cp /tmp/pptp-linux-${VERSION}${RELEASE}/pptp-linux_${VERSION}${RELEASE}_alpha.changes ./
+#cp /tmp/pptp-linux-${VERSION}${RELEASE}/pptp-linux_${VERSION}${RELEASE}_alpha.deb ./
+#cp /usr/src/rpm/RPMS/alpha/pptp-linux-${VERSION}${RELEASE}.alpha.rpm ./
+
+
+md5sum *rc* > md5sums 
+gpg --detach-sign --armor --default-key ae2466c0 pptp-linux-${VERSION}${RELEASE}.tar.gz 
+mv pptp-linux-${VERSION}${RELEASE}.tar.gz.asc pptp-linux-${VERSION}${RELEASE}.tar.gz.signature
+
+# edit public_html/external/mine/pptp/index.phtml
+emacsclient ~/public_html/external/mine/pptp/index.phtml
+emacsclient ~/public_html/external/mine/pptp/results.phtml
+# add candidate line
+# test http://www.lan/~james/external/mine/pptp/
+
+# upload
+upw
+# test http://quozl.netrek.org/pptp/
+# test http://quozl.linux.org.au/pptp/
+
+# compose release candidate announcement
+# To: pptpclient-devel@lists.sourceforge.net		(candidates)
+# To: pptpclient-announce@lists.sourceforge.net		(final)
+# From: James Cameron <james.cameron@hp.com>
+# Subject: pptp-linux-${VERSION}${RELEASE} released
+# ...
+# include NEWS
+# point at release candidate pages
+# http://quozl.netrek.org/pptp/
+# http://quozl.linux.org.au/pptp/
+# sign mail
+
+mutt pptpclient-devel@lists.sourceforge.net
+pptp-linux-1.5.0-rc1 released
+G'day,
+
+PPTP Client 1.5.0 release candidate 1 is available.
+
+Changes since 1.4.0 are:
+- fix CPU loop after pppd killed [Cameron]
+- fix compile for ARM architecture [Hopf]
+- add documentation for command-line options [Wilson]
+- do not hang when a connection is refused [McCurdy]
+- better describe a cause of EMSGSIZE [Cameron]
+
+Can be downloaded from:
+http://quozl.netrek.org/pptp/
+http://quozl.linux.org.au/pptp/
+
+8f073fdcc18ea586ecb4e2ef4a98181b  pptp-linux-1.5.0-rc1.i386.rpm
+71a6f8312c8bc00c4db19ca8ee134a15  pptp-linux-1.5.0-rc1.src.rpm
+90e4712825654fc3ddc564d7d8413683  pptp-linux-1.5.0-rc1.tar.gz
+
+# to add to process
+# add sourceforge publishing step
+# NEW USER REQUEST ... ensure .src.rpm is published to sourceforge
+
+# https://sf.net/projects/pptpd
+# login
+# admin
+# file releases
+# add release (ppp-mppe)
+# add release (pptpclient)
+# new release name: ${version}
+
+
+# todo, version matrix, linux distribution down left side, pptp & ppp top,
+# then a link to instructions
+
+
+
+
+
+# april 2003, ppp packaging
+
+# TODO: change the version as shown by pppd --version
+
+# pull latest
+cd ~/upstream/ppp
+cvs update -d
+
+# test build locally
+make clean
+make
+make clean
+
+# prepare for packaging
+VERSION=2.4.2_cvs_`date +"%Y%m%d"`
+RELEASE=1
+echo $VERSION
+
+cd ~/pptp-client
+
+# adjust ppp.spec version according to above
+emacsclient specs/ppp.spec
+
+# build tarball
+scripts/mkdist-ppp ${VERSION}
+
+# send to build machine
+BUILD=lenny
+scp ppp-${VERSION}.tar.gz root@${BUILD}:/tmp
+
+# on build machine, prepare for rpm
+cd /tmp
+tar xvfz ppp-${VERSION}.tar.gz ppp-${VERSION}/ppp.spec
+cd ppp-${VERSION}/
+# debian
+cp ../ppp-${VERSION}.tar.gz /usr/src/rpm/SOURCES/
+# or, rh 8.0
+cp ../ppp-${VERSION}.tar.gz /usr/src/redhat/SOURCES/
+chown root:root ppp.spec
+
+# debian sarge
+rpm -ba ppp.spec
+# or, rh 8.0
+rpmbuild -ba ppp.spec
+# or, debian 3.0, remove builddep
+rpmbuild -ba ppp.spec
+
+# distribute rpm and src.rpm files
+
+scp \
+/usr/src/rpm/SRPMS/ppp-${VERSION}-${RELEASE}.src.rpm \
+/usr/src/rpm/RPMS/i386/ppp-${VERSION}-${RELEASE}.i386.rpm \
+root@quozl:/hdc/tmp/
+
+
+# cross build onto alpha from intel
+scp *.src.rpm alpha:/tmp/
+cd /tmp
+rpm --rebuild ppp-${VERSION}-${RELEASE}.src.rpm
+cd /usr/src/rpm/RPMS/alpha
+
+# publish
+scp \
+/home/james/pptp-client/ppp-${VERSION}.tar.gz \
+/usr/src/rpm/SRPMS/ppp-${VERSION}-${RELEASE}.src.rpm \
+/usr/src/rpm/RPMS/i386/ppp-${VERSION}-${RELEASE}.i386.rpm \
+james@spice:public_html/external/mine/pptp/
+
+# add in version to list
+emacsclient ~/public_html/external/mine/pptp/ppp.phtml
+
+# test publish
+http://www.lan/~james/external/mine/pptp/ppp.phtml
+
+# upload web site changes
+upau
+
+# test publish
+http://quozl.linux.org.au/pptp/ppp.phtml
+
