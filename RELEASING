@@ -1,4 +1,4 @@
-# release process for pptp-linux and pptp-extras package (ppp below)
+# release process for pptp and pptp-extras package (ppp below)
 
 # make local repository up to date in case of other changes
 pushd pptp-linux && cvs update -d && popd && \
@@ -7,7 +7,7 @@ pushd pptp-extras && cvs update -d && popd
 
 # set shell variables for version
 # (use -rc1 for release candidate 1, or blank for final release)
-VERSION=1.5.0
+VERSION=1.6.0
 RELEASE=
 
 TAG_VERSION=`echo ${VERSION}|tr . _`
@@ -37,7 +37,7 @@ pushd pptp-extras && cvs commit -m "release $VERSION$RELEASE" Makefile && popd
 # tag
 TAG=pptp-${TAG_VERSION}${RELEASE}
 echo "TAG=${TAG}"
-cd pptp-linux &&  cvs tag -F ${TAG} && cd .. && \
+cd pptp-linux && cvs tag -F ${TAG} && cd .. && \
 cd specs && cvs tag -F ${TAG} pptp.spec && cd .. && \
 cd pptp-extras && cvs tag -F ${TAG} && cd ..
 
@@ -54,7 +54,7 @@ cp pptp-${VERSION}${RELEASE}.tar.gz /usr/src/rpm/SOURCES/pptp-${VERSION}.tar.gz
 cd /tmp
 tar xfz /home/james/pptp-client/pptp-extras-${VERSION}${RELEASE}.tar.gz 
 cd pptp-extras-${VERSION}/
-cp pptp-command options.pptp pptp_fe.pl xpptp_fe.pl /usr/src/rpm/SOURCES/
+cp options.pptp pptp_fe.pl xpptp_fe.pl /usr/src/rpm/SOURCES/
 cd ..
 rm -rf pptp-extras-${VERSION}/
 cd /home/james/pptp-client/specs
@@ -109,27 +109,28 @@ upw
 # http://quozl.linux.org.au/pptp/
 # sign mail
 
-mutt pptpclient-devel@lists.sourceforge.net
-
-pptp-1.5.0-rc1 released
+mutt -s "pptp-1.6.0 released" pptpclient-devel@lists.sourceforge.net <<EOF
 G'day,
 
-PPTP Client 1.5.0 release candidate 1 is available.
+PPTP Client 1.6.0 is available.
 
-Changes since 1.4.0 are:
-- fix CPU loop after pppd killed [Cameron]
-- fix compile for ARM architecture [Hopf]
-- add documentation for command-line options [Wilson]
-- do not hang when a connection is refused [McCurdy]
-- better describe a cause of EMSGSIZE [Cameron]
+Changes since 1.5.0 are:
+- fix double-free on stop control connection reply [Kivity]
+- add --idle-wait option [Cameron]
+- fix segfault on fatal connection error [Kivity]
+- prevent a possible signal race [Kivity]
+- prevent kill of init [Shurdeek]
+- portability fix for non-Linux systems [Quinot]
+- rename package from pptp-linux to pptp [Cameron]
 
 Can be downloaded from:
 http://quozl.netrek.org/pptp/
 http://quozl.linux.org.au/pptp/
 
-8f073fdcc18ea586ecb4e2ef4a98181b  pptp-1.5.0-rc1.i386.rpm
-71a6f8312c8bc00c4db19ca8ee134a15  pptp-1.5.0-rc1.src.rpm
-90e4712825654fc3ddc564d7d8413683  pptp-1.5.0-rc1.tar.gz
+pptp-1.6.0-0.i386.rpm
+pptp-1.6.0-0.src.rpm
+pptp-1.6.0.tar.gz
+EOF
 
 # to add to process
 # add sourceforge publishing step

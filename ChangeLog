@@ -1,3 +1,7 @@
+Fri Feb 18 11:27:19 2005  James Cameron  <quozl@us.netrek.org>
+
+	* pptp-1.6.0 released.
+
 Tue Dec 14 08:56:07 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c (ctrlp_disp): fix typo.  From: Avi Kivity
