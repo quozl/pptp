@@ -1,3 +1,8 @@
+Fri Mar  8 10:12:28 2002  James Cameron  <quozl@us.netrek.org>
+
+	* NEWS: convert to newest first format to comply with GNU Coding
+	Standards, The NEWS File.
+
 Fri Mar  8 09:01:22 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c (pptp_make_packet): Cisco PIX is generating a
