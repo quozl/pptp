@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.11 2003/06/17 09:54:06 reink Exp $
+ * $Id: pptp_callmgr.c,v 1.12 2003/06/25 11:10:17 reink Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -235,6 +235,7 @@ skip_accept: /* Step 5c: Handle socket close */
 shutdown:
     {
         fd_set read_set, write_set;
+        struct timeval tv;
         /* warn("Shutdown"); */
         /* kill all open calls */
         for (i = 0; i < vector_size(call_list); i++) {
@@ -249,15 +250,25 @@ shutdown:
         FD_ZERO(&read_set);
         FD_ZERO(&write_set);
         pptp_fd_set(conn, &read_set, &write_set, &max_fd);
+        pptp_dispatch(conn, &read_set, &write_set);
+        /* wait for a respond, a timeout because there might not be one */ 
         FD_ZERO(&read_set);
+        FD_ZERO(&write_set);
+        pptp_fd_set(conn, &read_set, &write_set, &max_fd);
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+        select(max_fd + 1, &read_set, &write_set, NULL, &tv);
         pptp_dispatch(conn, &read_set, &write_set);
         if (i > 0) sleep(2);
         /* no more open calls.  Close the connection. */
         pptp_conn_close(conn, PPTP_STOP_LOCAL_SHUTDOWN);
+        /* wait for a respond, a timeout because there might not be one */ 
         FD_ZERO(&read_set);
         FD_ZERO(&write_set);
         pptp_fd_set(conn, &read_set, &write_set, &max_fd);
-        FD_ZERO(&read_set);
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+        select(max_fd + 1, &read_set, &write_set, NULL, &tv);
         pptp_dispatch(conn, &read_set, &write_set);
         sleep(2);
         /* with extreme prejudice */

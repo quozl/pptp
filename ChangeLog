@@ -1,6 +1,15 @@
+Wed Jun 25 12:59:28 2003 Rein Klazes <rklazes@xs4all.nl>
+
+        * pptp_callmgr.c: Wait for the replies on our Call-Clear-Request's and
+        Stop-Control-Connection-Request's.
+        
+        * pptp_ctrl.c: small tweak in a message about non existant call:
+        report the received call ID's.
+        
 Sun Jun 22 19:08:14 2003 Rein Klazes <rklazes@xs4all.nl>
 
-        * pptp_ctrl.c: Log the buffering and sending of ALL control messages.
+        * pptp_ctrl.c: Log the buffering and sending of ALL control
+        messages (except Echo messages and Replies of course).
         Change the way the sending of these messages is done. The 
         original way was to first put them into a buffer ( in
         pptp_send_ctrl_packet()) and at some later write the buffered
@@ -8,7 +17,7 @@ Sun Jun 22 19:08:14 2003 Rein Klazes <rklazes@xs4all.nl>
         pptp_send_ctrl_packet first attempts to write the packet directly.
         Only it the write() does not write all of the bytes, the remaining
         ones are buffered. This should help to track bugs in this area (like
-        sending two Start_Control_Requests).
+        one sending two Start-Control-Request's).
 
 Thu Jun 19 09:09:53 2003 Rein Klazes <rklazes@xs4all.nl>
 

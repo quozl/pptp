@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.20 2003/06/22 18:43:59 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.21 2003/06/25 11:10:17 reink Exp $
  */
 
 #include <errno.h>
@@ -830,7 +830,9 @@ void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
             u_int16_t callid = ntoh16(packet->call_id_peer);
             log("Received Outgoing Call Reply.");
             if (!vector_search(conn->call, (int) callid, &call)) {
-                log("PPTP_OUT_CALL_RPLY received for non-existant call.");
+                log("PPTP_OUT_CALL_RPLY received for non-existant call: "
+                        "peer call ID (us)  %d call ID (them) %d.",
+                        callid, ntoh16(packet->call_id));
                 break;
             }
             if (call->call_type != PPTP_CALL_PNS) {
