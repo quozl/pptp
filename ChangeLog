@@ -1,3 +1,9 @@
+Tue Jun 10 13:53:00 2003  Chris Wilson  <chris@netservers.co.uk>
+
+	* pptp_callmgr.c: fixed a bug with call manager socket naming,
+	introduced since 1.2.0, which caused confusing problems when
+	trying to open more than one tunnel from the same machine.
+
 Tue Jun 10 18:43:34 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp-linux-1.3.0 released.

@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.9 2003/02/17 00:22:17 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.10 2003/06/11 08:17:29 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -367,8 +367,10 @@ void close_unixsock(int fd, struct in_addr inetaddr) {
 void callmgr_name_unixsock(struct sockaddr_un *where, 
 			   struct in_addr inetaddr,
 			   struct in_addr localbind) {
+  char localaddr[16], remoteaddr[16];
   where->sun_family = AF_UNIX;
+  strncpy(localaddr,  inet_ntoa(localbind), 16);
+  strncpy(remoteaddr, inet_ntoa(inetaddr),  16);
   snprintf(where->sun_path, sizeof(where->sun_path),
-	   PPTP_SOCKET_PREFIX "%s:%s", inet_ntoa(localbind),
-	   inet_ntoa(inetaddr));
+	   PPTP_SOCKET_PREFIX "%s:%s", localaddr, remoteaddr);
 }
