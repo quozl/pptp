@@ -30,6 +30,7 @@ Release 1.1.0:
   This allows on demand pptp links or automatically reconnect.
 - ADSL modem quirks handler by mulix@actcom.co.il.
   Workarounds for Orckit ADSL modem.
+- workaround for Cisco PIX connection drop after 60 seconds.
 - enhance bad FCS error message.
 - ported to FreeBSD and NetBSD.
 - integrated call manager into pptp binary.

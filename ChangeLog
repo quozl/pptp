@@ -1,3 +1,10 @@
+Fri Mar  8 09:01:22 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c (pptp_make_packet): Cisco PIX is generating a
+	non-complaint header with the reserved0 field not zero, causing
+	the connection to stop after 60 seconds.
+	From: Rein Klazes <rklazes@xs4all.nl>
+
 Fri Mar  8 08:56:30 2002  James Cameron  <quozl@us.netrek.org>
 
 	* TODO: add compiler warnings note.

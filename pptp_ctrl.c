@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.8 2002/03/01 01:23:36 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.9 2002/03/07 22:05:31 quozl Exp $
  */
 
 #include <errno.h>
@@ -421,7 +421,9 @@ int pptp_make_packet(PPTP_CONN * conn, void **buf, size_t *size) {
     /* Throw out bytes until we have a valid header. */
     header = (struct pptp_header *) (conn->read_buffer+bad_bytes);
     if (ntoh32(header->magic) != PPTP_MAGIC) goto throwitout;
-    if (ntoh16(header->reserved0) != 0) goto throwitout;
+    if (ntoh16(header->reserved0) != 0)
+	log("reserved0 field is not zero! (0x%x) Cisco feature? \n",
+		ntoh16(header->reserved0));
     if (ntoh16(header->length) < sizeof(struct pptp_header)) goto throwitout;
     if (ntoh16(header->length) > PPTP_CTRL_SIZE_MAX) goto throwitout;
     /* well.  I guess it's good. Let's see if we've got it all. */
