@@ -1,3 +1,9 @@
+Sat Jun  5 22:44:50 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c (pptp_read_some): fix for CPU loop after pppd killed
+	with -9, if read() returns zero, it is because the control
+	connection has closed, so destroy the connection.
+
 Wed Mar 24 08:45:12 2004  Mark-Andre Hopf  <mhopf@innominate.com>
 
 	* pptp.c: fix compile for ARM architecture.

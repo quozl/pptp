@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.34 2003/08/19 05:17:28 quozl Exp $
+ * $Id: pptp_gre.c,v 1.35 2004/06/06 23:27:41 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -193,8 +193,22 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
     /* start is start of packet.  end is end of buffer data */
     /*  this is the only blocking read we will allow */
     if ((end = read (fd, buffer, sizeof(buffer))) <= 0) {
-        warn("short read (%d): %s", end, strerror(errno));
-        if (errno == EIO) warn("pppd may have shutdown, see pppd log");
+        int saved_errno = errno;
+        warn("short read (%d): %s", end, strerror(saved_errno));
+	switch (saved_errno) {
+	  case EMSGSIZE: {
+	    int optval, optlen = sizeof(optval);
+	    warn("transmitted GRE packet triggered an ICMP destination unreachable, fragmentation needed, or exceeds the MTU of the network interface");
+#define IP_MTU 14
+	    if(getsockopt(fd, SOL_IP, IP_MTU, &optval, &optlen) < 0)
+	      warn("getsockopt: %s", strerror(errno));
+	    warn("getsockopt: IP_MTU: %d\n", optval);
+	    return 0;
+	  }
+	case EIO:
+    	    warn("pppd may have shutdown, see pppd log");
+	    break;
+	}
         return -1;
     }
     /* warn if the sync options of ppp and pptp don't match */
