@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.39 2004/06/09 00:13:32 quozl Exp $
+ * $Id: pptp.c,v 1.40 2004/06/10 07:11:52 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -57,7 +57,7 @@ int log_level = 1;
 int disable_buffer = 0;
 
 struct in_addr get_ip_address(char *name);
-int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd);
+int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd, int gre_fd);
 void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
 int get_call_id(int sock, pid_t gre, pid_t pppd, 
 		 u_int16_t *call_id, u_int16_t *peer_call_id);
@@ -302,7 +302,7 @@ int main(int argc, char **argv, char **envp)
          * Open connection to call manager (Launch call manager if necessary.)
          */
         callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp,
-		pty_fd);
+		pty_fd, gre_fd);
         /* Exchange PIDs, get call ID */
     } while (get_call_id(callmgr_sock, parent_pid, child_pid, 
                 &call_id, &peer_call_id) < 0);
@@ -340,7 +340,6 @@ shutdown:
         kill(parent_pid, SIGTERM);
     close(pty_fd);
     close(callmgr_sock);
-    sleep(3);     /* give ctrl manager a chance to exit */
     exit(0);
 }
 
@@ -365,7 +364,7 @@ struct in_addr get_ip_address(char *name)
 
 /*** start the call manager ***************************************************/
 int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
-        char **envp, int pty_fd)
+        char **envp, int pty_fd, int gre_fd)
 {
     /* Try to open unix domain socket to call manager. */
     struct sockaddr_un where;
@@ -392,8 +391,9 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
                 case 0: /* child */
                 {
                     close (fd);
-                    /* close the pty in the call manager */
+                    /* close the pty and gre in the call manager */
                     close(pty_fd);
+                    close(gre_fd);
                     launch_callmgr(inetaddr, phonenr, argc, argv, envp);
                 }
                 default: /* parent */

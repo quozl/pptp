@@ -1,3 +1,14 @@
+Thu Jun 10 16:58:53 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c (main): remove the sleep(3) on termination; it isn't
+	really required; and causes the GRE-to-PPP gateway process to hang
+	around after the connection has been terminated.
+
+	* pptp.c (open_callmgr): call manager was inheriting the GRE
+	socket, so close it before launching the callmgr, a regression
+	introduced 18th July 2002, in the patch to bind the GRE socket
+	earlier.
+
 Thu Jun 10 08:34:17 CEST 2004 Rein Klazes <rklazes@xs4all.nl>
 
 	* pptp_callmgr.c: fix a case when the call manager does not

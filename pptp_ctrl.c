@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.24 2004/06/06 23:27:41 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.25 2004/06/10 07:11:57 quozl Exp $
  */
 
 #include <errno.h>
@@ -524,6 +524,7 @@ void pptp_read_some(PPTP_CONN * conn)
     if (retval == 0) {
         log("read returned zero, peer has closed");
         pptp_conn_destroy(conn); /* shut down fast. */
+        /* BUG: conn is used by callmgr_main() after being freed here */
         return;
     }
     if (retval < 0) {
@@ -532,6 +533,7 @@ void pptp_read_some(PPTP_CONN * conn)
         else { /* a real error */
             log("read error: %s", strerror(errno));
             pptp_conn_destroy(conn); /* shut down fast. */
+            /* BUG: conn is used by callmgr_main() after being freed here */
         }
         return;
     }
