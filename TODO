@@ -1,3 +1,11 @@
+12th February 2002
+
+- clean up -T errors in pptp-command,
+- write new README and TODO,
+- implement GRE reordering from PoPToP to make client more resilient.
+
+23rd December 2000
+
 Things to do:
   Autoconf/automake this beastie.
   Fix do_gre_copy semantics to properly handle multiple calls.
@@ -18,4 +26,3 @@ Things to do:
    will want to limit the hosts we give PPTP access to.  Maybe not,
    though.  We could allow everyone and then allow pppd to do the
    access control.
-  Add encryption support.
