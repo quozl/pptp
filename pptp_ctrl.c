@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.14 2003/02/14 14:25:16 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.15 2003/02/15 10:37:21 quozl Exp $
  */
 
 #include <errno.h>
@@ -22,6 +22,32 @@
 #include "vector.h"
 #include "util.h"
 #include "pptp_quirks.h"
+
+
+/* PPTP error codes: ----------------------------------------------*/
+
+/* (General Error Codes) */
+static const struct {
+  const char *name, *desc;
+} pptp_general_errors[] = {
+
+#define PPTP_GENERAL_ERROR_NONE                 0
+  { "(None)", "No general error" },
+#define PPTP_GENERAL_ERROR_NOT_CONNECTED        1
+  { "(Not-Connected)", "No control connection exists yet for this "
+                       "PAC-PNS pair" },
+#define PPTP_GENERAL_ERROR_BAD_FORMAT           2
+  { "(Bad-Format)", "Length is wrong or Magic Cookie value is incorrect" },
+#define PPTP_GENERAL_ERROR_BAD_VALUE            3
+  { "(Bad-Value)", "One of the field values was out of range or "
+                    "reserved field was non-zero" },
+#define PPTP_GENERAL_ERROR_NO_RESOURCE          4
+  { "(No-Resource)", "Insufficient resources to handle this command now" },
+#define PPTP_GENERAL_ERROR_BAD_CALLID           5
+  { "(Bad-Call ID)", "The Call ID is invalid in this context" },
+#define PPTP_GENERAL_ERROR_PAC_ERROR            6
+  { "(PAC-Error)", "A generic vendor-specific error occured in the PAC" }
+};
 
 /* BECAUSE OF SIGNAL LIMITATIONS, EACH PROCESS CAN ONLY MANAGE ONE
  * CONNECTION.  SO THIS 'PPTP_CONN' STRUCTURE IS A BIT MISLEADING.

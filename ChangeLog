@@ -1,3 +1,13 @@
+Sat Feb 15 21:32:42 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c, pptp_msg.h: move code out of .h file and into .c
+	file.  From: Jan Pieter <jp@athlon.jp.dhs.org>
+
+Sat Feb 15 17:34:38 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c: add include fixes for Apple MacOS X as contributed by an
+	anonymous donor.
+
 Sat Feb 15 14:59:20 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.c, pptp_callmgr.c, pptp_gre.c: add localbind option to
