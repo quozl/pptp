@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.23 2003/04/29 09:14:35 quozl Exp $
+# $Id: Makefile,v 1.24 2003/05/12 07:03:35 quozl Exp $
 VERSION=1.3.0
 RELEASE=-rc3
 
@@ -12,11 +12,12 @@ MANDIR=$(DESTDIR)/usr/share/man/man8
 
 CC	= gcc
 RM	= rm -f
+OPTIMIZE= -O0
 DEBUG	= -g
 INCLUDE =
-CFLAGS  = -Wall -O0 $(DEBUG) $(INCLUDE)
-LIBS	=
-LDFLAGS	= -lutil
+CFLAGS  = -Wall $(OPTIMIZE) $(DEBUG) $(INCLUDE)
+LIBS	= -lutil
+LDFLAGS	=
 
 PPTP_BIN = pptp
 
@@ -55,7 +56,7 @@ install:
 	mkdir -p $(BINDIR)
 	install -o root -m 555 pptp $(BINDIR)
 	mkdir -p $(MANDIR)
-	install pptp.8 $(MANDIR)
+	install -m 644 pptp.8 $(MANDIR)
 
 dist: clobber
 	$(RM) pptp-linux-$(VERSION)$(RELEASE).tar.gz
