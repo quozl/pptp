@@ -1,3 +1,7 @@
+Mon Dec 30 15:57:48 2002  James Cameron  <quozl@us.netrek.org>
+
+	* Makefile (install): add install target.
+
 Mon Dec  9 08:52:56 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_callmgr.c, pptp.c: close stderr after becoming daemon,

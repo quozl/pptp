@@ -47,12 +47,17 @@ distclean: clobber
 
 test: vector_test
 
+BINDIR=$(DESTDIR)/usr/sbin
+install:
+	mkdir -p $(BINDIR)
+	install -o root -m 555 pptp $(BINDIR)
+
 dist: clobber
 	$(RM) pptp-linux-$(VERSION)$(RELEASE).tar.gz
 	$(RM) -r pptp-linux-$(VERSION)
 	mkdir pptp-linux-$(VERSION)
 	cp --recursive ChangeLog Makefile *.c *.h pptp.8 Documentation \
-Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TAGS TODO USING \
+Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TODO USING \
 	pptp-linux-$(VERSION)/
 	tar czf pptp-linux-$(VERSION)$(RELEASE).tar.gz pptp-linux-$(VERSION)
 	$(RM) -r pptp-linux-$(VERSION)
