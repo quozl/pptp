@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.5 2001/05/31 13:50:36 thomas Exp $
+ * $Id: pptp_gre.c,v 1.6 2001/06/29 08:44:05 rein Exp $
  */
 
 #include <netinet/in.h>
@@ -114,7 +114,8 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 /* returns 0 on success, or <0 on read failure                 */
 int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
   unsigned char buffer[PACKET_MAX];
-  unsigned start = 0, end;
+  unsigned start = 0;
+  int end;
   int status;
 
   static unsigned len = 0, escape = 0;
