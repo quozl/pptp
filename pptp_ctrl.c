@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.15 2003/02/15 10:37:21 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.16 2003/05/23 19:06:10 reink Exp $
  */
 
 #include <errno.h>
@@ -143,6 +143,16 @@ static const char *pptp_out_call_reply_result[] = {
 /* 7 */	"Not Accepted, Call is administratively prohibited" };
 
 #define MAX_OUT_CALL_REPLY_RESULT 7
+
+/* Call Disconnect Notify  Result Codes */
+static const char *pptp_call_disc_ntfy[] = {
+/* 0 */	"Unknown Result Code",
+/* 1 */	"Lost Carrier",
+/* 2 */	"General Error",
+/* 3 */	"Administrative Shutdown",
+/* 4 */	"(your) Request" };
+
+#define MAX_CALL_DISC_NTFY 4
 
 /* Local prototypes */
 static void pptp_reset_timer(void);
@@ -778,11 +788,26 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	(struct pptp_call_clear_ntfy *)buffer;
       if (vector_contains(conn->call, ntoh16(packet->call_id))) {
 	PPTP_CALL * call;
+	int err = packet->error_code;
+	unsigned int legal_error_value =
+	       sizeof(pptp_general_errors)/sizeof(pptp_general_errors[0]);
 	vector_search(conn->call, ntoh16(packet->call_id), &call);
+        log("Call disconnect notification received (call id %d)", (int) call->call_id);
+        log("Result code is %d: '%s'. Error code is %d, Cause code is %d",
+              packet->result_code,
+              pptp_call_disc_ntfy[packet->result_code <= MAX_CALL_DISC_NTFY ? packet->result_code : 0],
+              err, packet->cause_code );
+        if ((err > 0) && (err < legal_error_value)){
+            if( packet->result_code != PPTP_RESULT_GENERAL_ERROR )
+                log("Result code is something else then \"general error\", so the following error is probably bogus.");
+            log("Error is '%s', Error message: '%s'",
+            pptp_general_errors[err].name,
+            pptp_general_errors[err].desc);
+        }
 	pptp_call_destroy(conn, call);
-	log("Call closed (NTFY) (call id %d)", (int) call->call_id);
       }
       /* XXX we could log call stats here XXX */
+      /* XXX not all servers send this XXX */
       break;
     }
   case PPTP_SET_LINK_INFO:
