@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "util.h" // for log()
 #include "pqueue.h"
@@ -93,30 +94,21 @@ static int pqueue_alloc(int seq, unsigned char *packet, int packlen, pqueue_t **
     DEBUG_CMD(log("Alloc new queue entry"););
   }
 
-  /* check if the capacity is sufficient for this package. */
-  if ( newent->capacity >= packlen ) {
-
-    memcpy(newent->packet, packet, packlen);
-
-  } else {
-
-    /* a new queu entry was allocated. Allocate the packet buffer */
-
+  if ( ! newent->capacity  ) {
+    /* a new queue entry was allocated. Allocate the packet buffer */
     int size = packlen < MIN_CAPACITY ? MIN_CAPACITY : packlen;
-    
     /* Allocate at least MIN_CAPACITY */
-
     DEBUG_CMD(log("allocating for packet size %d", size););
-    
     newent->packet = (unsigned char *)malloc(size);
-      
     if (!newent->packet) {
       warn("error allocating packet: %s", strerror(errno));
       return -1;
     }
     newent->capacity = size;
-
-  } /* endif packlen < capacity */
+  } /* endif ! capacity */
+  assert( newent->capacity >= packlen );
+  /* store the contents into the buffer */
+  memcpy(newent->packet, packet, packlen);
 
   newent->next = newent->prev = NULL;
   newent->seq     = seq;

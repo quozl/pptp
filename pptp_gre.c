@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.25 2003/02/15 04:32:50 quozl Exp $
+ * $Id: pptp_gre.c,v 1.26 2003/03/08 14:19:07 reink Exp $
  */
 
 #include <sys/types.h>
@@ -374,7 +374,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
 
   } else if ( seq < seq_recv+MISSING_WINDOW ||
 	      WRAPPED(seq, seq_recv+MISSING_WINDOW) ) {
-#ifdef REORDER_LOGGING
+#if 1 /* some logging of reordening is required, we might miss some "side effects" */
     log("buffering out-of-order packet %d (expecting %d)", seq, seq_recv+1);
 #endif
     pqueue_add(seq, buffer+ip_len+headersize, payload_len);
