@@ -1,5 +1,6 @@
 Release 1.2.0:
 
+- adopt man page contributed by Thomas Quinot.
 - close stderr to prevent holding open ssh sessions.
 - minor hint added in case of EIO on read() of pty.
 - support synchronous HDLC ppp encoding. Synchronous mode results in an

@@ -1,4 +1,5 @@
-VERSION = 1.2.0-rc1
+VERSION=1.2.0
+RELEASE=-rc2
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
@@ -30,7 +31,7 @@ $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 
 config.h: 
 	echo "/* text added by Makefile target config.h */" > config.h
-	echo "#define PPTP_LINUX_VERSION \"$(VERSION)\"" >> config.h
+	echo "#define PPTP_LINUX_VERSION \"$(VERSION)$(RELEASE)\"" >> config.h
 	echo "#define PPPD_BINARY \"$(PPPD)\"" >> config.h
 
 vector_test: vector_test.o vector.o
@@ -47,12 +48,12 @@ distclean: clobber
 test: vector_test
 
 dist: clobber
-	$(RM) pptp-linux-$(VERSION).tar.gz
+	$(RM) pptp-linux-$(VERSION)$(RELEASE).tar.gz
 	$(RM) -r pptp-linux-$(VERSION)
 	mkdir pptp-linux-$(VERSION)
 	cp --recursive ChangeLog Makefile *.c *.h pptp.8 Documentation \
 Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TAGS TODO USING \
 	pptp-linux-$(VERSION)/
-	tar czf pptp-linux-$(VERSION).tar.gz pptp-linux-$(VERSION)
+	tar czf pptp-linux-$(VERSION)$(RELEASE).tar.gz pptp-linux-$(VERSION)
 	$(RM) -r pptp-linux-$(VERSION)
-	md5sum pptp-linux-$(VERSION).tar.gz
+	md5sum pptp-linux-$(VERSION)$(RELEASE).tar.gz
