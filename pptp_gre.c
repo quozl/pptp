@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.3 2001/04/30 03:40:40 scott Exp $
+ * $Id: pptp_gre.c,v 1.4 2001/05/12 00:15:16 thomas Exp $
  */
 
 #include <netinet/in.h>
@@ -60,7 +60,7 @@ void print_packet(int fd, void *pack, unsigned len) {
 void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id, 
 		   int pty_fd, struct in_addr inetaddr) {
   struct sockaddr_in src_addr;
-  int s, n, stat1, stat2;
+  int s, n;
 
   pptp_gre_call_id = call_id;
   pptp_gre_peer_call_id = peer_call_id;
@@ -77,12 +77,11 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
   /* Pseudo-terminal already open. */
   
   ack_sent = ack_recv = seq_sent = seq_recv = 0;
-  stat1=stat2=0;
 
   n = (s>pty_fd)?(s+1):(pty_fd+1); /* weird select semantics */
 
   /* Dispatch loop */
-  while (stat1>=0 && stat2>=0) { /* until error happens on s or pty_fd */
+  for (;;) { /* until error happens on s or pty_fd */
     struct timeval tv = {0, 0}; /* non-blocking select */
     fd_set rfds;
     int retval;
@@ -92,24 +91,16 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
     FD_SET(s, &rfds);
     FD_SET(pty_fd,&rfds);
 
-    /* if there is a pending ACK, do non-blocking select */
-    if (ack_sent!=seq_recv) {
-      retval = select(n, &rfds, NULL, NULL, &tv);
-    } else  { /* otherwise, block until data is available */
-      retval = select(n, &rfds, NULL, NULL, NULL);
-    }
+    /* if there is a pending ACK, do non-blocking select,
+       otherwise, block until data is available */
+    retval = select(n, &rfds, NULL, NULL, (ack_sent != seq_recv) ? &tv : NULL);
 
-    if (retval==0 && ack_sent!=seq_recv) /* if outstanding ack */ {
+    if (retval == 0 && ack_sent != seq_recv) /* if outstanding ack */
       encaps_gre(s, NULL, 0); /* send ack with no payload */
-    }
 
-    if (FD_ISSET(pty_fd, &rfds)) /* data waiting on pterm */ {
-      stat1=decaps_hdlc(pty_fd, encaps_gre, s); /* send it off via GRE */
-    }
-
-    if (FD_ISSET(s,  &rfds)) /* data waiting on socket */ {
-      stat2=decaps_gre(s, encaps_hdlc, pty_fd);
-    }
+    if ((FD_ISSET(pty_fd, &rfds) && (decaps_hdlc(pty_fd, encaps_gre, s) < 0))
+     || (FD_ISSET(s,  &rfds) && (decaps_gre(s, encaps_hdlc, pty_fd) < 0)))
+        break;
   }
 
   /* Close up when done. */
@@ -122,50 +113,66 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 /* ONE blocking read per call; dispatches all packets possible */
 /* returns 0 on success, or <0 on read failure                 */
 int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
-  static unsigned char buffer[PACKET_MAX], copy[PACKET_MAX];
-  static unsigned start=0, end=0;
-  static unsigned len=0, escape=0;
+  unsigned char buffer[PACKET_MAX];
+  unsigned start = 0, end;
   int status;
+
+  static unsigned len = 0, escape = 0;
+  static unsigned char copy[PACKET_MAX];
   
   /* start is start of packet.  end is end of buffer data */
   /*  this is the only blocking read we will allow */
-  if (start>=end) {
-    if ((status=read(fd,buffer,sizeof(buffer)))<0) return status;
-    end = status; start = 0;
-  } 
+
+  if ((end = read (fd, buffer, sizeof(buffer))) <= 0) {
+    log ("short read (%u): %s", end, strerror(errno));
+    return -1;
+  }
   
-  while(1) { /* continue until we can't make any more packets */
-    /* we're adding contents to our packet */
-    /* Next HDLC_FLAG indicates end of packet */
+  while (start < end) {
+
     /* Copy to 'copy' and un-escape as we go. */
-    if (start>=end) return 0; /* no more packets without blocking read */
-    while (buffer[start]!=HDLC_FLAG) {
+
+    while (buffer[start] != HDLC_FLAG) {
+      if (!escape && buffer[start] == HDLC_ESCAPE) {
+	escape = 1;
+        start++;
+        continue;
+      }
+
       if (len < PACKET_MAX)
-	copy[len]=buffer[start]^((escape)?0x20:0x00); 
-      if (buffer[start]==HDLC_ESCAPE && !escape) 
-	escape=1;
-      else 
-	{ len++; escape=0; } 
+	copy [len++] = buffer[start] ^ ((escape) ? 0x20 : 0x00); 
       start++;
-      if (start>=end) return 0; /* no more packets without blocking read */
+      escape = 0;
+
+      if (start >= end)
+        return 0; /* No more data, but the frame is not complete yet. */
     }
+
     /* found flag.  skip past it */
     start++;
+
     /* check for over-short packets and silently discard, as per RFC1662 */
-    if ((len<4)||(escape==1)) {
-      len=0; escape=0;
+    if ((len < 4) || (escape == 1)) {
+      len = 0; escape=0;
       continue;
     }
     /* check, then remove the 16-bit FCS checksum field */
-    if (pppfcs16(PPPINITFCS16, copy, len) != PPPGOODFCS16)
+    if (pppfcs16 (PPPINITFCS16, copy, len) != PPPGOODFCS16)
       log("Bad FCS");
-    len-=sizeof(u_int16_t);
+    len -= sizeof(u_int16_t);
+
     /* so now we have a packet of length 'len' in 'copy' */
-    if ((status=cb(cl, copy, len))<0) return status; /* error-check */
+    if ((status = cb (cl, copy, len)) < 0)
+      return status; /* error-check */
+
     /* Great!  Let's do more! */
     len=0; escape=0;
   }
+
+  return 0;
+  /* No more data to process. */
 }
+
 /* Make stripped packet into HDLC packet */
 int encaps_hdlc(int fd, void *pack, unsigned len) {
   unsigned char *source = (unsigned char *)pack;
@@ -204,8 +211,11 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
   int status, ip_len=0;
   static int first=1;
 
-  if((status=read(fd, buffer, sizeof(buffer)))<0) 
-    {log("read: %s", strerror(errno)); return status; }
+  if ((status = read (fd, buffer, sizeof(buffer))) <= 0) {
+    log("short read (%u): %s", status, strerror(errno));
+    return -1;
+  }
+
   /* strip off IP header, if present */
   if ((buffer[0]&0xF0)==0x40) 
     ip_len = (buffer[0]&0xF)*4;
