@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.3 2001/04/30 03:42:36 scott Exp $
+ * $Id: pptp_callmgr.c,v 1.4 2001/06/11 14:59:19 rein Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -93,8 +93,8 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state) {
       vector_remove(conninfo->call_list, lci->unix_sock);
       close(lci->unix_sock);
       FD_CLR(lci->unix_sock, conninfo->call_set);
-      kill(lci->pid[0], SIGTERM);
-      kill(lci->pid[1], SIGTERM);
+      if(lci->pid[0]) kill(lci->pid[0], SIGTERM);
+      if(lci->pid[1]) kill(lci->pid[1], SIGTERM);
     }
     break;
   default:
@@ -238,8 +238,8 @@ int main(int argc, char **argv, char **envp) {
 	if (retval) {
 	  struct local_callinfo *lci = pptp_call_closure_get(conn, call);
           log("Closing connection");
-	  kill(lci->pid[0], SIGTERM);
-	  kill(lci->pid[1], SIGTERM);
+	  if(lci->pid[0]) kill(lci->pid[0], SIGTERM);
+	  if(lci->pid[1]) kill(lci->pid[1], SIGTERM);
 	  free(lci);
 	  /* soft shutdown.  Callback will do hard shutdown later */
 	  pptp_call_close(conn, call);
@@ -261,8 +261,8 @@ shutdown:
       struct local_callinfo *lci = pptp_call_closure_get(conn, call);
       log("Closing connection");
       pptp_call_close(conn, call);
-      kill(lci->pid[0], SIGTERM);
-      kill(lci->pid[1], SIGTERM);
+      if(lci->pid[0]) kill(lci->pid[0], SIGTERM);
+      if(lci->pid[1]) kill(lci->pid[1], SIGTERM);
     }
     /* attempt to dispatch these messages */
     FD_ZERO(&read_set);

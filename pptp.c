@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.4 2001/05/11 07:48:14 thomas Exp $
+ * $Id: pptp.c,v 1.5 2001/06/11 14:59:19 rein Exp $
  */
 
 #include <sys/types.h>
@@ -47,9 +47,12 @@ void usage(char *progname) {
   fprintf(stderr,
 	  "%s\n"
 	 "Usage:\n"
-  	 " %s hostname [[--phone <phone number>] -- ][ pppd options]\n",
-         version, progname);
-
+  	 " %s hostname [[--phone <phone number>] -- ][ pppd options]\n"
+         "\nOr using pppd option pty: \n"
+         " pty \" %s hostname --nolaunchpppd [--phone <phone number>]\"\n" ,
+         version, progname, progname);
+  log("%s called with wrong arguments, program not started.", progname);
+  
   exit(1);
 }
 
@@ -75,10 +78,9 @@ int main(int argc, char **argv, char **envp) {
   int pppdargc;
   char **pppdargv;
   char phonenrbuf[65]; /* maximum length of field plus one for the trailing
-                        * '\0' 
-                        */
+                        * '\0' */
   char *phonenr = NULL;
-  
+  int launchpppd = 1;
   if (argc < 2)
     usage(argv[0]);
 
@@ -92,6 +94,7 @@ int main(int argc, char **argv, char **envp) {
       /* structure with all recognised options for pptp */
       static struct option long_options[] = {
           {"phone", 1, 0, 0},  
+          {"nolaunchpppd", 0, 0, 0},  
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -108,7 +111,8 @@ int main(int argc, char **argv, char **envp) {
                 strncpy(phonenrbuf,optarg,sizeof(phonenrbuf));
                 phonenrbuf[sizeof(phonenrbuf)-1]='\0';
                 phonenr=phonenrbuf;
-            } 
+            }else if(option_index == 1)  /* --nolaunchpppd specified */ 
+                launchpppd=0;
             /* other pptp options come here */
             break;
         case '?': /* unrecognised option, treat it as the first pppd option */
@@ -128,61 +132,72 @@ int main(int argc, char **argv, char **envp) {
   callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp);
 
   /* Step 3: Find an open pty/tty pair. */
-  rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
-  if (rc < 0) { close(callmgr_sock); fatal("Could not find free pty."); }
+  if(launchpppd){
+      rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
+      if (rc < 0) { 
+          close(callmgr_sock); 
+          fatal("Could not find free pty.");
+      }
   
-  /* Step 4: fork and wait. */
-  signal(SIGUSR1, do_nothing); /* don't die */
-  parent_pid = getpid();
-  switch (child_pid = fork()) {
-  case -1:
-    fatal("Could not fork pppd process");
+      /* Step 4: fork and wait. */
+      signal(SIGUSR1, do_nothing); /* don't die */
+      parent_pid = getpid();
+      switch (child_pid = fork()) {
+      case -1:
+        fatal("Could not fork pppd process");
 
-  case 0: /* I'm the child! */
-    close (tty_fd);
-    signal(SIGUSR1, SIG_DFL);
-    child_pid = getpid();
-    break;
-  default: /* parent */
-    close (pty_fd);
-    /*
-     * There is still a very small race condition here.  If a signal
-     * occurs after signaled is checked but before pause is called,
-     * things will hang.
-     */
-    if (!signaled) {
-	pause(); /* wait for the signal */
-    }
-    launch_pppd(ttydev, pppdargc, pppdargv); /* launch pppd */
-    perror("Error");
-    fatal("Could not launch pppd");
+      case 0: /* I'm the child! */
+        close (tty_fd);
+        signal(SIGUSR1, SIG_DFL);
+        child_pid = getpid();
+        break;
+      default: /* parent */
+        close (pty_fd);
+        /*
+         * There is still a very small race condition here.  If a signal
+         * occurs after signaled is checked but before pause is called,
+         * things will hang.
+         */
+        if (!signaled) {
+            pause(); /* wait for the signal */
+        }
+        launch_pppd(ttydev, pppdargc, pppdargv); /* launch pppd */
+        perror("Error");
+        fatal("Could not launch pppd");
+      }
+  } else { /* ! launchpppd */
+      pty_fd=tty_fd=0;
+      child_pid=getpid();
+      parent_pid=0; /* don't kill pppd */
   }
-
   /* Step 5: Exchange PIDs, get call ID */
   get_call_id(callmgr_sock, parent_pid, child_pid, 
 	      &call_id, &peer_call_id);
 
   /* Step 5b: Send signal to wake up pppd task */
-  kill(parent_pid, SIGUSR1);
-  sleep(2);
+  if(launchpppd){
+      kill(parent_pid, SIGUSR1);
+      sleep(2);
+  }
+ 
+  {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", ttyname(tty_fd));
+    inststr(argc,argv,envp, buf);
+  }
 
   if (sigsetjmp(env, 1)!=0) goto shutdown;
   signal(SIGINT,  sighandler);
   signal(SIGTERM, sighandler);
   signal(SIGKILL, sighandler);
-  
-  {
-    char buf[128];
-    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", ttydev);
-    inststr(argc,argv,envp, buf);
-  }
-
+ 
   /* Step 6: Do GRE copy until close. */
   pptp_gre_copy(call_id, peer_call_id, pty_fd, inetaddr);
 
 shutdown:
   /* on close, kill all. */
-  kill(parent_pid, SIGTERM);
+  if(launchpppd)
+      kill(parent_pid, SIGTERM);
   close(pty_fd);
   close(callmgr_sock);
   exit(0);
@@ -207,7 +222,8 @@ struct in_addr get_ip_address(char *name) {
   return retval;
 }
 
-int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, char **envp) {
+int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, char **envp)
+{
   /* Try to open unix domain socket to call manager. */
   struct sockaddr_un where;
   const int NUM_TRIES = 3;
@@ -274,7 +290,8 @@ void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,
 
 /* XXX need better error checking XXX */
 void get_call_id(int sock, pid_t gre, pid_t pppd, 
-		 u_int16_t *call_id, u_int16_t *peer_call_id) {
+		 u_int16_t *call_id, u_int16_t *peer_call_id)
+{
   u_int16_t m_call_id, m_peer_call_id;
   /* write pid's to socket */
   /* don't bother with network byte order, because pid's are meaningless
@@ -306,4 +323,5 @@ void launch_pppd(char *ttydev, int argc, char **argv) {
 #define main       callmgr_main
 #define sighandler callmgr_sighandler
 #define do_nothing callmgr_do_nothing
+#define env        callmgr_env
 #include "pptp_callmgr.c"

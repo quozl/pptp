@@ -1,5 +1,5 @@
 pptp called as:
- pptp hostname [ppp options]
+ pptp hostname [[pptp options] --] [pppd options]
 
 The pptp program does:
 
@@ -28,3 +28,26 @@ the main process forks.
 Killing any of the three threads should cleanly shutdown system. HOW?
 Send pid of parent and child to call manager after fork over 
 Unix-domain socket.
+
+Alternatively pptp may be launched by pppd. One advantage is that
+many existing tools for managing serial ppp connections can be used with
+pptp connections as well. Another is some pppd options can only be used 
+this way. In particular the options "persist" and "demand" may be of use.
+
+Add the following option to your pppd options script:
+
+pty "<insert.path.to>/pptp hostname --nolaunchpppd [--phone phone-nr]"
+
+and start the connection like any other pppd connection. Note that
+old versions of pppd may not support the pty option.
+
+The following options are understood by pptp:
+
+--phone phone-number
+        Specify the phone number for the connection. This is required 
+        by a number of ADSL services.
+
+--nolaunchpppd
+        Needed if pptp is to be launched by pppd. See above
+        
+        
