@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.8 2003/02/15 04:32:50 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.9 2003/02/17 00:22:17 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -26,18 +26,20 @@
 #include "vector.h"
 #include "util.h"
 
+extern struct in_addr localbind; /* from pptp.c */
+
 int open_inetsock(struct in_addr inetaddr);
 int open_unixsock(struct in_addr inetaddr);
 void close_inetsock(int fd, struct in_addr inetaddr);
 void close_unixsock(int fd, struct in_addr inetaddr);
 
-sigjmp_buf env;
+sigjmp_buf callmgr_env;
 
-void sighandler(int sig) {
-    siglongjmp (env, 1);
+void callmgr_sighandler(int sig) {
+    siglongjmp (callmgr_env, 1);
 }
 
-void do_nothing(int sig) {
+void callmgr_do_nothing(int sig) {
     /* do nothing signal handler */
 }
 
@@ -95,7 +97,7 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state) {
 /* several variables here get a volatile qualifier to silence warnings */
 /* from older (before 3.0) gccs. if the longjmp stuff is removed,      */
 /* the volatile qualifiers should be removed as well.                  */ 
-int main(int argc, char **argv, char **envp) {
+int callmgr_main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;
   int inet_sock, unix_sock;
   fd_set call_set;
@@ -134,14 +136,14 @@ int main(int argc, char **argv, char **envp) {
   file2fd("/dev/null", "wb", STDERR_FILENO);
 
   /* Step 1c: Clean up unix socket on TERM */
-  if (sigsetjmp(env, 1)!=0)
+  if (sigsetjmp(callmgr_env, 1)!=0)
     goto cleanup;
 
-  signal(SIGINT, sighandler);
-  signal(SIGTERM, sighandler);
+  signal(SIGINT, callmgr_sighandler);
+  signal(SIGTERM, callmgr_sighandler);
 
-  signal(SIGPIPE, do_nothing);
-  signal(SIGUSR1, do_nothing); /* signal state change; wake up accept */
+  signal(SIGPIPE, callmgr_do_nothing);
+  signal(SIGUSR1, callmgr_do_nothing); /* signal state change; wake up accept */
 
   /* Step 2: Open control connection and register callback */
   if ((conn = pptp_conn_open(inet_sock, 1, NULL/* callback */)) == NULL) {
@@ -161,7 +163,7 @@ int main(int argc, char **argv, char **envp) {
     pptp_conn_closure_put(conn, conninfo);
   }
 
-  if (sigsetjmp(env, 1)!=0) goto shutdown;
+  if (sigsetjmp(callmgr_env, 1)!=0) goto shutdown;
 
   /* Step 3: Get FD_SETs */
   do {
@@ -285,7 +287,6 @@ cleanup:
 
 int open_inetsock(struct in_addr inetaddr) {
   struct sockaddr_in dest, src;
-  extern struct in_addr localbind;
   int s;
 
   dest.sin_family = AF_INET;
@@ -325,7 +326,7 @@ int open_unixsock(struct in_addr inetaddr) {
     return s;
   }
 
-  name_unixsock(&where, inetaddr, localbind);
+  callmgr_name_unixsock(&where, inetaddr, localbind);
 
   if (stat(where.sun_path, &st) >= 0) {
     warn("Call manager for %s is already running.", inet_ntoa(inetaddr));
@@ -358,14 +359,14 @@ void close_unixsock(int fd, struct in_addr inetaddr) {
   struct sockaddr_un where;
   
   close(fd);
-  name_unixsock(&where, inetaddr, localbind);
+  callmgr_name_unixsock(&where, inetaddr, localbind);
   unlink(where.sun_path);
 }
 
 /* make a unix socket address */
-void name_unixsock(struct sockaddr_un *where, 
-		   struct in_addr inetaddr,
-		   struct in_addr localbind) {
+void callmgr_name_unixsock(struct sockaddr_un *where, 
+			   struct in_addr inetaddr,
+			   struct in_addr localbind) {
   where->sun_family = AF_UNIX;
   snprintf(where->sun_path, sizeof(where->sun_path),
 	   PPTP_SOCKET_PREFIX "%s:%s", inet_ntoa(localbind),

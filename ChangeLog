@@ -1,7 +1,13 @@
+Mon Feb 17 09:18:30 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_callmgr.c, pptp.c, Makefile: compile call manager from
+	Makefile rather than include from pptp.c.  From: Jan Pieter
+	<jp@jp.dhs.org>
+
 Sat Feb 15 21:32:42 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c, pptp_msg.h: move code out of .h file and into .c
-	file.  From: Jan Pieter <jp@athlon.jp.dhs.org>
+	file.  From: Jan Pieter <jp@jp.dhs.org>
 
 Sat Feb 15 17:34:38 2003  James Cameron  <quozl@us.netrek.org>
 

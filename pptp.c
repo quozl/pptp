@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.27 2003/02/15 06:39:38 quozl Exp $
+ * $Id: pptp.c,v 1.28 2003/02/17 00:22:16 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -320,7 +320,7 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, 
   }
 
   /* Make address */
-  name_unixsock(&where, inetaddr, localbind);
+  callmgr_name_unixsock(&where, inetaddr, localbind);
 
   for (i=0; i<NUM_TRIES; i++) {
     if (connect(fd, (struct sockaddr *) &where, sizeof(where)) < 0) {
@@ -337,7 +337,7 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, 
 	      close (fd);
 	      /* close the pty in the call manager */
 	      close(pty_fd);
-	      launch_callmgr(inetaddr, phonenr, argc,argv,envp);
+	      launch_callmgr(inetaddr, phonenr, argc, argv, envp);
 	  }
       default: /* parent */
 	  waitpid(pid, &status, 0);
@@ -357,18 +357,11 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, 
 void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,
         char**argv,char**envp) 
 {
-      int callmgr_main(int argc, char**argv, char**envp);
       char *my_argv[3] = { argv[0], inet_ntoa(inetaddr), phonenr };
       char buf[128];
       snprintf(buf, sizeof(buf), "pptp: call manager for %s", my_argv[1]);
       inststr(argc,argv,envp,buf);
       exit(callmgr_main(3, my_argv, envp));
-      /*
-      const char *callmgr = PPTP_CALLMGR_BINARY;
-      execlp(callmgr, callmgr, inet_ntoa(inetaddr), NULL);
-      fatal("execlp() of call manager [%s] failed: %s", 
-	  callmgr, strerror(errno));
-      */
 }
 
 /* XXX need better error checking XXX */
@@ -431,9 +424,3 @@ void launch_pppd(char *ttydev, int argc, char **argv) {
   execvp(new_argv[0], new_argv);
 }
 
-/*************** COMPILE call manager into same binary *********/
-#define main       callmgr_main
-#define sighandler callmgr_sighandler
-#define do_nothing callmgr_do_nothing
-#define env        callmgr_env
-#include "pptp_callmgr.c"
