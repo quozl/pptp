@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.8 2003/06/17 17:25:47 reink Exp $
+ * $Id: util.c,v 1.9 2004/11/09 23:26:15 quozl Exp $
  */
 
 #include <stdio.h>
@@ -42,14 +42,14 @@ static void close_log(void)
 }
 
 /*** print a message to syslog ************************************************/
-void _log(char *func, char *file, int line, char *format, ...)
+void _log(const char *func, const char *file, int line, const char *format, ...)
 {
     MAKE_STRING("log");
     syslog(LOG_NOTICE, "%s", string);
 }
 
 /*** print a warning to syslog ************************************************/
-void _warn(char *func, char *file, int line, char *format, ...)
+void _warn(const char *func, const char *file, int line, const char *format, ...)
 {
     MAKE_STRING("warn");
     fprintf(stderr, "%s\n", string);
@@ -57,7 +57,7 @@ void _warn(char *func, char *file, int line, char *format, ...)
 }
 
 /*** print a fatal warning to syslog and exit *********************************/
-void _fatal(char *func, char *file, int line, char *format, ...)
+void _fatal(const char *func, const char *file, int line, const char *format, ...)
 {
     MAKE_STRING("fatal");
     fprintf(stderr, "%s\n", string);

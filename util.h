@@ -1,7 +1,7 @@
 /* util.h ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.h,v 1.4 2003/08/19 05:17:28 quozl Exp $
+ * $Id: util.h,v 1.5 2004/11/09 23:26:15 quozl Exp $
  */
 
 #ifndef INC_UTIL_H
@@ -16,11 +16,11 @@ extern char * log_string;
    to 1 (errors and warnings) to 2 (high verbosity, for debugging) */
 extern int    log_level;
 
-void _log(char *func, char *file, int line, char *format, ...)
+void _log(const char *func, const char *file, int line, const char *format, ...)
      __attribute__ ((format (printf, 4, 5)));
-void _warn(char *func, char *file, int line, char *format, ...)
+void _warn(const char *func, const char *file, int line, const char *format, ...)
      __attribute__ ((format (printf, 4, 5)));
-void _fatal(char *func, char *file, int line, char *format, ...)
+void _fatal(const char *func, const char *file, int line, const char *format, ...)
      __attribute__ ((format (printf, 4, 5))) __attribute__ ((noreturn));
 
 #define log(format, args...) \

@@ -1,3 +1,8 @@
+Wed Nov 10 09:49:48 2004  James Cameron  <quozl@us.netrek.org>
+
+	* util.{c,h}: recent compilers spew a packetload of compilation
+	warnings.  From: Avi Kivity <avi@argo.co.il>
+
 Tue Nov  9 12:30:57 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.{8,c}, pptp_ctrl.c, pptp_options.h: add --idle-wait (time
