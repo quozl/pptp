@@ -1,3 +1,11 @@
+pptp-linux (1.2.0-rc2) unstable; urgency=low
+
+  * upstream release process begins
+  * debian project is expected to remove this changelog entry if it sees
+    it
+
+ -- James Cameron <james@spice.lan>  Mon, 30 Dec 2002 14:17:00 +1100
+
 pptp-linux (1.1.0-1) unstable; urgency=low
 
   * New upstream release.
