@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.27 2004/11/09 01:42:32 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.28 2004/12/06 22:51:53 quozl Exp $
  */
 
 #include <errno.h>
@@ -180,9 +180,9 @@ int pptp_make_packet(PPTP_CONN * conn, void **buf, size_t *size);
 /* Add packet to write_buffer */
 int pptp_send_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size);
 /* Dispatch packets (general) */
-void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size);
+int pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size);
 /* Dispatch packets (control messages) */
-void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size);
+int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size);
 /* Set link info, for pptp servers that need it.
    this is a noop, unless the user specified a quirk and
    there's a set_link hook defined in the quirks table
@@ -488,8 +488,8 @@ int pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set)
 	if (r < 0)
 	    return r;
         /* make packets of the buffer, while we can. */
-        while (pptp_make_packet(conn, &buffer, &size)) {
-            pptp_dispatch_packet(conn, buffer, size);
+        while (r >= 0 && pptp_make_packet(conn, &buffer, &size)) {
+            r = pptp_dispatch_packet(conn, buffer, size);
             free(buffer);
         }
     }
@@ -638,15 +638,16 @@ int pptp_send_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
 }
 
 /*** Packet Dispatch **********************************************************/
-void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size)
+int pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size)
 {
+    int r = 0;
     struct pptp_header *header = (struct pptp_header *)buffer;
     assert(conn && conn->call); assert(buffer);
     assert(ntoh32(header->magic) == PPTP_MAGIC);
     assert(ntoh16(header->length) == size);
     switch (ntoh16(header->pptp_type)) {
         case PPTP_MESSAGE_CONTROL:
-            ctrlp_disp(conn, buffer, size);
+            r = ctrlp_disp(conn, buffer, size);
             break;
         case PPTP_MESSAGE_MANAGE:
             /* MANAGEMENT messages aren't even part of the spec right now. */
@@ -657,6 +658,7 @@ void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size)
                     (unsigned int) ntoh16(header->pptp_type));
             break;
     }
+    return r;
 }
 
 /*** log echo request/replies *************************************************/
@@ -672,7 +674,7 @@ static void logecho( int type)
 }
 
 /*** pptp_dispatch_ctrl_packet ************************************************/
-void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
+int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
 {
     struct pptp_header *header = (struct pptp_header *)buffer;
     u_int8_t close_reason = PPTP_STOP_NONE;
@@ -683,7 +685,7 @@ void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
     if (size < PPTP_CTRL_SIZE(ntoh16(header->ctrl_type))) {
         log("Invalid packet received [type: %d; length: %d].",
                 (int) ntoh16(header->ctrl_type), (int) size);
-        return;
+        return 0;
     }
     switch (ntoh16(header->ctrl_type)) {
         /* ----------- STANDARD Start-Session MESSAGES ------------ */
@@ -782,7 +784,7 @@ void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                 if (conn->callback != NULL)
                     conn->callback(conn, CONN_CLOSE_RQST);
                 conn->conn_state = CONN_IDLE;
-                pptp_conn_destroy(conn);
+		return -1;
             }
             break;
         }
@@ -793,8 +795,7 @@ void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
              * could be something else */
             if (conn->conn_state == CONN_IDLE) break;
             conn->conn_state = CONN_IDLE;
-            pptp_conn_destroy(conn);
-            break;
+	    return -1;
         }
             /* ----------- STANDARD Echo/Keepalive MESSAGES ------------ */
         case PPTP_ECHO_RPLY:
@@ -954,10 +955,11 @@ void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
             /* goto pptp_conn_close; */
             break;
     }
-    return;
+    return 0;
 pptp_conn_close:
     warn("pptp_conn_close(%d)", (int) close_reason);
     pptp_conn_close(conn, close_reason);
+    return 0;
 }
 
 /*** pptp_set_link **************************************************************/

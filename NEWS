@@ -1,3 +1,4 @@
+- fix double-free on stop control connection reply [Kivity]
 - add --idle-wait option [Cameron]
 - fix segfault on fatal connection error [Kivity]
 - prevent a possible signal race [Kivity]
@@ -98,4 +99,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.38 2004/11/09 01:42:32 quozl Exp $	
+$Id: NEWS,v 1.39 2004/12/06 22:51:53 quozl Exp $	

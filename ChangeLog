@@ -1,3 +1,9 @@
+Tue Dec  7 09:43:00 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c: add error propagation to the ctrlp_disp callchain,
+	so that we don't double-free the connection on a stop control
+	connection reply.  From: Avi Kivity <avi@argo.co.il>
+
 Wed Nov 10 09:49:48 2004  James Cameron  <quozl@us.netrek.org>
 
 	* util.{c,h}: recent compilers spew a packetload of compilation
