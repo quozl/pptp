@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.19 2002/10/16 04:11:45 quozl Exp $
+ * $Id: pptp.c,v 1.20 2002/10/16 04:14:30 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -38,6 +38,7 @@
 #include "inststr.h"
 #include "util.h"
 #include "pptp_quirks.h"
+#include "pqueue.h"
 
 #ifndef PPPD_BINARY
 #define PPPD_BINARY "pppd"
@@ -113,6 +114,7 @@ int main(int argc, char **argv, char **envp) {
 	  {"quirks", 1, 0, 0},
 	  {"debug", 0, 0, 0},
 	  {"sync", 0, 0, 0},
+	  {"timeout", 1, 0, 0},
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -136,8 +138,17 @@ int main(int argc, char **argv, char **envp) {
 	      usage(argv[0]);
 	  } else if (option_index == 3) {/* --debug */
 	    debug = 1;
-          } else if(option_index == 4) {/* --sync specified */
-                   syncppp=1;
+          } else if (option_index == 4) {/* --sync specified */
+            syncppp=1;
+	  } else if (option_index == 5) {/* --timeout */
+	    int new_packet_timeout = atoi(optarg);
+	    if (new_packet_timeout < 1 ||
+		new_packet_timeout > 10) {
+	      log("Packet timeout %d out of range: should be between 1 and 10",
+		  new_packet_timeout);
+	    } else {
+	      packet_timeout = new_packet_timeout;
+	    }
 	  } /* else {
             other pptp options come here 
 	  } */

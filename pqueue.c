@@ -5,6 +5,8 @@
 #include "util.h" // for log()
 #include "pqueue.h"
 
+int packet_timeout = DEFAULT_PACKET_TIMEOUT;
+
 static pqueue_t *pq_head = NULL, *pq_tail = NULL;
 
 int pqueue_add (int seq, unsigned char *packet, int packlen) {
@@ -12,25 +14,25 @@ int pqueue_add (int seq, unsigned char *packet, int packlen) {
 
   newent = (pqueue_t *)calloc(1, sizeof(pqueue_t));
   if (!newent) {
-    log("error allocating newent: %s", strerror(errno));
+    warn("error allocating newent: %s", strerror(errno));
     return -1;
   }
 
   newent->packet = (unsigned char *)malloc(packlen);
   if (!newent->packet) {
-    log("error allocating packet: %s", strerror(errno));
+    warn("error allocating packet: %s", strerror(errno));
     return -1;
   }
 
   memcpy(newent->packet, packet, packlen);
   newent->seq     = seq;
   newent->packlen = packlen;
-  newent->expires = time(NULL) + MISSING_TIMEOUT;
+  newent->expires = time(NULL) + packet_timeout;
   
   for (point = pq_head; point != NULL; point = point->next) {
     if (point->seq == seq) {
       // queue already contains this packet
-      log("discarding duplicate packet %d", seq);
+      warn("discarding duplicate packet %d", seq);
       return -1;
     }
     if (point->seq > seq) {

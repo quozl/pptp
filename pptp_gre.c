@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.16 2002/08/30 08:04:38 reink Exp $
+ * $Id: pptp_gre.c,v 1.17 2002/10/16 04:14:30 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -118,7 +118,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
       if( ack_sent + 1 == seq_recv )  /* u_int wrap-around safe */
 	      tv.tv_usec = 500000;
       tvp = &tv;
-    } else if (pqueue_head != NULL) {
+    } else if (pqueue_head() != NULL) {
       tv.tv_sec = 1;
       tvp = &tv;
     }
@@ -165,13 +165,13 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
   /*  this is the only blocking read we will allow */
 
   if ((end = read (fd, buffer, sizeof(buffer))) <= 0) {
-    log ("short read (%u): %s", end, strerror(errno));
+    warn("short read (%u): %s", end, strerror(errno));
     return -1;
   }
   /* FIXME: replace by warnings when the test is shown reliable */
   if( !checkedsync) {
       checkedsync = 1;
-      log( "Ppp mode seems to be %s.\n",
+      log( "PPP mode seems to be %s.\n",
 	      buffer[0] == HDLC_FLAG ? "Asynchronous" : "Synchronous" ); 
   }
   if ( syncppp ){
@@ -214,7 +214,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
     }
     /* check, then remove the 16-bit FCS checksum field */
     if (pppfcs16 (PPPINITFCS16, copy, len) != PPPGOODFCS16)
-      log("Bad Frame Check Sequence during PPP to GRE decapsulation");
+      warn("Bad Frame Check Sequence during PPP to GRE decapsulation");
     len -= sizeof(u_int16_t);
 
     /* so now we have a packet of length 'len' in 'copy' */
@@ -274,7 +274,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   u_int32_t seq;
 
   if ((status = read (fd, buffer, sizeof(buffer))) <= 0) {
-    log("short read (%u): %s", status, strerror(errno));
+    warn("short read (%u): %s", status, strerror(errno));
     return -1;
   }
 
@@ -291,7 +291,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
       (!PPTP_GRE_IS_K(ntoh8(header->flags))) || /* flag K should be set     */
       ((ntoh8(header->flags)&0xF)!=0)) { /* routing and recursion ctrl = 0  */
     /* if invalid, discard this packet */
-    log("Discarding GRE: %X %X %X %X %X %X", 
+    warn("Discarding GRE: %X %X %X %X %X %X", 
 	 ntoh8(header->ver)&0x7F, ntoh16(header->protocol), 
 	 PPTP_GRE_IS_C(ntoh8(header->flags)),
 	 PPTP_GRE_IS_R(ntoh8(header->flags)), 
@@ -318,7 +318,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
 
   /* check for incomplete packet (length smaller than expected) */
   if (status-headersize < payload_len) {
-    log("discarding truncated packet (expected %d, got %d bytes)",
+    warn("discarding truncated packet (expected %d, got %d bytes)",
 	payload_len, status-headersize);
     return 0; 
   }
@@ -327,8 +327,8 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   /* (handle sequence number wrap-around, and try to do it right) */
   if ( first || (seq == seq_recv+1) || 
        WRAPPED(seq, seq_recv)){
-    log("accepting packet %d", seq);
-    first=0;
+    /* log("accepting packet %d", seq); */
+    first = 0;
     seq_recv = seq;
     return callback(cl, buffer+ip_len+headersize, payload_len);
 
@@ -342,7 +342,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
     pqueue_add(seq, buffer+ip_len+headersize, payload_len);
 
   } else {
-    log("discarding bogus packet %d (expecting %d)", seq, seq_recv+1);
+    warn("discarding bogus packet %d (expecting %d)", seq, seq_recv+1);
   }
 
   return 0;
@@ -354,19 +354,23 @@ int dequeue_gre (callback_t callback, int cl) {
   time_t now = time(NULL);
 
   head = pqueue_head();
-  if (head == NULL) return 0;
 
-  while ( (head->seq == seq_recv+1)      || 
-	  (WRAPPED(head->seq, seq_recv)) ||
-	  (head->expires < now) ) {
-    if (head->expires < now)
+  while ( head != NULL &&
+	  ( (head->seq == seq_recv+1)      || 
+	    (WRAPPED(head->seq, seq_recv)) ||
+	    (head->expires < now) 
+	  )
+	) {
+    if (head->seq != seq_recv+1 && !WRAPPED(head->seq, seq_recv))
       log("timeout waiting for %d packets", head->seq - seq_recv - 1);
+
     log("accepting %d from queue", head->seq);
     seq_recv = head->seq;
     status = callback(cl, head->packet, head->packlen);
     pqueue_del(head);
     if (status != 0)
       return status;
+
     head = pqueue_head();
   }
 

@@ -4,10 +4,11 @@
 #include <time.h>
 
 /* wait this many seconds for missing packets before forgetting about them */
-#define MISSING_TIMEOUT 5
+#define DEFAULT_PACKET_TIMEOUT 1
+extern int packet_timeout;
 
 /* assume packet is bad/spoofed if it's more than this many seqs ahead */
-#define MISSING_WINDOW 50
+#define MISSING_WINDOW 300
 
 /* Packet queue structure: linked list of packets received out-of-order */
 typedef struct pqueue {

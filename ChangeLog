@@ -1,3 +1,15 @@
+Wed Oct 02 10:31:00 BST  2002 Chris Wilson <chris@netservers.co.uk>
+
+	* pptp_gre.c pqueue.c: changed some "log" statements to "warn" to
+	  reflect the severity of the condition, allowing much better filtering
+	* util.c: changed _warn to log at WARNING, and _fatal at CRIT level
+	* pptp_gre.c: disabled logging of individual accepted packets
+	* pptp_gre.c: removed a potential NULL pointer dereference crash
+	* pptp_gre.c: fixed the select-timeout check for packets in the queue
+	* pqueue.h: increased window size to 300 following testing
+	* pptp.c: added command-line parameter "--timeout" to set the
+	  lost packet timeout
+
 Fri Aug 30 09:55:05 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
 
 	pptp_gre.c: Try to send more ACK's piggy backed on data packets.

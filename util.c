@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.4 2002/03/11 01:50:07 quozl Exp $
+ * $Id: util.c,v 1.5 2002/10/16 04:14:30 quozl Exp $
  */
 
 #include <stdio.h>
@@ -42,12 +42,12 @@ void _log(char *func, char *file, int line, char *format, ...) {
 void _warn(char *func, char *file, int line, char *format, ...) {
   MAKE_STRING("warn");
   fprintf(stderr, "%s\n", string);
-  syslog(LOG_NOTICE, "%s", string);
+  syslog(LOG_WARNING, "%s", string);
 }
 
 void _fatal(char *func, char *file, int line, char *format, ...) {
   MAKE_STRING("fatal");
   fprintf(stderr, "%s\n", string);
-  syslog(LOG_NOTICE, "%s", string);
+  syslog(LOG_CRIT, "%s", string);
   exit(1);
 }
