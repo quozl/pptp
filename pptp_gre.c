@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.14 2002/08/26 09:48:42 reink Exp $
+ * $Id: pptp_gre.c,v 1.15 2002/08/30 07:19:06 reink Exp $
  */
 
 #include <sys/types.h>
@@ -374,7 +374,7 @@ int encaps_gre (int fd, void *pack, unsigned int len) {
     struct pptp_gre_header header;
     unsigned char buffer[PACKET_MAX+sizeof(struct pptp_gre_header)];
   } u;
-  static u_int32_t seq=0;
+  static u_int32_t seq = 1; /* first sequence number sent must be 1 */
   unsigned int header_len;
 
   /* package this up in a GRE shell. */

@@ -1,3 +1,8 @@
+Fri Aug 30 09:15:35 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
+
+	* pptp_gre.c: Sequence numbers of sent gre packets should start
+	with 1.
+
 Mon Aug 26 10:56:42 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
 
 	* pptp.c pptp_gre.c pptp_gre.h: added "--sync" option to work 
