@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.26 2003/02/15 04:32:50 quozl Exp $
+ * $Id: pptp.c,v 1.27 2003/02/15 06:39:38 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -10,6 +10,8 @@
 #if defined(__FreeBSD__)
 #include <libutil.h>
 #elif defined(__NetBSD__)
+#include <util.h>
+#elif defined(__APPLE__)
 #include <util.h>
 #else
 #include <pty.h>
@@ -29,7 +31,11 @@
 #include <setjmp.h>
 #include <errno.h>
 #include <sys/wait.h>
+#if defined(__APPLE__)
+#include "getopt.h"
+#else
 #include <getopt.h>
+#endif
 #include <limits.h>
 #include "config.h"
 #include "pptp_callmgr.h"
