@@ -1,4 +1,4 @@
-$Id: DEVELOPERS,v 1.1 2002/03/08 03:53:04 quozl Exp $
+$Id: DEVELOPERS,v 1.2 2002/03/08 10:15:48 quozl Exp $
 
 Developers Information
 
@@ -55,5 +55,14 @@ Release tags at the moment are
 	pptp-linux-1_1_0-rc3
 	ppp-mppe-2_4_0-3
 	ppp-mppe-2_4_1-rc1
+
+
+Internet Relay Chat
+
+Developers who use IRC on a regular basis are welcome to add the
+project's channel to their list of autojoin channels.
+
+	Server: irc.openprojects.net
+	Channel: #pptp
 
 --
