@@ -1,7 +1,7 @@
 /* inststr.c ... stolen from bdupdate.c, which stole it from perl 4.
  *               Theft by C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: inststr.c,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: inststr.c,v 1.2 2002/03/11 01:51:58 quozl Exp $
  */
 
 #include <string.h>
@@ -23,13 +23,17 @@ inststr(int argc, char **argv, char **environ, char *src)
         int count;
         ptr = argv[0] + strlen(argv[0]);
         for (count = 1; count < argc; count++) {
-            if (argv[count] == ptr + 1)
-                ptr += strlen(++ptr);
+               if (argv[count] == ptr + 1) {
+                   int fwd = strlen(++ptr);
+                   ptr += fwd; 
+               }
         }
         if (environ[0] == ptr + 1) {
             for (count = 0; environ[count]; count++)
-                if (environ[count] == ptr + 1)
-                    ptr += strlen(++ptr);
+                if (environ[count] == ptr + 1) {
+                   int fwd = strlen(++ptr);
+                   ptr += fwd; 
+               }
         }
         count = 0;
         for (ptr2 = argv[0]; ptr2 <= ptr; ptr2++) {

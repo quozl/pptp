@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.10 2002/03/01 01:23:36 quozl Exp $
+ * $Id: pptp.c,v 1.11 2002/03/11 01:51:41 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -31,6 +31,7 @@
 #include <sys/wait.h>
 #include <getopt.h>
 #include <limits.h>
+#include "config.h"
 #include "pptp_callmgr.h"
 #include "pptp_gre.h"
 #include "version.h"
@@ -75,19 +76,23 @@ void sighandler(int sig) {
   siglongjmp(env, 1);
 }
 
+/* TODO: redesign to avoid longjmp/setjmp.  Several variables here
+   have a volatile qualifier to silence warnings from gcc < 3.0.
+   Remove the volatile qualifiers when longjmp/setjmp are removed. */
+
 int main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;
-  int callmgr_sock;
+  volatile int callmgr_sock = -1;
   char ttydev[PATH_MAX];
   int pty_fd, tty_fd, rc;
-  pid_t parent_pid, child_pid;
+  volatile pid_t parent_pid, child_pid;
   u_int16_t call_id, peer_call_id;
   int pppdargc;
   char **pppdargv;
   char phonenrbuf[65]; /* maximum length of field plus one for the trailing
                         * '\0' */
-  char *phonenr = NULL;
-  int launchpppd = 1;
+  char * volatile phonenr = NULL;
+  volatile int launchpppd = 1;
   if (argc < 2)
     usage(argv[0]);
 

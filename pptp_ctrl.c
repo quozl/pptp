@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.9 2002/03/07 22:05:31 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.10 2002/03/11 01:51:16 quozl Exp $
  */
 
 #include <errno.h>
@@ -586,8 +586,10 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
   /* ----------- STANDARD Stop-Session MESSAGES ------------ */
   case PPTP_STOP_CTRL_CONN_RQST:
     {
+#if 0 /* make gcc happy about "unused variable 'packet'" here */
       struct pptp_stop_ctrl_conn *packet = /* XXX do something with this XXX */
 	(struct pptp_stop_ctrl_conn *) buffer; 
+#endif
       /* conn_state should be CONN_ESTABLISHED, but it could be 
        * something else */
       struct pptp_stop_ctrl_conn reply = {
@@ -604,8 +606,10 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
     }
   case PPTP_STOP_CTRL_CONN_RPLY:
     {
+#if 0 /* make gcc happy about "unused variable 'packet'" here */
       struct pptp_stop_ctrl_conn *packet = /* XXX do something with this XXX */
 	(struct pptp_stop_ctrl_conn *) buffer;
+#endif
       /* conn_state should be CONN_WAIT_STOP_REPLY, but it 
        * could be something else */
 

@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.4 2001/06/11 14:59:19 rein Exp $
+ * $Id: pptp_callmgr.c,v 1.5 2002/03/11 01:51:41 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -104,6 +104,11 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state) {
 }
 
 /* Call Manager */
+
+/* NOTE ABOUT 'VOLATILE':                                              */
+/* several variables here get a volatile qualifier to silence warnings */
+/* from older (before 3.0) gccs. once the longjmp stuff is removed,    */
+/* the volatile qualifiers should be removed as well.                  */ 
 int main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;
   int inet_sock, unix_sock;
@@ -111,10 +116,10 @@ int main(int argc, char **argv, char **envp) {
   PPTP_CONN * conn;
   VECTOR * call_list;
   int max_fd=0;
-  int first=1;
+  volatile int first=1;
   int retval;
   int i;
-  char *phonenr;
+  char * volatile phonenr;
 
   /* Step 0: Check arguments */
   if (argc < 2) 
