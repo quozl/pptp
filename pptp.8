@@ -68,6 +68,74 @@ require-chapms-v2
 pty "pptp 10.0.0.5 --nolaunchpppd"
 .PP
 Note that the \fBchap-secrets\fR file used by \fBpppd\fR must include an entry for domain\\\\username
+
+.SH "STATISTICS"
+The pptp process collects statistics when sending and receiving
+GRE packets. They are intended to be useful for debugging poor PPTP
+performance and for general monitoring of link quality. The statistics
+are cumulative since the pptp process was started.
+.PP
+The statistics can be viewed by sending a SIGHUP signal to the
+"GRE-to-PPP Gateway" process, which will cause it to dump them
+to the system logs (at the LOG_NOTICE level). A better way to present
+the statistics to applications is being sought (e.g. SNMP?).
+.PP
+The following statistics are collected at the time of writing (April 2003):
+.TP
+.B rx accepted
+the number of GRE packets successfully passed to PPP
+.TP
+.B rx lost
+the number of packets never received, and presumed lost in the network
+.TP
+.B rx under win
+the number of packets which were duplicates or had old sequence numbers
+(this might be caused by a packet-reordering network if your reordering
+timeout is set too low)
+.TP
+.B rx over win
+the number of packets which were too far ahead in the sequence to be
+reordered (might be caused by loss of more than 300 packets in a row)
+.TP
+.B rx buffered
+the number of packets which were slightly ahead of sequence, and were
+buffered for reordering
+.TP
+.B rx OS errors
+the number of times where the operating system reported an error when
+we tried to read a packet
+.TP
+.B rx truncated
+the number of times we received a packet which was shorter than the
+length implied by the GRE header
+.TP
+.B rx invalid
+the number of times we received a packet which had invalid or unsupported
+flags set in the header, wrong version, or wrong protocol.
+.TP
+.B rx acks
+the number of pure acknowledgements received (without data). Too many
+of these will waste bandwidth, and might be solved by tuning the remote host.
+.TP
+.B tx sent
+the number of GRE packets sent with data
+.TP
+.B tx failed
+the number of packets we tried to send, but the OS reported an error
+.TP
+.B tx short
+the number of times the OS would not let us write a complete packet
+.TP
+.B tx acks
+the number of times we sent a pure ack, without data
+.TP
+.B tx oversize
+the number of times we couldn't send a packet because it was over
+PACKET_MAX bytes long
+.TP
+.B round trip
+the estimated round-trip time in milliseconds
+
 .SH "SEE ALSO"
 .IR pppd (8)
 .PP
@@ -75,5 +143,7 @@ Documentation in
 .IR /usr/share/doc/pptp-linux
 .SH AUTHOR
 This manual page was written by James Cameron
-<james.cameron@compaq.com> from text contributed by Thomas Quinot
+<james.cameron@hp.com> from text contributed by Thomas Quinot
 <thomas@debian.org>, for the Debian GNU/Linux system.
+The description of the available statistics was written by Chris Wilson
+<chris@netservers.co.uk>.

@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.27 2003/04/14 22:51:31 quozl Exp $
+ * $Id: pptp_gre.c,v 1.28 2003/04/15 12:49:16 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -30,6 +30,7 @@
 static u_int32_t ack_sent, ack_recv;
 static u_int32_t seq_sent, seq_recv;
 static u_int16_t pptp_gre_call_id, pptp_gre_peer_call_id;
+gre_stats_t stats;
 
 typedef int (*callback_t)(int cl, void *pack, unsigned int len);
 
@@ -62,6 +63,12 @@ void print_packet(int fd, void *pack, unsigned int len) {
   fflush(out);
 }
 #endif
+
+uint64_t time_now_usecs() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (tv.tv_sec * 1000000) + tv.tv_usec;
+}
 
 /* Open IP protocol socket */
 int pptp_gre_bind(struct in_addr inetaddr) {
@@ -310,6 +317,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
 
   if ((status = read (fd, buffer, sizeof(buffer))) <= 0) {
     warn("short read (%d): %s", status, strerror(errno));
+    stats.rx_errors++;
     return -1;
   }
 
@@ -332,6 +340,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
 	 PPTP_GRE_IS_R(ntoh8(header->flags)), 
 	 PPTP_GRE_IS_K(ntoh8(header->flags)),
 	 ntoh8(header->flags)&0xF);
+    stats.rx_invalid++;
     return 0;
   }
   if (PPTP_GRE_IS_A(ntoh8(header->ver))) { /* acknowledgement present */
@@ -341,6 +350,11 @@ int decaps_gre (int fd, callback_t callback, int cl) {
     if (ack > ack_recv) ack_recv = ack;
     /* also handle sequence number wrap-around  */
     if (WRAPPED(ack,ack_recv)) ack_recv=ack;
+
+    if (ack_recv == stats.pt.seq) {
+      int rtt = time_now_usecs() - stats.pt.time;
+      stats.rtt = (stats.rtt + rtt)/2;
+    }
   }
 
   if (!PPTP_GRE_IS_S(ntoh8(header->flags))) /* no payload present */
@@ -356,6 +370,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   if (status-headersize < payload_len) {
     warn("discarding truncated packet (expected %d, got %d bytes)",
 	payload_len, status-headersize);
+    stats.rx_truncated++;
     return 0; 
   }
 
@@ -363,9 +378,10 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   /* (handle sequence number wrap-around, and try to do it right) */
   if ( first || (seq == seq_recv+1) || 
        WRAPPED(seq, seq_recv)){
-#ifdef REORDER_LOGGING
+#if REORDER_LOGGING_VERBOSE
     log("accepting packet %d", seq);
 #endif
+    stats.rx_accepted++;
     first = 0;
     seq_recv = seq;
     return callback(cl, buffer+ip_len+headersize, payload_len);
@@ -373,6 +389,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   } else if ( seq < seq_recv+1 || WRAPPED(seq_recv,seq) ) {
     log("discarding duplicate or old packet %d (expecting %d)",
 	 seq, seq_recv+1);
+    stats.rx_underwin++;
 
   } else if ( seq < seq_recv+MISSING_WINDOW ||
 	      WRAPPED(seq, seq_recv+MISSING_WINDOW) ) {
@@ -380,9 +397,11 @@ int decaps_gre (int fd, callback_t callback, int cl) {
     log("buffering out-of-order packet %d (expecting %d)", seq, seq_recv+1);
 #endif
     pqueue_add(seq, buffer+ip_len+headersize, payload_len);
+    stats.rx_buffered++;
 
   } else {
     warn("discarding bogus packet %d (expecting %d)", seq, seq_recv+1);
+    stats.rx_overwin++;
   }
 
   return 0;
@@ -400,14 +419,18 @@ int dequeue_gre (callback_t callback, int cl) {
 	    (pqueue_expiry_time(head) <= 0) 
 	  )
 	) {
+
+    if (head->seq != seq_recv+1 && !WRAPPED(head->seq, seq_recv)) {
+      stats.rx_lost += head->seq - seq_recv - 1;
 #ifdef REORDER_LOGGING
-    if (head->seq != seq_recv+1 && !WRAPPED(head->seq, seq_recv))
       log("timeout waiting for %d packets", head->seq - seq_recv - 1);
 #endif
+    }
 
 #ifdef REORDER_LOGGING
     log("accepting %d from queue", head->seq);
 #endif
+
     seq_recv = head->seq;
     status = callback(cl, head->packet, head->packlen);
     pqueue_del(head);
@@ -427,6 +450,7 @@ int encaps_gre (int fd, void *pack, unsigned int len) {
   } u;
   static u_int32_t seq = 1; /* first sequence number sent must be 1 */
   unsigned int header_len;
+  int rc;
 
   /* package this up in a GRE shell. */
   u.header.flags	= hton8 (PPTP_GRE_FLAG_K);
@@ -442,7 +466,15 @@ int encaps_gre (int fd, void *pack, unsigned int len) {
       u.header.payload_len = hton16(0);
       u.header.seq = hton32(seq_recv); /* ack is in odd place because S=0 */
       ack_sent = seq_recv;
-      return write(fd, &u.header, sizeof(u.header)-sizeof(u.header.seq));
+      rc = write(fd, &u.header, sizeof(u.header)-sizeof(u.header.seq));
+      if (rc < 0) {
+	stats.tx_failed++;
+      } else if (rc < sizeof(u.header)-sizeof(u.header.seq)) {
+	stats.tx_short++;
+      } else {
+	stats.tx_acks++;
+      }
+      return rc;
     } else return 0; /* we don't need to send ACK */
   } /* explicit brace to avoid ambiguous `else' warning */
   /* send packet with payload */
@@ -456,14 +488,27 @@ int encaps_gre (int fd, void *pack, unsigned int len) {
   } else { /* don't send ack */
     header_len = sizeof(u.header) - sizeof(u.header.ack);
   }
-  if (header_len+len>=sizeof(u.buffer)) return 0; /* drop this, it's too big */
+  if (header_len+len >= sizeof(u.buffer)) {
+    stats.tx_oversize++;
+    return 0; /* drop this, it's too big */
+  }
   /* copy payload into buffer */
   memcpy(u.buffer+header_len, pack, len);
   /* record and increment sequence numbers */
   seq_sent = seq; seq++;
   /* write this baby out to the net */
   /* print_packet(2, u.buffer, header_len+len); */
-  return write(fd, u.buffer, header_len+len);
+  rc = write(fd, u.buffer, header_len+len);
+  if (rc < 0) {
+    stats.tx_failed++;
+  } else if (rc < header_len+len) {
+    stats.tx_short++;
+  } else {
+    stats.tx_sent++;
+    stats.pt.seq  = seq_sent;
+    stats.pt.time = time_now_usecs();
+  }
+  return rc;
 }
 
 

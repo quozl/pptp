@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.28 2003/02/17 00:22:16 quozl Exp $
+ * $Id: pptp.c,v 1.29 2003/04/15 12:49:16 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <signal.h>
 #include <setjmp.h>
@@ -84,6 +85,27 @@ void do_nothing(int sig) {
 sigjmp_buf env;
 void sighandler(int sig) {
   siglongjmp(env, 1);
+}
+
+void sig_hup_handler(int sig) {
+  syslog(LOG_NOTICE, "GRE statistics:\n");
+  #define LOG(name,value) syslog(LOG_NOTICE, name "\n", stats .value)
+  LOG("rx accepted  = %d", rx_accepted);
+  LOG("rx lost      = %d", rx_lost);
+  LOG("rx under win = %d", rx_underwin);
+  LOG("rx over  win = %d", rx_overwin);
+  LOG("rx buffered  = %d", rx_buffered);
+  LOG("rx OS errors = %d", rx_errors);
+  LOG("rx truncated = %d", rx_truncated);
+  LOG("rx invalid   = %d", rx_invalid);
+  LOG("rx acks      = %d", rx_acks);
+  LOG("tx sent      = %d", tx_sent);
+  LOG("tx failed    = %d", tx_failed);
+  LOG("tx short     = %d", tx_short);
+  LOG("tx acks      = %d", tx_acks);
+  LOG("tx oversize  = %d", tx_oversize);
+  LOG("round trip   = %d usecs", rtt);
+  #undef LOG
 }
 
 /* TODO: redesign to avoid longjmp/setjmp.  Several variables here
@@ -178,7 +200,7 @@ int main(int argc, char **argv, char **envp) {
             c = -1;
             break;
       }
-      if( c==-1) break;  /* no more options for pptp */
+      if (c == -1) break;  /* no more options for pptp */
     }
   pppdargc = argc - optind;
   pppdargv = argv + optind;
@@ -272,6 +294,7 @@ int main(int argc, char **argv, char **envp) {
   signal(SIGTERM, sighandler);
   signal(SIGKILL, sighandler);
   signal(SIGCHLD, sighandler);
+  signal(SIGHUP,  sig_hup_handler);
  
   /* Step 6: Do GRE copy until close. */
   pptp_gre_copy(call_id, peer_call_id, pty_fd, gre_fd);

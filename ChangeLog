@@ -1,3 +1,9 @@
+Tue Apr 15 10:28:00 2003  Chris Wilson   <chris@netservers.co.uk>
+
+	* pptp.c, pptp_gre.c, pptp_gre.h: Added GRE statistics counters
+	and RTT calculation, which can be dumped to the syslog by sending
+	a SIGHUP to the GRE-to-PPP gateway process.
+
 Mon Apr 14 11:57:00 2003  Chris Wilson   <chris@netservers.co.uk>
 
 	* pptp_gre.c: Fixed one case where an ACK could be immediately
