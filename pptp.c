@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.15 2002/08/14 01:33:44 quozl Exp $
+ * $Id: pptp.c,v 1.16 2002/08/14 10:04:20 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -109,7 +109,7 @@ int main(int argc, char **argv, char **envp) {
           {"phone", 1, 0, 0},  
           {"nolaunchpppd", 0, 0, 0},  
 	  {"quirks", 1, 0, 0},
-	  {"debug", 1, 0, 0},
+	  {"debug", 0, 0, 0},
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -156,11 +156,6 @@ int main(int argc, char **argv, char **envp) {
   if (gre_fd < 0) {
       close(callmgr_sock);
       fatal("Cannot bind GRE socket, aborting.");
-  }
-
-  /* Step 2b: be a good daemon and close our stdin/out/err fds */
-  if (!debug && daemon(0, 0) != 0) {
-      perror("daemon");
   }
 
   /* Step 3: Find an open pty/tty pair. */
@@ -215,9 +210,13 @@ int main(int argc, char **argv, char **envp) {
 	               &call_id, &peer_call_id) < 0);
 
   /* Step 5b: Send signal to wake up pppd task */
-  if(launchpppd){
-      kill(parent_pid, SIGUSR1);
-      sleep(2);
+  if (launchpppd){
+    kill(parent_pid, SIGUSR1);
+    sleep(2);
+    /* be a good daemon and close our stdin/out/err fds */
+    if (!debug && daemon(0, 0) != 0) {
+      perror("daemon");
+    }
   }
  
   {

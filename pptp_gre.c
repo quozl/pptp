@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.11 2002/08/14 01:33:44 quozl Exp $
+ * $Id: pptp_gre.c,v 1.12 2002/08/14 10:04:20 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -97,6 +97,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
   /* Dispatch loop */
   for (;;) { /* until error happens on gre_fd or pty_fd */
     struct timeval tv = {0, 0}; /* non-blocking select */
+    struct timeval *tvp;
     fd_set rfds;
     int retval;
 
@@ -105,10 +106,19 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
     FD_SET(gre_fd, &rfds);
     FD_SET(pty_fd, &rfds);
 
-    /* if there is a pending ACK, do non-blocking select,
+    /* if there is a pending ACK, then do non-blocking select.
+       if there is data in the queue, then timeout after 1 second.
        otherwise, block until data is available */
-    retval = select(max_fd+1, &rfds, NULL, NULL, 
-		    (ack_sent != seq_recv) ? &tv : NULL);
+    tvp = NULL;
+    if (ack_sent != seq_recv) {
+      tv.tv_sec = 0;
+      tvp = &tv;
+    } else if (pqueue_head != NULL) {
+      tv.tv_sec = 1;
+      tvp = &tv;
+    }
+
+    retval = select(max_fd+1, &rfds, NULL, NULL, tvp);
 
     if (retval == 0 && ack_sent != seq_recv) /* if outstanding ack */
       encaps_gre(gre_fd, NULL, 0); /* send ack with no payload */
@@ -290,6 +300,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   /* (handle sequence number wrap-around, and try to do it right) */
   if ( first || (seq == seq_recv+1) || 
        WRAPPED(seq, seq_recv)){
+    log("accepting packet %d", seq);
     first=0;
     seq_recv = seq;
     return callback(cl, buffer+ip_len+headersize, payload_len);
@@ -321,7 +332,9 @@ int dequeue_gre (callback_t callback, int cl) {
   while ( (head->seq == seq_recv+1)      || 
 	  (WRAPPED(head->seq, seq_recv)) ||
 	  (head->expires < now) ) {
-    log("dequeueing %d", head->seq);
+    if (head->expires < now)
+      log("timeout waiting for %d packets", head->seq - seq_recv - 1);
+    log("accepting %d from queue", head->seq);
     seq_recv = head->seq;
     status = callback(cl, head->packet, head->packlen);
     pqueue_del(head);

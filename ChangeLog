@@ -1,3 +1,19 @@
+Wed Aug 14 20:02:39 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c, pptp_gre.c, pqueue.c: packet re-ordering bugfixes
+	following distributed testing:
+
+	- Moved daemon() call to run on GRE gateway process only, and not
+	if running as pppd pty
+	- Make select() timeout after 1 second if there is data in the
+	queue, to prevent the queue from having to wait forever
+	- Added log messages for accepting individual packets (noisy!)
+	and for timeouts on missing packets
+	- Fixed a bug with the packet queue (append to tail was broken)
+	- Removed unused code from pqueue.c
+	
+	From: chris@netservers.co.uk
+
 Wed Aug 14 11:14:05 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pqueue.c, pqueue.h, pptp_gre.c: major changes to support packet

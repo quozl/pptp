@@ -63,6 +63,7 @@ int pqueue_add (int seq, unsigned char *packet, int packlen) {
     pq_head = newent;
   } else {
     log("adding %d as tail, after %d", seq, pq_tail->seq);
+    pq_tail->next = newent;
   }
   newent->prev = pq_tail;
   pq_tail = newent;
@@ -80,54 +81,6 @@ int pqueue_del (pqueue_t *point) {
   return 0;
 }
 
-void pqueue_clean () {
-  time_t now = time(NULL);
-  pqueue_t *next, *point;
-  for (point = pq_head; point != NULL; point = next) {
-    next = point->next;
-    if (point->expires < now) {
-      log("discarding expired packet %d", point->seq);
-      pqueue_del(point);
-    }
-  }
-}
-
 pqueue_t *pqueue_head () {
   return pq_head;
 }
-
-pqueue_t *pqueue_seq_find (int seq) {
-  pqueue_t *point;
-
-  for (point = pq_head; point != NULL; point = point->next) {
-    if (point->seq == seq) {
-      return point;
-    }
-    if (point->seq > seq) {
-      // gone too far: it's not here
-      return NULL;
-    }
-  }
-  // not found in chain
-  return NULL;
-}
-
-unsigned char *pqueue_seq_get (int seq) {
-  pqueue_t *point = pqueue_seq_find(seq);
-  if (point == NULL) {
-    log("packet not found: %d", seq);
-    return NULL;
-  }
-  return point->packet;
-}
-
-int pqueue_seq_del (int seq) {
-  pqueue_t *point = pqueue_seq_find(seq);
-  if (point == NULL) {
-    log("packet not found: %d", seq);
-    return -1;
-  }
-  pqueue_del(point);
-  return 0;
-}
-
