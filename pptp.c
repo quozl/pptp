@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.5 2001/06/11 14:59:19 rein Exp $
+ * $Id: pptp.c,v 1.6 2001/07/21 10:02:08 thomas Exp $
  */
 
 #include <sys/types.h>
@@ -11,6 +11,9 @@
 #include <libutil.h>
 #else
 #include <pty.h>
+#endif
+#ifdef USER_PPP
+#include <fcntl.h>
 #endif
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -308,14 +311,24 @@ void get_call_id(int sock, pid_t gre, pid_t pppd,
 
 void launch_pppd(char *ttydev, int argc, char **argv) {
   char *new_argv[argc+4]; /* XXX if not using GCC, hard code a limit here. */
-  int i;
+  int i = 0, j;
 
-  new_argv[0] = PPPD_BINARY;
-  new_argv[1] = ttydev;
-  new_argv[2] = "38400";
-  for (i=0; i<argc; i++)
-    new_argv[i+3] = argv[i];
-  new_argv[i+3] = NULL;
+  new_argv[i++] = PPPD_BINARY;
+#ifdef USER_PPP
+  new_argv[i++] = "-direct";
+  /* ppp expects to have stdin connected to ttydev */
+  if ((j = open(ttydev, O_RDWR)) == -1)
+    fatal("Cannot open %s: %s", ttydev, strerror(errno));
+  if (dup2(j, 0) == -1)
+    fatal("dup2 failed: %s", strerror(errno));
+  close(j);
+#else
+  new_argv[i++] = ttydev;
+  new_argv[i++] = "38400";
+#endif
+  for (j=0; j<argc; j++)
+    new_argv[i++] = argv[j];
+  new_argv[i] = NULL;
   execvp(new_argv[0], new_argv);
 }
 
