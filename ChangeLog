@@ -1,3 +1,7 @@
+Tue Jun  8 21:25:27 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp-linux-1.5.0-rc1 released.
+
 Sat Jun  5 22:44:50 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c (pptp_read_some): fix for CPU loop after pppd killed
