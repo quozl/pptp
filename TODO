@@ -1,3 +1,9 @@
+15th February 2003
+
+- pptp.8 update man page for new options
+- pptp.c long_options array should use NULL for second last arg, not 0
+- pptp.c use getopt_long more simply, e.g. set flags in option array
+
 1st May 2002
 
 - log failure of write() to raw socket, as Ryan Murray
@@ -31,4 +37,4 @@ Things to do:
    though.  We could allow everyone and then allow pppd to do the
    access control.
 
-$Id: TODO,v 1.10 2003/01/15 05:29:20 quozl Exp $	
+$Id: TODO,v 1.11 2003/02/15 04:32:50 quozl Exp $	

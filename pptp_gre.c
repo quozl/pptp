@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.24 2003/02/14 14:59:03 reink Exp $
+ * $Id: pptp_gre.c,v 1.25 2003/02/15 04:32:50 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -65,17 +65,27 @@ void print_packet(int fd, void *pack, unsigned int len) {
 
 /* Open IP protocol socket */
 int pptp_gre_bind(struct in_addr inetaddr) {
-  struct sockaddr_in src_addr;
-
+  struct sockaddr_in src_addr, loc_addr;
+  extern struct in_addr localbind;
+  
   int s = socket(AF_INET, SOCK_RAW, PPTP_PROTO);
-  if (s<0) { warn("socket: %s", strerror(errno)); return -1; }
+  if (s < 0) { warn("socket: %s", strerror(errno)); return -1; }
+
+  if (localbind.s_addr != INADDR_NONE) {
+    bzero(&loc_addr, sizeof(loc_addr));
+    loc_addr.sin_family = AF_INET;
+    loc_addr.sin_addr   = localbind;
+    if (bind(s, (struct sockaddr *) &loc_addr, sizeof(loc_addr)) != 0) {
+      warn("bind: %s", strerror(errno)); close(s); return -1;
+    }
+  }
 
   src_addr.sin_family = AF_INET;
   src_addr.sin_addr   = inetaddr;
   src_addr.sin_port   = 0;
 
-  if (connect(s, (struct sockaddr *) &src_addr, sizeof(src_addr))<0) {
-    warn("connect: %s", strerror(errno)); return -1;
+  if (connect(s, (struct sockaddr *) &src_addr, sizeof(src_addr)) < 0) {
+    warn("connect: %s", strerror(errno)); close(s); return -1;
   }
 
   return s;

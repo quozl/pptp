@@ -1,5 +1,10 @@
-Release 1.2.0:
+Release 1.3.0: (Undated)
 
+- support multiple clients on alias IP addresses.
+
+Release 1.2.0: (14th February 2003)
+
+- subsecond packet timeout to improve performance on fast links.
 - rewrite INSTALL.
 - add man page to install target.
 - fix response to dropped packets.
@@ -12,7 +17,7 @@ Release 1.2.0:
 - handle out-of-order packets arriving on the GRE socket by buffering.
 - bind GRE socket early to prevent ICMP Unreachable response by client.
 
-Release 1.1.0:
+Release 1.1.0: (20th March 2002)
 
 - New release engineer.
 - allow activation as a psuedo-tty child process from pppd.
@@ -25,7 +30,7 @@ Release 1.1.0:
 - integrated call manager into pptp binary.
 - many bugfixes improving stability.
 
-Release 1.0.3:
+Release 1.0.3: (7th May 2001)
 
 - New maintaining team.
 - Various bug fixes from the Debian package and FreeBSD port.
@@ -51,4 +56,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.12 2003/01/15 05:29:20 quozl Exp $	
+$Id: NEWS,v 1.13 2003/02/15 04:32:50 quozl Exp $	

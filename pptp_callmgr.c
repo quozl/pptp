@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.7 2002/12/09 05:50:37 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.8 2003/02/15 04:32:50 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -284,7 +284,8 @@ cleanup:
 }
 
 int open_inetsock(struct in_addr inetaddr) {
-  struct sockaddr_in dest;
+  struct sockaddr_in dest, src;
+  extern struct in_addr localbind;
   int s;
 
   dest.sin_family = AF_INET;
@@ -295,12 +296,24 @@ int open_inetsock(struct in_addr inetaddr) {
     warn("socket: %s", strerror(errno));
     return s;
   }
+
+  if (localbind.s_addr != INADDR_NONE) {
+   bzero(&src, sizeof(src));
+   src.sin_family = AF_INET;
+   src.sin_addr   = localbind;
+   if (bind(s, (struct sockaddr *) &src, sizeof(src)) != 0) {
+     warn("bind: %s", strerror(errno));
+     close(s); return -1;
+   }
+  }
+
   if (connect(s, (struct sockaddr *) &dest, sizeof(dest)) < 0) {
     warn("connect: %s", strerror(errno));
     close(s); return -1;
   }
   return s;
 }
+
 int open_unixsock(struct in_addr inetaddr) {
   struct sockaddr_un where;
   struct stat st;
@@ -312,9 +325,7 @@ int open_unixsock(struct in_addr inetaddr) {
     return s;
   }
 
-  where.sun_family = AF_UNIX;
-  snprintf(where.sun_path, sizeof(where.sun_path), 
-	   PPTP_SOCKET_PREFIX "%s", inet_ntoa(inetaddr));
+  name_unixsock(&where, inetaddr, localbind);
 
   if (stat(where.sun_path, &st) >= 0) {
     warn("Call manager for %s is already running.", inet_ntoa(inetaddr));
@@ -338,13 +349,25 @@ int open_unixsock(struct in_addr inetaddr) {
 
   return s;
 }
+
 void close_inetsock(int fd, struct in_addr inetaddr) {
   close(fd);
 }
+
 void close_unixsock(int fd, struct in_addr inetaddr) {
   struct sockaddr_un where;
+  
   close(fd);
-  snprintf(where.sun_path, sizeof(where.sun_path), 
-	   PPTP_SOCKET_PREFIX "%s", inet_ntoa(inetaddr));
+  name_unixsock(&where, inetaddr, localbind);
   unlink(where.sun_path);
+}
+
+/* make a unix socket address */
+void name_unixsock(struct sockaddr_un *where, 
+		   struct in_addr inetaddr,
+		   struct in_addr localbind) {
+  where->sun_family = AF_UNIX;
+  snprintf(where->sun_path, sizeof(where->sun_path),
+	   PPTP_SOCKET_PREFIX "%s:%s", inet_ntoa(localbind),
+	   inet_ntoa(inetaddr));
 }

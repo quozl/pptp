@@ -51,5 +51,48 @@ More information on Bezeq's ADSL service can be found at
 http://vipe.technion.il/~mulix/adsl-howto.txt and
 http://damyen.technion.ac.il/~dani/adsl-howto.txt.
 
+TESTING MULTIPLE TUNNELS:
 
-$Id: USING,v 1.5 2003/01/15 05:29:20 quozl Exp $	
+For testing of PPTP servers, the client can be used to establish
+multiple tunnels from multiple IP addresses.  The addresses must be
+routable; this is something you'd do on a local area network.
+
+1. use an address pool on a concentrator.
+
+2. write an ip-up script (e.g. /etc/ppp/ip-up.local or /etc/ppp/ip-up.d)
+
+	#!/bin/sh
+	export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+	REALDEVICE=$1
+	PEERADDR=$6
+	ifconfig ${REALDEVICE} dstaddr ${PEERADDR}
+
+The script performs an "ifconfig pppx dstaddr xx.xx.xx.xx" where
+xx.xx.xx.xx is the private address of the concentrator so that the
+routing works without having to do iptables or ipchains.  The address
+used is given on the pptp command line.
+
+3. create distinct source interfaces with:
+
+        ifconfig eth0:n xx.xx.xx.xx netmask yy.yy.yy.yy 
+
+Where "n" is the alias interface number, "xx.xx.xx.xx" is the new
+address, and "yy.yy.yy.yy" is the network mask.
+
+4. connect with
+
+	pptp concentrator --bind xx.xx.xx.xx name \
+        xx remotename yy ipparam yy.yy.yy.yy 
+                                       ^ (private address of concentrator).
+
+Where "xx.xx.xx.xx" is the address of the source interface, "xx" is
+the local name of the tunnel, "yy" is the remote name of the tunnel,
+and "yy.yy.yy.yy" is the private address of the concentrator.  This is
+passed to the ip-up script as the sixth argument.
+
+See also the following test scripts;
+
+test-multiple-tunnels-1.sh  creates multiple source interfaces
+test-multiple-tunnels-2.sh  creates multiple tunnels
+
+$Id: USING,v 1.6 2003/02/15 04:32:50 quozl Exp $	

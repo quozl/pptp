@@ -1,3 +1,9 @@
+Sat Feb 15 14:59:20 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c, pptp_callmgr.c, pptp_gre.c: add localbind option to
+	support multiple clients from separate alias IP addresses.  
+	From: Ed Marcotte <epm@cisco.com>
+
 Fri Feb 14 16:08:26 CET 2003 Rein Klazes <rklazes@xs4all.nl>
 
 	* pptp_ctrl.c, pptp_msg.h: tweak the outgoing call reply messages

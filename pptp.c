@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.25 2003/02/14 14:53:52 reink Exp $
+ * $Id: pptp.c,v 1.26 2003/02/15 04:32:50 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -67,6 +67,7 @@ void usage(char *progname) {
   exit(1);
 }
 
+struct in_addr localbind = { INADDR_NONE };
 static int signaled = 0;
 
 void do_nothing(int sig) { 
@@ -116,6 +117,7 @@ int main(int argc, char **argv, char **envp) {
 	  {"sync", 0, 0, 0},
 	  {"timeout", 1, 0, 0},
 	  {"logstring", 1, 0, 0},
+          {"localbind", 1, 0, 0},
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -156,9 +158,13 @@ int main(int argc, char **argv, char **envp) {
 	    }
 	  } else if (option_index == 6) {/* --logstring */
 	    log_string = strdup(optarg);
-	  } /* else {
-            other pptp options come here 
-	  } */
+	  } else if (option_index == 7) {/* --localbind */ 
+	    if (inet_pton(AF_INET, optarg, (void *) &localbind) < 1) {
+	      fprintf(stderr, "Local bind address %s invalid\n", optarg);
+	      log("Local bind address %s invalid\n", optarg);
+	      exit(2);
+	    }
+          }
 	  break;
         case '?': /* unrecognised option, treat it as the first pppd option */
             /* fall through */
@@ -308,9 +314,7 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, 
   }
 
   /* Make address */
-  where.sun_family = AF_UNIX;
-  snprintf(where.sun_path, sizeof(where.sun_path), 
-	   PPTP_SOCKET_PREFIX "%s", inet_ntoa(inetaddr));
+  name_unixsock(&where, inetaddr, localbind);
 
   for (i=0; i<NUM_TRIES; i++) {
     if (connect(fd, (struct sockaddr *) &where, sizeof(where)) < 0) {
