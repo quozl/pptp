@@ -1,3 +1,9 @@
+Thu May 30 18:28:02 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c (pptp_call_open): do translation to network byte
+	order after limit checking of phone number.
+	From: staelin@hpl.hp.com
+	
 2002-05-13 08:14:40  Muli Ben-Yehuda  <mulix@actcom.co.il>
 
 	* TODO: remove 'remove setjmp/longjmp' TODO item. 
