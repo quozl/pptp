@@ -1,3 +1,14 @@
+Fri Mar  8 08:56:30 2002  James Cameron  <quozl@us.netrek.org>
+
+	* TODO: add compiler warnings note.
+	* NEWS: propogate summary of ChangeLog.
+	* AUTHORS: add names from mailing list contributions.
+	From: Rein Klazes <rklazes@xs4all.nl>
+	* Makefile: remove pptp_callmgr binary
+	* debian/copyright: adjust pointer to current release.
+	* debian/rules, Makefile: remove pptp_callmgr binary now that pptp
+	forks and calls it without exec.
+
 Sat Mar  2 04:04:37 2002  James Cameron  <quozl@us.netrek.org>
 
 	* README: adopt new mailing lists and point to project web site.
