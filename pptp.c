@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.41 2004/11/09 01:42:32 quozl Exp $
+ * $Id: pptp.c,v 1.42 2004/11/09 21:56:46 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -47,6 +47,7 @@
 #include "util.h"
 #include "pptp_quirks.h"
 #include "pqueue.h"
+#include "pptp_options.h"
 
 #ifndef PPPD_BINARY
 #define PPPD_BINARY "pppd"
