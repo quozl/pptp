@@ -1,3 +1,34 @@
+Mon Mar 11 12:48:16 2002  James Cameron  <quozl@us.netrek.org>
+
+	* DEVELOPERS: add mailing lists.
+	* Makefile (CFLAGS): remove PPPD_BINARY and PPTP_LINUX_VERSION in
+	favour of a config.h file.
+	* Makefile (config.h): create config.h from Makefile variables
+	* Makefile (PPTP_DEPS): add config.h
+	* pptp.c: include config.h
+	* version.c: include config.h
+	* util.c (PROGRAM_NAME): no longer used by two programs, change
+	PROGRAM_NAME to default to pptp.
+	* Makefile (CFLAGS): remove -DPROGRAM_NAME
+
+Fri Mar  8 11:56:00 2002  mulix  <mulix@actcom.co.il>
+
+	* TODO: remove notes about compiler warnings, as all compiler
+	warnings are now gone.
+	* pptp.c (main): add volatile qualifier to some variables to
+	silence gcc warnings 'variable might be clobbered by longjmp or
+	vfork'. add note explaining why volatile and that it should be
+	removed when the longjmp is removed.
+	* pptp_callmgr.c (main): likewise. 
+	* inststr.c (inststr): break up "ptr += strlen(++ptr)" which is
+	undefined behaviour into two expressions. 
+	* pptp.c (main): initialize callmgr_sock to -1 since it might be
+	used uninitialized otherwise. 
+	* pptp_ctrl.c (pptp_dispatch_ctrl_packet): #ifdef 0 two unused
+	variables referring to the current packet, which should not be
+	simply erased, as we might want to use them in the future.
+	* util.c: add missing #include. 
+	
 Fri Mar  8 21:11:17 2002  James Cameron  <quozl@us.netrek.org>
 
 	* DEVELOPERS: new file.
