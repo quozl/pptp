@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.11 2002/03/11 01:51:41 quozl Exp $
+ * $Id: pptp.c,v 1.12 2002/03/31 11:14:56 mulix Exp $
  */
 
 #include <sys/types.h>
@@ -229,15 +229,15 @@ struct in_addr get_ip_address(char *name) {
   struct hostent *host = gethostbyname(name);
   if (host==NULL) {
     if (h_errno == HOST_NOT_FOUND)
-      fatal("gethostbyname: HOST NOT FOUND");
+      fatal("gethostbyname '%s': HOST NOT FOUND", name);
     else if (h_errno == NO_ADDRESS)
-      fatal("gethostbyname: NO IP ADDRESS");
+      fatal("gethostbyname '%s': NO IP ADDRESS", name);
     else
-      fatal("gethostbyname: name server error");
+      fatal("gethostbyname '%s': name server error %d", name, h_errno);
   }
   
   if (host->h_addrtype != AF_INET)
-    fatal("Host has non-internet address");
+    fatal("Host '%s' has non-internet address", name);
   
   memcpy(&retval.s_addr, host->h_addr, sizeof(retval.s_addr));
   return retval;

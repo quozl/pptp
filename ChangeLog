@@ -1,3 +1,10 @@
+2002-03-30 13:13:52  mulix  <mulix@actcom.co.il>
+
+	* USING: change URL for bezeq adsl howto.  
+	* pptp.c: (get_ip_address): if the user runs 'pptp --quirks ...'
+	instead of 'pptp hostname', we'll get here and then give a verbose
+	error message. 
+
 Mon Mar 11 10:21:00 2002  mulix  <mulix@actcom.co.il>
 
 	* Makefile (all): make config.h before making $(PPTP_BIN). 
