@@ -37,7 +37,7 @@ vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o
 
 clean:
-	$(RM) *.o
+	$(RM) *.o config.h
 
 clobber: clean
 	$(RM) $(PPTP_BIN) vector_test
