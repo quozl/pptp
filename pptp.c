@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.36 2003/12/01 01:01:55 quozl Exp $
+ * $Id: pptp.c,v 1.37 2004/03/01 22:56:55 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -96,7 +96,7 @@ static int signaled = 0;
 void do_nothing(int sig)
 { 
     /* do nothing signal handler. Better than SIG_IGN. */
-    signaled = 1;
+    signaled = sig;
 }
 
 sigjmp_buf env;
@@ -255,6 +255,7 @@ int main(int argc, char **argv, char **envp)
 
         /* fork and wait. */
         signal(SIGUSR1, do_nothing); /* don't die */
+        signal(SIGCHLD, do_nothing); /* don't ignore SIGCHLD */
         parent_pid = getpid();
         switch (child_pid = fork()) {
             case -1:
@@ -274,6 +275,10 @@ int main(int argc, char **argv, char **envp)
                 if (!signaled) {
                     pause(); /* wait for the signal */
                 }
+ 
+                if (signaled == SIGCHLD)
+                    fatal("Child process died");
+ 
                 launch_pppd(ttydev, pppdargc, pppdargv); /* launch pppd */
                 perror("Error");
                 fatal("Could not launch pppd");

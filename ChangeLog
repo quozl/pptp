@@ -1,3 +1,11 @@
+Tue Mar  2 09:53:53 2004  Peter McCurdy <pmccurdy@nit.ca>
+
+	* pptp.c (main, do_nothing): do not hang when a connection is
+	refused.  When the controlling process (pptp.c) paused while
+	waiting for the child to send SIGUSR1, if the child died then the
+	controlling process wouldn't ever wake up.  Now if the child dies,
+	SIGCHLD gets handled and the controlling process quits.
+
 Fri Jan  2 10:05:17 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp-linux-1.4.0 released.
