@@ -24,3 +24,13 @@ Release 1.0.3:
   (Needed by the Dutch Mxstream ADSL service.)
   Contributed by Rein Klazes <rklazes@xs4all.nl>
 
+Release 1.1.0:
+
+- allow activation as a psuedo-tty child process from pppd.
+  This allows on demand pptp links or automatically reconnect.
+- ADSL modem quirks handler by mulix@actcom.co.il.
+  Workarounds for Orckit ADSL modem.
+- enhance bad FCS error message.
+- ported to FreeBSD and NetBSD.
+- integrated call manager into pptp binary.
+- many bugfixes improving stability.
