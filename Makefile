@@ -4,9 +4,9 @@ VERSION_DEFINE = '-DPPTP_LINUX_VERSION="${VERSION}"'
 CC	= gcc -Wall
 DEBUG	= -g
 INCLUDE =
-CFLAGS  = -O9 $(VERSION_DEFINE) $(DEBUG) $(INCLUDE)
+CFLAGS  = -O1 $(VERSION_DEFINE) $(DEBUG) $(INCLUDE) -DPROGRAM_NAME=\"pptp\"
 LIBS	=
-LDFLAGS	=
+LDFLAGS	= -lutil
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
@@ -30,7 +30,9 @@ $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
 
 $(CALLMGR_BIN): $(CALLMGR_OBJS) $(CALLMGR_DEPS)
-	$(CC) -o $(CALLMGR_BIN) $(CALLMGR_OBJS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $(CALLMGR_BIN) -DPROGRAM_NAME=$(CALLMGR_BIN) $(CALLMGR_OBJS) $(LDFLAGS) $(LIBS)
+
+pptp.o: pptp_callmgr.c
 
 vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o

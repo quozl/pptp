@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: pptp_ctrl.c,v 1.2 2000/12/23 08:32:15 scott Exp $
  */
 
 #include <errno.h>
@@ -297,13 +297,18 @@ void pptp_conn_destroy(PPTP_CONN * conn) {
 /************** Deal with messages, in a non-blocking manner *************/
 
 /* Add file descriptors used by pptp to fd_set. */
-void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set) {
+void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set,
+                 int *max_fd) {
   assert(conn && conn->call);
+
   /* Add fd to write_set if there are outstanding writes. */
   if (conn->write_size > 0)
     FD_SET(conn->inet_sock, write_set);
+
   /* Always add fd to read_set. (always want something to read) */
   FD_SET(conn->inet_sock, read_set);
+  if (*max_fd < conn->inet_sock)
+    *max_fd = conn->inet_sock;
 }
 /* handle any pptp file descriptors set in fd_set, and clear them */
 void pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set) {
@@ -513,8 +518,10 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	  close_reason = PPTP_STOP_PROTOCOL;
 	  goto pptp_conn_close;
 	}
-	if (ntoh8(packet->result_code)!=1) { /* some problem with start */
-	  /* if result_code == 5, we might fall back to different version */
+        /* J'ai change le if () afin que la connection ne se ferme pas pour un "rien" :p
+         * adel@cybercable.fr -
+         */                                            
+	if (ntoh8(packet->result_code) !=1 && ntoh8(packet->result_code) !=0) { 
 	  if (conn->callback!=NULL) conn->callback(conn, CONN_OPEN_FAIL);
 	  close_reason = PPTP_STOP_PROTOCOL;
 	  goto pptp_conn_close;
@@ -634,7 +641,8 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	  call->speed        = ntoh32(packet->speed);
 	  pptp_reset_timer();
 	  if (call->callback!=NULL) call->callback(conn, call, CALL_OPEN_DONE);
-	  log("Outgoing call established.\n");
+	  log("Outgoing call established (call ID %u, peer's call ID %u).\n",
+		call->call_id, call->peer_call_id);
 	}
       }
       break;

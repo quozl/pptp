@@ -2,7 +2,7 @@
  *                       #define STANDARD to emulate NT 4.0 exactly.
  *                       C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_options.h,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: pptp_options.h,v 1.2 2000/12/23 08:32:15 scott Exp $
  */
 
 #ifndef INC_PPTP_OPTIONS_H
@@ -25,7 +25,7 @@
 #define PPTP_HOSTNAME {'l','o','c','a','l',0}
 #define PPTP_VENDOR   {'c','a','n','a','n','i','a','n',0}
 #define PPTP_FRAME_CAP  PPTP_FRAME_ANY
-#define PPTP_BEARER_CAP PPTP_BEARER_DIGITAL
+#define PPTP_BEARER_CAP PPTP_BEARER_ANY
 #else
 #define PPTP_MAX_CHANNELS 5
 #define PPTP_FIRMWARE_STRING "0.01"

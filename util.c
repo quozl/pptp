@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: util.c,v 1.2 2000/12/23 08:32:15 scott Exp $
  */
 
 #include <stdio.h>
@@ -18,7 +18,7 @@ static void open_log(void) __attribute__ ((constructor));
 static void close_log(void) __attribute__ ((destructor));
 
 static void open_log(void) {
-  openlog(PROGRAM_NAME, LOG_PERROR | LOG_PID, LOG_DAEMON);
+  openlog(PROGRAM_NAME, LOG_PID, LOG_DAEMON);
 }
 static void close_log(void) {
   closelog();

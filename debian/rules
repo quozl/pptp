@@ -1,0 +1,267 @@
+#! /usr/bin/make -f
+# Generated automatically from debian/packages
+# by yada v0.9, of Tue, 07 Dec 1999
+
+.PHONY: default
+default:
+	@echo "Specify a target:"; \
+	echo " build              compile the package"; \
+	echo " binary             make all binary packages"; \
+	echo " binary-arch        make all architecture-dependent binary packages"; \
+	echo " binary-indep       make all architecture-independent binary packages"; \
+	echo " clean              clean up the source package"; \
+	echo; \
+	echo " patch              apply patches from debian/*.dpatch"; \
+	echo " unpatch            unapply patches from debian/*.dpatch{,disabled}"; \
+	echo " install-tree       compile the package and create the install trees"; \
+	echo " clean-install-tree clean up only under debian/"; \
+	echo
+
+.PHONY: patch unpatch
+# Apply patches matching `debian/*.dpatch' to the source tree,
+# and unapply any applied patches `debian/*.dpatch.disabled'
+patch: debian/patch-stamp
+debian/patch-stamp:
+	@set -e; backupdirs=$$(ls -d debian/backup-* 2>/dev/null | wc -l); \
+	if test $$backupdirs -gt 1; then \
+	  echo "*** Yada error: There are multiple debian/backup-* directories."; \
+	  echo "***             I can't cope.  Please clean up for me."; \
+	  exit 1; \
+	fi; \
+	if test $$backupdirs = 1; then \
+	  patchname="$$(echo debian/backup-* | sed 's=^debian/backup-==')"; \
+	  echo "*** Cleaning up after interrupted patching run for $$patchname"; \
+	  if test -f "debian/patch-$$patchname-applied"; then \
+	    rm -rf "debian/backup-$$patchname"; \
+	  else \
+	    (cd "debian/backup-$$patchname"; find . -type f -print0) | xargs -0ri mv -f -- debian/backup-$$patchname/{} {}; \
+	    find "debian/backup-$$patchname" -depth -type d -exec rmdir '{}' \;; \
+	    if test -e "debian/backup-$$patchname"; then \
+	      echo "*** Yada error: I could not recover cleanly from an interrupted patch."; \
+	      echo "***             I can't cope.  Please clean up for me."; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	fi
+
+	@set -e; backdowndirs=$$(ls -d debian/backdown-* 2>/dev/null | wc -l); \
+	if test $$backdowndirs -gt 1; then \
+	  echo "*** Yada error: There are multiple debian/backdown-* directories."; \
+	  echo "***             I can't cope.  Please clean up for me."; \
+	  exit 1; \
+	fi; \
+	if test $$backdowndirs = 1; then \
+	  patchname="$$(echo debian/backdown-* | sed 's=^debian/backdown-==')"; \
+	  echo "*** Cleaning up after interrupted unpatching run for $$patchname"; \
+	  if test ! -f "debian/patch-$$patchname-applied"; then \
+	    rm -rf "debian/backdown-$$patchname"; \
+	  else \
+	    (cd "debian/backdown-$$patchname"; find . -type f -print0) | xargs -0ri mv -f -- debian/backdown-$$patchname/{} {}; \
+	    find "debian/backdown-$$patchname" -depth -type d -exec rmdir '{}' \;; \
+	    if test -e "debian/backdown-$$patchname"; then \
+	      echo "*** Yada error: I could not recover cleanly from an interrupted patch."; \
+	      echo "***             I can't cope.  Please clean up for me."; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	fi
+
+	@set -e; for stampfile in debian/patch-*-applied; do \
+	  if test -f "$$stampfile"; then \
+	    patchname="$$(echo "$$stampfile" | sed 's=^debian/patch-\(.*\)-applied$$=\1=')"; \
+	    patchfile="debian/$$patchname.disabled"; \
+	    if test -f "$$patchfile"; then \
+	      echo "*** $$patchfile is now disabled; patching it out"; \
+	      patchoptions="$$(sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <"$$patchfile")"; \
+	      patch -R -f -i "$$patchfile" -b -V simple -B "debian/backdown-$$patchname/" $$patchoptions; \
+	      rm -f "$$stampfile"; \
+	      rm -rf "debian/backdown-$$patchname"; \
+	    fi; \
+	  fi; \
+	done
+
+	@set -e; for patchfile in debian/*.dpatch; do \
+	  if test -f "$$patchfile"; then \
+	    patchname="$$(echo "$$patchfile" | sed 's=^debian/==')"; \
+	    stampfile="debian/patch-$$patchname-applied"; \
+	    if test ! -f "$$stampfile"; then \
+	      echo "*** Applying patch from $$patchname"; \
+	      patchoptions="$$(sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <"$$patchfile")"; \
+	      patch -N -f -i "$$patchfile" -b -V simple -B "debian/backup-$$patchname/" $$patchoptions; \
+	      touch "$$stampfile"; \
+	      rm -rf "debian/backup-$$patchname"; \
+	    fi; \
+	  fi; \
+	done
+
+	touch debian/patch-stamp
+
+# Remove all managed patches from the source tree
+unpatch:
+	@set -e; backupdirs=$$(ls -d debian/backup-* 2>/dev/null | wc -l); \
+	if test $$backupdirs -gt 1; then \
+	  echo "*** Yada error: There are multiple debian/backup-* directories."; \
+	  echo "***             I can't cope.  Please clean up for me."; \
+	  exit 1; \
+	fi; \
+	if test $$backupdirs = 1; then \
+	  patchname="$$(echo debian/backup-* | sed 's=^debian/backup-==')"; \
+	  echo "*** Cleaning up after interrupted patching run for $$patchname"; \
+	  if test -f "debian/patch-$$patchname-applied"; then \
+	    rm -rf "debian/backup-$$patchname"; \
+	  else \
+	    (cd "debian/backup-$$patchname"; find . -type f -print0) | xargs -0ri mv -f -- debian/backup-$$patchname/{} {}; \
+	    find "debian/backup-$$patchname" -depth -type d -exec rmdir '{}' \;; \
+	    if test -e "debian/backup-$$patchname"; then \
+	      echo "*** Yada error: I could not recover cleanly from an interrupted patch."; \
+	      echo "***             I can't cope.  Please clean up for me."; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	fi
+
+	@set -e; backdowndirs=$$(ls -d debian/backdown-* 2>/dev/null | wc -l); \
+	if test $$backdowndirs -gt 1; then \
+	  echo "*** Yada error: There are multiple debian/backdown-* directories."; \
+	  echo "***             I can't cope.  Please clean up for me."; \
+	  exit 1; \
+	fi; \
+	if test $$backdowndirs = 1; then \
+	  patchname="$$(echo debian/backdown-* | sed 's=^debian/backdown-==')"; \
+	  echo "*** Cleaning up after interrupted unpatching run for $$patchname"; \
+	  if test ! -f "debian/patch-$$patchname-applied"; then \
+	    rm -rf "debian/backdown-$$patchname"; \
+	  else \
+	    (cd "debian/backdown-$$patchname"; find . -type f -print0) | xargs -0ri mv -f -- debian/backdown-$$patchname/{} {}; \
+	    find "debian/backdown-$$patchname" -depth -type d -exec rmdir '{}' \;; \
+	    if test -e "debian/backdown-$$patchname"; then \
+	      echo "*** Yada error: I could not recover cleanly from an interrupted patch."; \
+	      echo "***             I can't cope.  Please clean up for me."; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	fi
+
+	@set -e; for stampfile in debian/patch-*-applied; do \
+	  if test -f "$$stampfile"; then \
+	    patchname="$$(echo "$$stampfile" | sed 's=^debian/patch-\(.*\)-applied$$=\1=')"; \
+	    patchfile="debian/$$patchname"; \
+	    if test ! -f "$$patchfile"; then \
+	      patchfile="$$patchfile.disabled"; \
+	    fi; \
+	    if test -f "$$patchfile"; then \
+	      echo "*** Removing patch from $$patchname"; \
+	      patchoptions="$$(sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <"$$patchfile")"; \
+	      patch -R -f -i "$$patchfile" -b -V simple -B "debian/backdown-$$patchname/" $$patchoptions; \
+	      rm -f "$$stampfile"; \
+	      rm -rf "debian/backdown-$$patchname"; \
+	    else \
+	      echo "*** Yada warning: Cannot find a patchfile named \`$$patchname' to unapply"; \
+	    fi; \
+	  fi; \
+	done
+
+	rm -f debian/patch-stamp
+
+# Build the package and prepare the install tree
+
+.PHONY: build-only build
+build-only: debian/build-stamp
+build: build-only
+
+# Make sure these rules and the control file are up-to-date
+
+.PHONY: rules control
+rules: debian/rules
+debian/rules: debian/yada debian/packages
+	chmod +x debian/yada
+	debian/yada rebuild rules
+
+control: debian/control
+debian/control: debian/yada debian/packages
+	chmod +x debian/yada
+	debian/yada rebuild control
+
+debian/build-stamp: debian/patch-stamp
+	@[ -f debian/yada -a -f debian/rules ]
+	@umask 022 && (\
+	echo -E 'eval "yada () { perl $$(pwd)/debian/yada \"\$$@\"; }"; set -e; set -v';\
+	echo -E 'make') | /bin/sh
+	touch debian/build-stamp
+
+.PHONY: install-tree
+install-tree: install-tree-any
+install-tree-any: \
+	debian/tmp-pptp-linux/DEBIAN/control
+
+debian/tmp-pptp-linux/DEBIAN/control: debian/build-stamp debian/control
+	rm -rf debian/tmp-pptp-linux
+	umask 022 && install -d debian/tmp-pptp-linux/DEBIAN
+	chmod +x debian/yada
+	install -d debian/tmp-pptp-linux/usr/share/doc/pptp-linux
+	umask 022; debian/yada generate copyright \
+	                       >debian/tmp-pptp-linux/usr/share/doc/pptp-linux/copyright
+	install -m 644 -p debian/changelog \
+	                  debian/tmp-pptp-linux/usr/share/doc/pptp-linux/changelog.Debian
+	@umask 022 && export PACKAGE="pptp-linux" \
+	    && export ROOT="$$(pwd)/debian/tmp-pptp-linux" \
+	    && export CONTROL="$$(pwd)/debian/tmp-pptp-linux/DEBIAN" && (\
+	echo -E 'eval "yada () { perl $$(pwd)/debian/yada \"\$$@\"; }"; set -e; set -v';\
+	echo -E ' yada install -bin -into /usr/sbin pptp pptp_callmgr';\
+	echo -E ' yada install -doc README TODO USING AUTHORS debian/README.Debian \';\
+	echo -E '  Documentation/* debian/README.Reference \';\
+	echo -E '  Reference/{rfc{170{1,2},1990},ms-chap,pptp-draft}.txt';\
+	echo -E ' yada install -doc NEWS -as changelog';\
+	echo -E ' yada install -doc debian/changelog -as changelog.Debian';\
+	echo -E ' yada install -man -section 8 debian/pptp.8';\
+	echo -E ' ln -s pptp.8.gz $$ROOT/usr/share/man/man8/pptp_callmgr.8.gz') | /bin/sh
+	LD_LIBRARY_PATH="debian/tmp-pptp-linux/lib:debian/tmp-pptp-linux/usr/lib:$$LD_LIBRARY_PATH" dpkg-shlibdeps -ppptp-linux -dDepends debian/tmp-pptp-linux/usr/sbin/*
+	debian/yada compress pptp-linux
+	find debian/tmp-pptp-linux -type f -print \
+	  | sed -n 's/^debian\/tmp-pptp-linux\(\/etc\/.*\)$$/\1/p' \
+	    > debian/tmp-pptp-linux/DEBIAN/conffiles
+	if test ! -s debian/tmp-pptp-linux/DEBIAN/conffiles; then rm -f debian/tmp-pptp-linux/DEBIAN/conffiles; fi
+	debian/yada generate maintscripts pptp-linux
+	umask 022 && dpkg-gencontrol -isp -ppptp-linux -Pdebian/tmp-pptp-linux
+
+# Build package files
+
+.PHONY: binary binary-arch binary-indep
+binary: binary-arch binary-indep
+binary-arch: binary-arch-any
+
+.PHONY: binary-arch-any
+binary-arch-any: \
+	binary-package-pptp-linux
+binary-indep:
+
+.PHONY: binary-package-pptp-linux
+binary-package-pptp-linux: check-root debian/tmp-pptp-linux/DEBIAN/control
+	@[ -f debian/yada -a -f debian/rules ]
+	chown -R 0.0 debian/tmp-pptp-linux
+	chmod -R u=rwX,go=rX debian/tmp-pptp-linux
+	@if [ -d debian/tmp-pptp-linux/usr/doc/pptp-linux ]; then \
+	  echo "*** Yada warning: /usr/doc/pptp-linux should be /usr/share/doc/pptp-linux";\
+	fi
+	dpkg-deb --build debian/tmp-pptp-linux ..
+
+.PHONY: check-root
+check-root:
+	@[ `id -u` = 0 ] || (echo "You must be root to do this!"; false)
+
+# Clean up afterwards
+
+.PHONY: clean clean-install-tree clean-build
+clean: clean-install-tree clean-build unpatch debian/control debian/rules
+
+clean-build:
+	@[ -f debian/yada -a -f debian/rules ]
+	rm -f debian/build-stamp debian/depends-stamp
+	@umask 022 && (\
+	echo -E 'eval "yada () { perl $$(pwd)/debian/yada \"\$$@\"; }"; set -e; set -v';\
+	echo -E 'make distclean || true') | /bin/sh
+
+clean-install-tree: debian/rules
+	@[ -f debian/yada -a -f debian/rules ]
+	rm -f debian/install-tree-stamp
+	rm -rf debian/tmp* debian/files* debian/substvars

@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: pptp_callmgr.c,v 1.2 2000/12/23 08:32:15 scott Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -32,8 +32,13 @@ void close_inetsock(int fd, struct in_addr inetaddr);
 void close_unixsock(int fd, struct in_addr inetaddr);
 
 sigjmp_buf env;
+
 void sighandler(int sig) {
-  siglongjmp(env, 1);
+    siglongjmp (env, 1);
+}
+
+void do_nothing(int sig) {
+    /* do nothing signal handler */
 }
 
 struct local_callinfo {
@@ -45,8 +50,6 @@ struct local_conninfo {
   VECTOR * call_list;
   fd_set * call_set;
 };
-
-void do_nothing(int sig) { /* do nothing signal handler */ }
 
 /* Connection callback */
 void conn_callback(PPTP_CONN *conn, enum conn_state state) {
@@ -134,10 +137,12 @@ int main(int argc, char **argv, char **envp) {
   }
 
   /* Step 1c: Clean up unix socket on TERM */
+  if (sigsetjmp(env, 1)!=0)
+    goto cleanup;
+
   signal(SIGINT, sighandler);
   signal(SIGTERM, sighandler);
-  signal(SIGKILL, sighandler);
-  if (sigsetjmp(env, 1)!=0) goto cleanup;
+
   signal(SIGPIPE, do_nothing);
   signal(SIGUSR1, do_nothing); /* signal state change; wake up accept */
 
@@ -163,14 +168,21 @@ int main(int argc, char **argv, char **envp) {
 
   /* Step 3: Get FD_SETs */
   do {
-    fd_set read_set, write_set, excpt_set = call_set;
-    FD_ZERO(&read_set);
-    FD_ZERO(&write_set);
-    FD_SET(unix_sock, &read_set);
-    pptp_fd_set(conn, &read_set, &write_set);
+    int rc;
+    fd_set read_set = call_set, write_set;
+    FD_ZERO (&write_set);
+    FD_SET (unix_sock, &read_set);
+    pptp_fd_set(conn, &read_set, &write_set, &max_fd);
+
+    for (; max_fd > 0 ; max_fd--) {
+      if (FD_ISSET (max_fd, &read_set) ||
+          FD_ISSET (max_fd, &write_set))
+        break;
+    }
 
     /* Step 4: Wait on INET or UNIX event */
-    if (select(max_fd+1, &read_set, &write_set, &excpt_set, NULL)<0)
+
+    if ((rc = select(max_fd+1, &read_set, &write_set, NULL, NULL)) <0)
       /* a signal or somesuch. */
       continue;
 
@@ -187,6 +199,7 @@ int main(int argc, char **argv, char **envp) {
       int s;
 
       /* Accept the socket */
+      FD_CLR (unix_sock, &read_set);
       if ((s = accept(unix_sock, (struct sockaddr *) &from, &len))<0) {
 	warn("Socket not accepted: %s", strerror(errno));
 	goto skip_accept;
@@ -214,8 +227,8 @@ int main(int argc, char **argv, char **envp) {
     }
   skip_accept:
     /* Step 5c: Handle socket close */
-    for (i=0; i<max_fd; i++)
-      if (FD_ISSET(i, &excpt_set)) {
+    for (i=0; i<max_fd+1; i++)
+      if (FD_ISSET(i, &read_set)) {
 	/* close it */
 	PPTP_CALL * call;
 	retval = vector_search(call_list, i, &call);
@@ -249,7 +262,7 @@ shutdown:
     /* attempt to dispatch these messages */
     FD_ZERO(&read_set);
     FD_ZERO(&write_set);
-    pptp_fd_set(conn, &read_set, &write_set);
+    pptp_fd_set(conn, &read_set, &write_set, &max_fd);
     FD_ZERO(&read_set);
     pptp_dispatch(conn, &read_set, &write_set);
     if (i>0) sleep(2);
@@ -257,7 +270,7 @@ shutdown:
     pptp_conn_close(conn, PPTP_STOP_LOCAL_SHUTDOWN);
     FD_ZERO(&read_set);
     FD_ZERO(&write_set);
-    pptp_fd_set(conn, &read_set, &write_set);
+    pptp_fd_set(conn, &read_set, &write_set, &max_fd);
     FD_ZERO(&read_set);
     pptp_dispatch(conn, &read_set, &write_set);
     sleep(2);
@@ -336,8 +349,3 @@ void close_unixsock(int fd, struct in_addr inetaddr) {
 	   PPTP_SOCKET_PREFIX "%s", inet_ntoa(inetaddr));
   unlink(where.sun_path);
 }
-  
-
-
-
-

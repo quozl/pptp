@@ -1,0 +1,36 @@
+Source: pptp-linux
+Section: net
+Priority: optional
+Maintainer: Thomas Quinot <thomas@debian.org>
+Packager: Thomas Quinot <thomas@debian.org>
+Standards-Version: 3.1.1
+Upstream-Source: <URL:http://www.pdos.lcs.mit.edu/~cananian/Projects/PPTP/release/pptp-linux-latest.tar.gz>
+Home-Page: <URL:http://www.pdos.lcs.mit.edu/~cananian/Projects/PPTP/>
+Description: PPTP Microsoft Compatible Tunneling Protocol
+Major-Changes:
+ Fixed a number of bugs in the upstream distribution.
+ Introduced bug compatibility with Alacatel ADSL 1000 modem.
+Packaged-For: Debian
+Copyright: GPL
+ Copyright 1997 C. Scott Ananian
+Build: sh
+ make
+Clean: sh
+ make distclean || true
+Patches: *.dpatch
+
+Package: pptp-linux
+Architecture: any
+Description: PPTP Microsoft Compatible Tunneling Protocol
+ pptp-linux is an implementation of the PPTP protocol for Linux and
+ other Unix systems.
+Depends: [/usr/sbin/*], ppp
+Install: sh
+  yada install -bin -into /usr/sbin pptp pptp_callmgr
+  yada install -doc README TODO USING AUTHORS debian/README.Debian \
+   Documentation/* debian/README.Reference \
+   Reference/{rfc{170{1,2},1990},ms-chap,pptp-draft}.txt
+  yada install -doc NEWS -as changelog
+  yada install -doc debian/changelog -as changelog.Debian
+  yada install -man -section 8 debian/pptp.8
+  ln -s pptp.8.gz $ROOT/usr/share/man/man8/pptp_callmgr.8.gz

@@ -2,11 +2,12 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: pptp.c,v 1.2 2000/12/23 08:32:15 scott Exp $
  */
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <pty.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/un.h>
@@ -60,8 +61,8 @@ void sighandler(int sig) {
 int main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;
   int callmgr_sock;
-  char ptydev[PTYMAX], ttydev[TTYMAX];
-  int pty_fd;
+  char ttydev[TTYMAX];
+  int pty_fd, tty_fd, rc;
   pid_t parent_pid, child_pid;
   u_int16_t call_id, peer_call_id;
   
@@ -77,23 +78,24 @@ int main(int argc, char **argv, char **envp) {
   callmgr_sock = open_callmgr(inetaddr, argc,argv,envp);
 
   /* Step 3: Find an open pty/tty pair. */
-  pty_fd = getpseudotty(ttydev, ptydev);
-  if (pty_fd < 0) { close(callmgr_sock); fatal("Could not find free pty."); }
+  /* pty_fd = getpseudotty(ttydev, ptydev); */
+  rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
+  if (rc < 0) { close(callmgr_sock); fatal("Could not find free pty."); }
   
   /* Step 4: fork and wait. */
   signal(SIGUSR1, do_nothing); /* don't die */
   parent_pid = getpid();
   switch (child_pid = fork()) {
   case -1:
-    signal(SIGUSR1, SIG_DFL);
-    close (pty_fd); close (callmgr_sock);
-    perror("Error");
     fatal("Could not fork pppd process");
+
   case 0: /* I'm the child! */
+    close (tty_fd);
     signal(SIGUSR1, SIG_DFL);
     child_pid = getpid();
     break;
   default: /* parent */
+    close (pty_fd);
     /*
      * There is still a very small race condition here.  If a signal
      * occurs after signaled is checked but before pause is called,
@@ -122,7 +124,7 @@ int main(int argc, char **argv, char **envp) {
   
   {
     char buf[128];
-    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", ptydev);
+    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", ttydev);
     inststr(argc,argv,envp, buf);
   }
 
@@ -140,13 +142,14 @@ shutdown:
 struct in_addr get_ip_address(char *name) {
   struct in_addr retval;
   struct hostent *host = gethostbyname(name);
-  if (host==NULL)
+  if (host==NULL) {
     if (h_errno == HOST_NOT_FOUND)
       fatal("gethostbyname: HOST NOT FOUND");
     else if (h_errno == NO_ADDRESS)
       fatal("gethostbyname: NO IP ADDRESS");
     else
       fatal("gethostbyname: name server error");
+  }
   
   if (host->h_addrtype != AF_INET)
     fatal("Host has non-internet address");
@@ -160,6 +163,8 @@ int open_callmgr(struct in_addr inetaddr, int argc, char **argv, char **envp) {
   struct sockaddr_un where;
   const int NUM_TRIES = 3;
   int i, fd;
+  pid_t pid;
+  int status;
 
   /* Open socket */
   if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
@@ -174,7 +179,24 @@ int open_callmgr(struct in_addr inetaddr, int argc, char **argv, char **envp) {
   for (i=0; i<NUM_TRIES; i++) {
     if (connect(fd, (struct sockaddr *) &where, sizeof(where)) < 0) {
       /* couldn't connect.  We'll have to launch this guy. */
-      launch_callmgr(inetaddr, argc,argv,envp);
+
+      unlink (where.sun_path);	
+
+      /* fork and launch call manager process */
+      switch (pid=fork()) {
+      case -1: /* failure */
+	  fatal("fork() to launch call manager failed.");
+      case 0: /* child */
+	  {
+	      close (fd);
+	      launch_callmgr(inetaddr, argc,argv,envp);
+	  }
+      default: /* parent */
+	  waitpid(pid, &status, 0);
+	  if (status!=0)
+	      fatal("Call manager exited with error %d", status);
+	  break;
+      }
       sleep(1);
     }
     else return fd;
@@ -185,15 +207,6 @@ int open_callmgr(struct in_addr inetaddr, int argc, char **argv, char **envp) {
 }
 
 void launch_callmgr(struct in_addr inetaddr, int argc,char**argv,char**envp) {
-  pid_t pid;
-  int status;
-
-  /* fork and launch call manager process */
-  switch (pid=fork()) {
-  case -1: /* failure */
-    fatal("fork() to launch call manager failed.");
-  case 0: /* child */
-    { 
       int callmgr_main(int argc, char**argv, char**envp);
       char *my_argv[2] = { argv[0], inet_ntoa(inetaddr) };
       char buf[128];
@@ -206,13 +219,6 @@ void launch_callmgr(struct in_addr inetaddr, int argc,char**argv,char**envp) {
       fatal("execlp() of call manager [%s] failed: %s", 
 	  callmgr, strerror(errno));
       */
-    }
-  default: /* parent */
-    waitpid(pid, &status, 0);
-    if (status!=0)
-      fatal("Call manager exited with error %d", status);
-    break;
-  }
 }
 
 /* XXX need better error checking XXX */

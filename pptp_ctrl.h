@@ -1,7 +1,7 @@
 /* pptp_ctrl.h ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.h,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: pptp_ctrl.h,v 1.2 2000/12/23 08:32:15 scott Exp $
  */
 
 #ifndef INC_PPTP_CTRL_H
@@ -37,7 +37,7 @@ void pptp_conn_close(PPTP_CONN * conn, u_int8_t close_reason);
 void pptp_conn_destroy(PPTP_CONN * conn);
 
 /* Add file descriptors used by pptp to fd_set. */
-void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set);
+void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set, int *max_fd);
 /* handle any pptp file descriptors set in fd_set, and clear them */
 void pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set);
 

@@ -1,0 +1,412 @@
+diff -Nur pristine/pptp-linux-1.0.2/Makefile thomas/pptp-linux-1.0.2/Makefile
+--- pristine/pptp-linux-1.0.2/Makefile	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/Makefile	Wed Jan 19 00:02:00 2000
+@@ -4,9 +4,9 @@
+ CC	= gcc -Wall
+ DEBUG	= -g
+ INCLUDE =
+-CFLAGS  = -O9 $(VERSION_DEFINE) $(DEBUG) $(INCLUDE)
++CFLAGS  = -O2 $(VERSION_DEFINE) $(DEBUG) $(INCLUDE) -DPROGRAM_NAME=\"pptp\"
+ LIBS	=
+-LDFLAGS	=
++LDFLAGS	= -lutil
+ 
+ #################################################################
+ # CHANGE THIS LINE to point to the location of your pppd binary.
+@@ -30,7 +30,9 @@
+ 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
+ 
+ $(CALLMGR_BIN): $(CALLMGR_OBJS) $(CALLMGR_DEPS)
+-	$(CC) -o $(CALLMGR_BIN) $(CALLMGR_OBJS) $(LDFLAGS) $(LIBS)
++	$(CC) -o $(CALLMGR_BIN) -DPROGRAM_NAME=$(CALLMGR_BIN) $(CALLMGR_OBJS) $(LDFLAGS) $(LIBS)
++
++pptp.o: pptp_callmgr.c
+ 
+ vector_test: vector_test.o vector.o
+ 	$(CC) -o vector_test vector_test.o vector.o
+diff -Nur pristine/pptp-linux-1.0.2/pptp.c thomas/pptp-linux-1.0.2/pptp.c
+--- pristine/pptp-linux-1.0.2/pptp.c	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/pptp.c	Tue Jan 18 23:37:37 2000
+@@ -7,6 +7,7 @@
+ 
+ #include <sys/types.h>
+ #include <sys/socket.h>
++#include <pty.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <sys/un.h>
+@@ -60,8 +61,8 @@
+ int main(int argc, char **argv, char **envp) {
+   struct in_addr inetaddr;
+   int callmgr_sock;
+-  char ptydev[PTYMAX], ttydev[TTYMAX];
+-  int pty_fd;
++  char ttydev[TTYMAX];
++  int pty_fd, tty_fd, rc;
+   pid_t parent_pid, child_pid;
+   u_int16_t call_id, peer_call_id;
+   
+@@ -77,23 +78,24 @@
+   callmgr_sock = open_callmgr(inetaddr, argc,argv,envp);
+ 
+   /* Step 3: Find an open pty/tty pair. */
+-  pty_fd = getpseudotty(ttydev, ptydev);
+-  if (pty_fd < 0) { close(callmgr_sock); fatal("Could not find free pty."); }
++  /* pty_fd = getpseudotty(ttydev, ptydev); */
++  rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
++  if (rc < 0) { close(callmgr_sock); fatal("Could not find free pty."); }
+   
+   /* Step 4: fork and wait. */
+   signal(SIGUSR1, do_nothing); /* don't die */
+   parent_pid = getpid();
+   switch (child_pid = fork()) {
+   case -1:
+-    signal(SIGUSR1, SIG_DFL);
+-    close (pty_fd); close (callmgr_sock);
+-    perror("Error");
+     fatal("Could not fork pppd process");
++
+   case 0: /* I'm the child! */
++    close (tty_fd);
+     signal(SIGUSR1, SIG_DFL);
+     child_pid = getpid();
+     break;
+   default: /* parent */
++    close (pty_fd);
+     /*
+      * There is still a very small race condition here.  If a signal
+      * occurs after signaled is checked but before pause is called,
+@@ -122,7 +124,7 @@
+   
+   {
+     char buf[128];
+-    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", ptydev);
++    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", ttydev);
+     inststr(argc,argv,envp, buf);
+   }
+ 
+@@ -140,13 +142,14 @@
+ struct in_addr get_ip_address(char *name) {
+   struct in_addr retval;
+   struct hostent *host = gethostbyname(name);
+-  if (host==NULL)
++  if (host==NULL) {
+     if (h_errno == HOST_NOT_FOUND)
+       fatal("gethostbyname: HOST NOT FOUND");
+     else if (h_errno == NO_ADDRESS)
+       fatal("gethostbyname: NO IP ADDRESS");
+     else
+       fatal("gethostbyname: name server error");
++  }
+   
+   if (host->h_addrtype != AF_INET)
+     fatal("Host has non-internet address");
+@@ -160,6 +163,8 @@
+   struct sockaddr_un where;
+   const int NUM_TRIES = 3;
+   int i, fd;
++  pid_t pid;
++  int status;
+ 
+   /* Open socket */
+   if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+@@ -174,7 +179,24 @@
+   for (i=0; i<NUM_TRIES; i++) {
+     if (connect(fd, (struct sockaddr *) &where, sizeof(where)) < 0) {
+       /* couldn't connect.  We'll have to launch this guy. */
+-      launch_callmgr(inetaddr, argc,argv,envp);
++
++      unlink (where.sun_path);	
++
++      /* fork and launch call manager process */
++      switch (pid=fork()) {
++      case -1: /* failure */
++	  fatal("fork() to launch call manager failed.");
++      case 0: /* child */
++	  {
++	      close (fd);
++	      launch_callmgr(inetaddr, argc,argv,envp);
++	  }
++      default: /* parent */
++	  waitpid(pid, &status, 0);
++	  if (status!=0)
++	      fatal("Call manager exited with error %d", status);
++	  break;
++      }
+       sleep(1);
+     }
+     else return fd;
+@@ -185,15 +207,6 @@
+ }
+ 
+ void launch_callmgr(struct in_addr inetaddr, int argc,char**argv,char**envp) {
+-  pid_t pid;
+-  int status;
+-
+-  /* fork and launch call manager process */
+-  switch (pid=fork()) {
+-  case -1: /* failure */
+-    fatal("fork() to launch call manager failed.");
+-  case 0: /* child */
+-    { 
+       int callmgr_main(int argc, char**argv, char**envp);
+       char *my_argv[2] = { argv[0], inet_ntoa(inetaddr) };
+       char buf[128];
+@@ -206,13 +219,6 @@
+       fatal("execlp() of call manager [%s] failed: %s", 
+ 	  callmgr, strerror(errno));
+       */
+-    }
+-  default: /* parent */
+-    waitpid(pid, &status, 0);
+-    if (status!=0)
+-      fatal("Call manager exited with error %d", status);
+-    break;
+-  }
+ }
+ 
+ /* XXX need better error checking XXX */
+diff -Nur pristine/pptp-linux-1.0.2/pptp_callmgr.c thomas/pptp-linux-1.0.2/pptp_callmgr.c
+--- pristine/pptp-linux-1.0.2/pptp_callmgr.c	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/pptp_callmgr.c	Tue Jan 18 23:37:37 2000
+@@ -32,8 +32,13 @@
+ void close_unixsock(int fd, struct in_addr inetaddr);
+ 
+ sigjmp_buf env;
++
+ void sighandler(int sig) {
+-  siglongjmp(env, 1);
++    siglongjmp (env, 1);
++}
++
++void do_nothing(int sig) {
++    /* do nothing signal handler */
+ }
+ 
+ struct local_callinfo {
+@@ -46,8 +51,6 @@
+   fd_set * call_set;
+ };
+ 
+-void do_nothing(int sig) { /* do nothing signal handler */ }
+-
+ /* Connection callback */
+ void conn_callback(PPTP_CONN *conn, enum conn_state state) {
+ 
+@@ -134,10 +137,12 @@
+   }
+ 
+   /* Step 1c: Clean up unix socket on TERM */
++  if (sigsetjmp(env, 1)!=0)
++    goto cleanup;
++
+   signal(SIGINT, sighandler);
+   signal(SIGTERM, sighandler);
+-  signal(SIGKILL, sighandler);
+-  if (sigsetjmp(env, 1)!=0) goto cleanup;
++
+   signal(SIGPIPE, do_nothing);
+   signal(SIGUSR1, do_nothing); /* signal state change; wake up accept */
+ 
+@@ -163,14 +168,21 @@
+ 
+   /* Step 3: Get FD_SETs */
+   do {
+-    fd_set read_set, write_set, excpt_set = call_set;
+-    FD_ZERO(&read_set);
+-    FD_ZERO(&write_set);
+-    FD_SET(unix_sock, &read_set);
+-    pptp_fd_set(conn, &read_set, &write_set);
++    int rc;
++    fd_set read_set = call_set, write_set;
++    FD_ZERO (&write_set);
++    FD_SET (unix_sock, &read_set);
++    pptp_fd_set(conn, &read_set, &write_set, &max_fd);
++
++    for (; max_fd > 0 ; max_fd--) {
++      if (FD_ISSET (max_fd, &read_set) ||
++          FD_ISSET (max_fd, &write_set))
++        break;
++    }
+ 
+     /* Step 4: Wait on INET or UNIX event */
+-    if (select(max_fd+1, &read_set, &write_set, &excpt_set, NULL)<0)
++
++    if ((rc = select(max_fd+1, &read_set, &write_set, NULL, NULL)) <0)
+       /* a signal or somesuch. */
+       continue;
+ 
+@@ -187,6 +199,7 @@
+       int s;
+ 
+       /* Accept the socket */
++      FD_CLR (unix_sock, &read_set);
+       if ((s = accept(unix_sock, (struct sockaddr *) &from, &len))<0) {
+ 	warn("Socket not accepted: %s", strerror(errno));
+ 	goto skip_accept;
+@@ -214,8 +227,8 @@
+     }
+   skip_accept:
+     /* Step 5c: Handle socket close */
+-    for (i=0; i<max_fd; i++)
+-      if (FD_ISSET(i, &excpt_set)) {
++    for (i=0; i<max_fd+1; i++)
++      if (FD_ISSET(i, &read_set)) {
+ 	/* close it */
+ 	PPTP_CALL * call;
+ 	retval = vector_search(call_list, i, &call);
+@@ -249,7 +262,7 @@
+     /* attempt to dispatch these messages */
+     FD_ZERO(&read_set);
+     FD_ZERO(&write_set);
+-    pptp_fd_set(conn, &read_set, &write_set);
++    pptp_fd_set(conn, &read_set, &write_set, &max_fd);
+     FD_ZERO(&read_set);
+     pptp_dispatch(conn, &read_set, &write_set);
+     if (i>0) sleep(2);
+@@ -257,7 +270,7 @@
+     pptp_conn_close(conn, PPTP_STOP_LOCAL_SHUTDOWN);
+     FD_ZERO(&read_set);
+     FD_ZERO(&write_set);
+-    pptp_fd_set(conn, &read_set, &write_set);
++    pptp_fd_set(conn, &read_set, &write_set, &max_fd);
+     FD_ZERO(&read_set);
+     pptp_dispatch(conn, &read_set, &write_set);
+     sleep(2);
+@@ -336,8 +349,3 @@
+ 	   PPTP_SOCKET_PREFIX "%s", inet_ntoa(inetaddr));
+   unlink(where.sun_path);
+ }
+-  
+-
+-
+-
+-
+diff -Nur pristine/pptp-linux-1.0.2/pptp_ctrl.c thomas/pptp-linux-1.0.2/pptp_ctrl.c
+--- pristine/pptp-linux-1.0.2/pptp_ctrl.c	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/pptp_ctrl.c	Tue Jan 18 23:47:19 2000
+@@ -297,13 +297,18 @@
+ /************** Deal with messages, in a non-blocking manner *************/
+ 
+ /* Add file descriptors used by pptp to fd_set. */
+-void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set) {
++void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set,
++                 int *max_fd) {
+   assert(conn && conn->call);
++
+   /* Add fd to write_set if there are outstanding writes. */
+   if (conn->write_size > 0)
+     FD_SET(conn->inet_sock, write_set);
++
+   /* Always add fd to read_set. (always want something to read) */
+   FD_SET(conn->inet_sock, read_set);
++  if (*max_fd < conn->inet_sock)
++    *max_fd = conn->inet_sock;
+ }
+ /* handle any pptp file descriptors set in fd_set, and clear them */
+ void pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set) {
+@@ -634,7 +639,8 @@
+ 	  call->speed        = ntoh32(packet->speed);
+ 	  pptp_reset_timer();
+ 	  if (call->callback!=NULL) call->callback(conn, call, CALL_OPEN_DONE);
+-	  log("Outgoing call established.\n");
++	  log("Outgoing call established (call ID %u, peer's call ID %u).\n",
++		call->call_id, call->peer_call_id);
+ 	}
+       }
+       break;
+diff -Nur pristine/pptp-linux-1.0.2/pptp_ctrl.h thomas/pptp-linux-1.0.2/pptp_ctrl.h
+--- pristine/pptp-linux-1.0.2/pptp_ctrl.h	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/pptp_ctrl.h	Tue Jan 18 23:37:37 2000
+@@ -37,7 +37,7 @@
+ void pptp_conn_destroy(PPTP_CONN * conn);
+ 
+ /* Add file descriptors used by pptp to fd_set. */
+-void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set);
++void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set, int *max_fd);
+ /* handle any pptp file descriptors set in fd_set, and clear them */
+ void pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set);
+ 
+diff -Nur pristine/pptp-linux-1.0.2/pptp_gre.c thomas/pptp-linux-1.0.2/pptp_gre.c
+--- pristine/pptp-linux-1.0.2/pptp_gre.c	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/pptp_gre.c	Tue Jan 18 23:37:37 2000
+@@ -23,7 +23,7 @@
+ 
+ static u_int32_t ack_sent, ack_recv;
+ static u_int32_t seq_sent, seq_recv;
+-static u_int16_t pptp_gre_call_id;
++static u_int16_t pptp_gre_call_id, pptp_gre_peer_call_id;
+ 
+ /* decaps gets all the packets possible with ONE blocking read */
+ /* returns <0 if read() call fails */
+@@ -60,6 +60,8 @@
+   int s, n, stat1, stat2;
+ 
+   pptp_gre_call_id = call_id;
++  pptp_gre_peer_call_id = peer_call_id;
++
+   /* Open IP protocol socket */
+   s = socket(AF_INET, SOCK_RAW, PPTP_PROTO);
+   if (s<0) { warn("socket: %s", strerror(errno)); return; }
+@@ -88,16 +90,23 @@
+     FD_SET(pty_fd,&rfds);
+ 
+     /* if there is a pending ACK, do non-blocking select */
+-    if (ack_sent!=seq_recv)
++    if (ack_sent!=seq_recv) {
+       retval = select(n, &rfds, NULL, NULL, &tv);
+-    else /* otherwise, block until data is available */
++    } else  { /* otherwise, block until data is available */
+       retval = select(n, &rfds, NULL, NULL, NULL);
+-    if (retval==0 && ack_sent!=seq_recv) /* if outstanding ack */
++    }
++
++    if (retval==0 && ack_sent!=seq_recv) /* if outstanding ack */ {
+       encaps_gre(s, NULL, 0); /* send ack with no payload */
+-    if (FD_ISSET(pty_fd, &rfds)) /* data waiting on pterm */
++    }
++
++    if (FD_ISSET(pty_fd, &rfds)) /* data waiting on pterm */ {
+       stat1=decaps_hdlc(pty_fd, encaps_gre, s); /* send it off via GRE */
+-    if (FD_ISSET(s,  &rfds)) /* data waiting on socket */
++    }
++
++    if (FD_ISSET(s,  &rfds)) /* data waiting on socket */ {
+       stat2=decaps_gre(s, encaps_hdlc, pty_fd);
++    }
+   }
+ 
+   /* Close up when done. */
+@@ -255,7 +264,7 @@
+   u.header.ver  	= hton8 (PPTP_GRE_VER);
+   u.header.protocol	= hton16(PPTP_GRE_PROTO);
+   u.header.payload_len	= hton16(len);
+-  u.header.call_id	= hton16(pptp_gre_call_id);
++  u.header.call_id	= hton16(pptp_gre_peer_call_id);
+   
+   /* special case ACK with no payload */
+   if (pack==NULL) 
+diff -Nur pristine/pptp-linux-1.0.2/pptp_options.h thomas/pptp-linux-1.0.2/pptp_options.h
+--- pristine/pptp-linux-1.0.2/pptp_options.h	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/pptp_options.h	Thu Jan 20 00:01:15 2000
+@@ -25,7 +25,7 @@
+ #define PPTP_HOSTNAME {'l','o','c','a','l',0}
+ #define PPTP_VENDOR   {'c','a','n','a','n','i','a','n',0}
+ #define PPTP_FRAME_CAP  PPTP_FRAME_ANY
+-#define PPTP_BEARER_CAP PPTP_BEARER_DIGITAL
++#define PPTP_BEARER_CAP PPTP_BEARER_ANY
+ #else
+ #define PPTP_MAX_CHANNELS 5
+ #define PPTP_FIRMWARE_STRING "0.01"
+diff -Nur pristine/pptp-linux-1.0.2/util.c thomas/pptp-linux-1.0.2/util.c
+--- pristine/pptp-linux-1.0.2/util.c	Wed Feb 18 23:42:14 1998
++++ thomas/pptp-linux-1.0.2/util.c	Tue Jan 18 23:37:37 2000
+@@ -18,7 +18,7 @@
+ static void close_log(void) __attribute__ ((destructor));
+ 
+ static void open_log(void) {
+-  openlog(PROGRAM_NAME, LOG_PERROR | LOG_PID, LOG_DAEMON);
++  openlog(PROGRAM_NAME, LOG_PID, LOG_DAEMON);
+ }
+ static void close_log(void) {
+   closelog();

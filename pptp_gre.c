@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.1 2000/12/23 08:19:51 scott Exp $
+ * $Id: pptp_gre.c,v 1.2 2000/12/23 08:32:15 scott Exp $
  */
 
 #include <netinet/in.h>
@@ -23,7 +23,7 @@
 
 static u_int32_t ack_sent, ack_recv;
 static u_int32_t seq_sent, seq_recv;
-static u_int16_t pptp_gre_call_id;
+static u_int16_t pptp_gre_call_id, pptp_gre_peer_call_id;
 
 /* decaps gets all the packets possible with ONE blocking read */
 /* returns <0 if read() call fails */
@@ -60,6 +60,8 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
   int s, n, stat1, stat2;
 
   pptp_gre_call_id = call_id;
+  pptp_gre_peer_call_id = peer_call_id;
+
   /* Open IP protocol socket */
   s = socket(AF_INET, SOCK_RAW, PPTP_PROTO);
   if (s<0) { warn("socket: %s", strerror(errno)); return; }
@@ -88,16 +90,23 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
     FD_SET(pty_fd,&rfds);
 
     /* if there is a pending ACK, do non-blocking select */
-    if (ack_sent!=seq_recv)
+    if (ack_sent!=seq_recv) {
       retval = select(n, &rfds, NULL, NULL, &tv);
-    else /* otherwise, block until data is available */
+    } else  { /* otherwise, block until data is available */
       retval = select(n, &rfds, NULL, NULL, NULL);
-    if (retval==0 && ack_sent!=seq_recv) /* if outstanding ack */
+    }
+
+    if (retval==0 && ack_sent!=seq_recv) /* if outstanding ack */ {
       encaps_gre(s, NULL, 0); /* send ack with no payload */
-    if (FD_ISSET(pty_fd, &rfds)) /* data waiting on pterm */
+    }
+
+    if (FD_ISSET(pty_fd, &rfds)) /* data waiting on pterm */ {
       stat1=decaps_hdlc(pty_fd, encaps_gre, s); /* send it off via GRE */
-    if (FD_ISSET(s,  &rfds)) /* data waiting on socket */
+    }
+
+    if (FD_ISSET(s,  &rfds)) /* data waiting on socket */ {
       stat2=decaps_gre(s, encaps_hdlc, pty_fd);
+    }
   }
 
   /* Close up when done. */
@@ -255,7 +264,7 @@ int encaps_gre (int fd, void *pack, unsigned len) {
   u.header.ver  	= hton8 (PPTP_GRE_VER);
   u.header.protocol	= hton16(PPTP_GRE_PROTO);
   u.header.payload_len	= hton16(len);
-  u.header.call_id	= hton16(pptp_gre_call_id);
+  u.header.call_id	= hton16(pptp_gre_peer_call_id);
   
   /* special case ACK with no payload */
   if (pack==NULL) 
