@@ -1,3 +1,11 @@
+Wed Nov 20 11:21:48 CET 2002 Rein Klazes <rklazes@xs4all.nl>
+
+	* pptp_gre.c: log return value from the read of the pty as a signed
+	number.
+
+	* pptp_ctrl.c: change the log message to clarify that error codes in a 
+	outgoing call reply come from the server, not the client.
+	
 Wed Nov 20 16:07:30 2002  James Cameron  <quozl@us.netrek.org>
 
 	* Makefile (dist): adjust distribution target to include new files

@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.12 2002/05/30 08:31:35 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.13 2002/11/20 10:58:35 reink Exp $
  */
 
 #include <errno.h>
@@ -680,7 +680,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	  unsigned int legal_error_value =
 	       sizeof(pptp_general_errors)/sizeof(pptp_general_errors[0]);
 	  int err = packet->error_code;
-          log("Error '%d' opening call. [callid %d]",
+          log("Our outgoing call request has not been accepted. Reply result code is %d. [callid %d]",
 	      packet->result_code, (int) callid);
           log("Error code is '%d', Cause code is '%d'", err,
 	      packet->cause_code);

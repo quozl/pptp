@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.19 2002/11/20 04:33:34 quozl Exp $
+ * $Id: pptp_gre.c,v 1.20 2002/11/20 10:58:35 reink Exp $
  */
 
 #include <sys/types.h>
@@ -166,7 +166,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
   /*  this is the only blocking read we will allow */
 
   if ((end = read (fd, buffer, sizeof(buffer))) <= 0) {
-    warn("short read (%u): %s", end, strerror(errno));
+    warn("short read (%d): %s", end, strerror(errno));
     if (errno == EIO) warn("pppd may have shutdown, see pppd log");
     return -1;
   }
