@@ -1,3 +1,9 @@
+Fri Jun 11 09:28:05 2004  Chris Wilson  <chris@netservers.co.uk>
+
+	* pptp.8, pptp_gre.c: make the statistics work properly when
+	buffering is disabled.  Fix the issue with log messages claiming
+	buffering when no buffering is being done.
+
 Thu Jun 10 16:58:53 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.c (main): remove the sleep(3) on termination; it isn't

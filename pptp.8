@@ -126,7 +126,8 @@ reordered (might be caused by loss of more than 300 packets in a row)
 .TP
 .B rx buffered
 the number of packets which were slightly ahead of sequence, and were
-buffered for reordering
+either buffered for reordering, or if buffering is disabled, accepted
+immediately (resulting in the intermediate packets being discarded).
 .TP
 .B rx OS errors
 the number of times where the operating system reported an error when
