@@ -1,3 +1,8 @@
+Wed Jun  9 10:08:02 2004  Chris Wilson  <chris@netservers.co.uk>
+
+	* pptp.8, pptp.c, pptp_gre.c, pptp_gre.h: add --nobuffer option to
+	eliminate all buffering of packets, a "pptp quake patch".
+
 Wed Jun  9 09:37:06 2004  Paul Howarth  <paul@city-fan.org>
 
 	* inststr.c: fix non-setting of the command line.

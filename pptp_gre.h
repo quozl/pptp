@@ -2,7 +2,7 @@
  *               Handle the IP Protocol 47 portion of PPTP.
  *               C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.h,v 1.4 2003/04/15 12:49:16 quozl Exp $
+ * $Id: pptp_gre.h,v 1.5 2004/06/09 00:13:32 quozl Exp $
  */
 
 int pptp_gre_bind(struct in_addr inetaddr);
@@ -10,6 +10,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 		   int pty_fd, int gre_fd);
 
 extern int syncppp;
+extern int disable_buffer;
 
 typedef struct pack_track {
   uint32_t seq;       // seq no of this tracked packet

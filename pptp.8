@@ -64,6 +64,10 @@ Enable Synchronous HDLC (pppd must use it too)
 .B \--timeout <secs>
 Time to wait for reordered packets (0.01 to 10 secs)
 .TP
+.B \--nobuffer
+Completely disables buffering and reordering of packets.
+Any timeout specified will be ignored.
+.TP
 .B \--logstring <name>
 Use <name> instead of 'anon' in syslog messages
 .TP

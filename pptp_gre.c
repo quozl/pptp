@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.35 2004/06/06 23:27:41 quozl Exp $
+ * $Id: pptp_gre.c,v 1.36 2004/06/09 00:13:32 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -387,7 +387,7 @@ int decaps_gre (int fd, callback_t callback, int cl)
         first = 0;
         seq_recv = seq;
         return callback(cl, buffer + ip_len + headersize, payload_len);
-    /* out of order, check if the number is too low and discard thepacket. 
+    /* out of order, check if the number is too low and discard the packet. 
      * (handle sequence number wrap-around, and try to do it right) */
     } else if ( seq < seq_recv + 1 || WRAPPED(seq_recv, seq) ) {
 	if ( log_level >= 1 )
@@ -397,11 +397,18 @@ int decaps_gre (int fd, callback_t callback, int cl)
     /* sequence number too high, is it reasonably close? */
     } else if ( seq < seq_recv + MISSING_WINDOW ||
                 WRAPPED(seq, seq_recv + MISSING_WINDOW) ) {
-        if ( log_level >= 1 )
-	    log("buffering packet %d (expecting %d, lost or reordered)", 
-		seq, seq_recv+1);
-        pqueue_add(seq, buffer + ip_len + headersize, payload_len);
-        stats.rx_buffered++;
+        if ( disable_buffer ) {
+            if ( log_level >= 1 )
+                log("accepting packet %d (expecting %d, lost or reordered)",
+                    seq, seq_recv+1);
+            return callback(cl, buffer + ip_len + headersize, payload_len);
+        } else {
+            if ( log_level >= 1 )
+	        log("buffering packet %d (expecting %d, lost or reordered)", 
+		    seq, seq_recv+1);
+            pqueue_add(seq, buffer + ip_len + headersize, payload_len);
+            stats.rx_buffered++;
+	}
     /* no, packet must be discarded */
     } else {
 	if ( log_level >= 1 )

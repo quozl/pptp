@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.38 2004/03/23 21:40:22 quozl Exp $
+ * $Id: pptp.c,v 1.39 2004/06/09 00:13:32 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -54,6 +54,7 @@
 
 int syncppp = 0;
 int log_level = 1;
+int disable_buffer = 0;
 
 struct in_addr get_ip_address(char *name);
 int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd);
@@ -81,6 +82,7 @@ void usage(char *progname)
             "  --debug		Run in foreground (for debugging with gdb)\n"
             "  --sync		Enable Synchronous HDLC (pppd must use it too)\n"
             "  --timeout <secs>	Time to wait for reordered packets (0.01 to 10 secs)\n"
+	    "  --nobuffer		Disable packet buffering and reordering completely\n"
             "  --logstring <name>	Use <name> instead of 'anon' in syslog messages\n"
             "  --localbind <addr>	Bind to specified IP address instead of wildcard\n"
             "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n",
@@ -164,6 +166,7 @@ int main(int argc, char **argv, char **envp)
             {"logstring", 1, 0, 0},
             {"localbind", 1, 0, 0},
             {"loglevel", 1, 0, 0},
+	    {"nobuffer", 0, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -214,7 +217,9 @@ int main(int argc, char **argv, char **envp)
                     log_level = atoi(optarg);
                     if (log_level < 0 || log_level > 2)
                         usage(argv[0]);
-                }
+                } else if (option_index == 9) { /* --nobuffer */
+		    disable_buffer = 1;
+		}
                 break;
             case '?': /* unrecognised option */
                 /* fall through */
