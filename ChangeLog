@@ -1,3 +1,9 @@
+Mon Apr 14 11:57:00 2003  Chris Wilson   <chris@netservers.co.uk>
+
+	* pptp_gre.c: Fixed one case where an ACK could be immediately
+	followed by a data packet, they should be combined into a
+	single packet.
+
 Mon Feb 17 09:18:30 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_callmgr.c, pptp.c, Makefile: compile call manager from
