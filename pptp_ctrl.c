@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.25 2004/06/10 07:11:57 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.26 2004/07/21 19:04:00 reink Exp $
  */
 
 #include <errno.h>
@@ -237,6 +237,10 @@ static void ctrlp_rep( void * buffer, int size, int isbuff)
     unsigned int type;
     if(size < sizeof(struct pptp_header)) return;
     type = ntoh16(packet->ctrl_type);
+    /* FIXME: do not report sending echo requests as long as they are
+     * sent in a signal handler. This may dead lock as the syslog call
+     * is not reentrant */
+    if( type ==  PPTP_ECHO_RQST ) return;
     /* don't keep reporting sending of echo's */
     if( (type == PPTP_ECHO_RQST || type == PPTP_ECHO_RPLY) && nlogecho <= 0 ) return;
     log("%s control packet type is %d '%s'\n",isbuff ? "Buffered" : "Sent", 

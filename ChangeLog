@@ -1,3 +1,11 @@
+Wed Jul 21 16:52:01 CEST 2004 Rein Klazes <rklazes@xs4all.nl>
+	
+	* pptp_ctrl.c (ctrlp_rep): Do not log sending of echo requests,
+        preventing dead-locks observed with Linux 2.6 systems.
+        The syslog call is not reentrant and must not be used within a
+        signal handler. A better solution would probably be to get rid of
+        the SIGALRM timer altogether.
+
 Wed Jul 21 19:00:59 2004  Peter Surda  <shurdeek@routehat.org>
 	
 	* pptp_callmgr.c (callmgr_main): prevent kill of init.
