@@ -3,10 +3,11 @@ Maintainer: Thomas Quinot <thomas@debian.org>
 Section: net
 Priority: optional
 Standards-Version: 3.1.1
+Build-Depends: debhelper
 
 Package: pptp-linux
 Architecture: any
-Depends: ${pptp-linux:Depends}, ppp
+Depends: ${shlibs:Depends}, ppp
 Description: PPTP Microsoft Compatible Tunneling Protocol
  pptp-linux is an implementation of the PPTP protocol for Linux and
  other Unix systems.

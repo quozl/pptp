@@ -1,3 +1,25 @@
+pptp-linux (1.0.3-1) frozen unstable; urgency=low
+
+  * New upstream release. Debian patches have been integrated.
+  * Get rid of yada.
+
+ -- Thomas Quinot <thomas@debian.org>  Thu, 10 May 2001 14:29:30 +0200
+
+pptp-linux (1.0.2-5) frozen unstable; urgency=low
+
+  * Remove bashism in debian/rules.
+    Reported by Peter Palfrader <weasel@debian.org>.
+    Closes: #87653.
+  * Make sure yada is executable. Closes: #86888.
+
+ -- Thomas Quinot <thomas@debian.org>  Tue, 13 Mar 2001 11:43:31 +0100
+
+pptp-linux (1.0.2-4) frozen unstable; urgency=low
+
+  * Updated YADA to 0.9.4. Closes: #84564.
+
+ -- Thomas Quinot <thomas@debian.org>  Sun,  4 Feb 2001 18:42:10 +0100
+
 pptp-linux (1.0.2-3) frozen unstable; urgency=low
 
   * New maintainer.
