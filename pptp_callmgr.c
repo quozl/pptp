@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.15 2004/06/10 06:49:16 reink Exp $
+ * $Id: pptp_callmgr.c,v 1.16 2004/07/21 09:05:07 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -82,8 +82,8 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state)
                 vector_remove(conninfo->call_list, lci->unix_sock);
                 close(lci->unix_sock);
                 FD_CLR(lci->unix_sock, conninfo->call_set);
-                if(lci->pid[0]) kill(lci->pid[0], SIGTERM);
-                if(lci->pid[1]) kill(lci->pid[1], SIGTERM);
+                if(lci->pid[0] > 1) kill(lci->pid[0], SIGTERM);
+                if(lci->pid[1] > 1) kill(lci->pid[1], SIGTERM);
             }
             break;
         default:
@@ -226,8 +226,8 @@ skip_accept: /* Step 5c: Handle socket close */
                     struct local_callinfo *lci =
                         pptp_call_closure_get(conn, call);
                     log("Closing connection");
-                    if(lci->pid[0]) kill(lci->pid[0], SIGTERM);
-                    if(lci->pid[1]) kill(lci->pid[1], SIGTERM);
+                    if(lci->pid[0] > 1) kill(lci->pid[0], SIGTERM);
+                    if(lci->pid[1] > 1) kill(lci->pid[1], SIGTERM);
                     free(lci);
                     /* soft shutdown.  Callback will do hard shutdown later */
                     pptp_call_close(conn, call);
@@ -248,8 +248,8 @@ shutdown:
             struct local_callinfo *lci = pptp_call_closure_get(conn, call);
             log("Closing connection");
             pptp_call_close(conn, call);
-            if(lci->pid[0]) kill(lci->pid[0], SIGTERM);
-            if(lci->pid[1]) kill(lci->pid[1], SIGTERM);
+            if(lci->pid[0] > 1) kill(lci->pid[0], SIGTERM);
+            if(lci->pid[1] > 1) kill(lci->pid[1], SIGTERM);
         }
         /* attempt to dispatch these messages */
         FD_ZERO(&read_set);

@@ -1,3 +1,7 @@
+Wed Jul 21 19:00:59 2004  Peter Surda  <shurdeek@routehat.org>
+	
+	* pptp_callmgr.c (callmgr_main): prevent kill of init.
+
 Sat Jun 26 14:37:10 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c (decaps_hdlc): portability fix, use IPPROTO_IP in
