@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.17 2002/08/26 07:02:17 reink Exp $
+ * $Id: pptp.c,v 1.18 2002/08/26 09:48:42 reink Exp $
  */
 
 #include <sys/types.h>
@@ -43,6 +43,8 @@
 #define PPPD_BINARY "pppd"
 #endif
 
+int syncppp = 0;
+
 struct in_addr get_ip_address(char *name);
 int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
 void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
@@ -56,7 +58,7 @@ void usage(char *progname) {
 	  "Usage:\n"
 	  " %s hostname [[--phone <phone number>] [--quirks ISP_NAME] -- ][ pppd options]\n"
 	  "\nOr using pppd option pty: \n"
-	  " pty \" %s hostname --nolaunchpppd [--phone <phone number>] [--quirks ISP_NAME]\"\n"
+	  " pty \" %s hostname --nolaunchpppd [--phone <phone number>] [--quirks ISP_NAME] [--sync]\"\n"
 	  "Currently recognized ISP_NAMEs for quirks are BEZEQ_ISRAEL\n",
 	  version, progname, progname);
   log("%s called with wrong arguments, program not started.", progname);
@@ -110,6 +112,7 @@ int main(int argc, char **argv, char **envp) {
           {"nolaunchpppd", 0, 0, 0},  
 	  {"quirks", 1, 0, 0},
 	  {"debug", 0, 0, 0},
+	  {"sync", 0, 0, 0},
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -133,6 +136,8 @@ int main(int argc, char **argv, char **envp) {
 	      usage(argv[0]);
 	  } else if (option_index == 3) {/* --debug */
 	    debug = 1;
+          } else if(option_index == 4) {/* --sync specified */
+                   syncppp=1;
 	  } /* else {
             other pptp options come here 
 	  } */
@@ -147,6 +152,8 @@ int main(int argc, char **argv, char **envp) {
     }
   pppdargc = argc - optind;
   pppdargv = argv + optind;
+
+  log("The synchronous pptp option is %sactivated\n", syncppp ? "" : "NOT ");
 
   /* Step 2a: Now we have the peer address, bind the GRE socket early,
      before starting pppd. This prevents the ICMP Unreachable bug

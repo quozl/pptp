@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.13 2002/08/15 23:37:32 quozl Exp $
+ * $Id: pptp_gre.c,v 1.14 2002/08/26 09:48:42 reink Exp $
  */
 
 #include <sys/types.h>
@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include "ppp_fcs.h"
 #include "pptp_msg.h"
+#include "pptp_gre.h"
 #include "util.h"
 #include "pqueue.h"
 
@@ -154,6 +155,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
 
   static unsigned int len = 0, escape = 0;
   static unsigned char copy[PACKET_MAX];
+  static int checkedsync = 0;
   
   /* start is start of packet.  end is end of buffer data */
   /*  this is the only blocking read we will allow */
@@ -161,6 +163,23 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
   if ((end = read (fd, buffer, sizeof(buffer))) <= 0) {
     log ("short read (%u): %s", end, strerror(errno));
     return -1;
+  }
+  /* FIXME: replace by warnings when the test is shown reliable */
+  if( !checkedsync) {
+      checkedsync = 1;
+      log( "Ppp mode seems to be %s.\n",
+	      buffer[0] == HDLC_FLAG ? "Asynchronous" : "Synchronous" ); 
+  }
+  if ( syncppp ){
+      while ( start + 8 < end) {
+         len=ntoh16(*(short int*)(buffer+start+6))+4;
+         if ( start + len <= end) /* note: the buffer may contain an incomplete packet at the end
+                                   * this packet will be read again at the next read() */
+             if ((status = cb (cl, buffer + start, len)) < 0)
+                 return status; /* error-check */
+         start += len;
+      }
+      return 0;
   }
   
   while (start < end) {
@@ -212,6 +231,9 @@ int encaps_hdlc(int fd, void *pack, unsigned int len) {
   unsigned char dest[2*PACKET_MAX+2]; /* largest expansion possible */
   unsigned int pos=0, i;
   u_int16_t fcs;
+
+  if ( syncppp )
+      return write(fd, source, len);
 
   /* Compute the FCS */
   fcs = pppfcs16(PPPINITFCS16, source, len) ^ 0xFFFF;

@@ -1,5 +1,12 @@
+Mon Aug 26 10:56:42 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
 
+	* pptp.c pptp_gre.c pptp_gre.h: added "--sync" option to work 
+	in combination with the pppd sync option. In synchronous mode
+	checksum calculations and (un-)escaping of control characters
+	become unnecessary. This results in big CPU usage reduction.
+	
 Mon Aug 26 08:53:45 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
+
 	* pptp.c: fix bug in command line options parsing (misplaced break
 	in switch statement).
 	

@@ -1,3 +1,5 @@
+- support synchronous HDLC ppp encoding. Synchronous mode results in an
+  important improvement of the CPU efficiency.
 - handle out-of-order packets arriving on the GRE socket by buffering.
 - bind GRE socket early to prevent ICMP Unreachable response by client.
 
