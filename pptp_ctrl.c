@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.2 2000/12/23 08:32:15 scott Exp $
+ * $Id: pptp_ctrl.c,v 1.3 2001/04/09 12:17:00 jeffw Exp $
  */
 
 #include <errno.h>
@@ -405,7 +405,7 @@ int pptp_make_packet(PPTP_CONN * conn, void **buf, size_t *size) {
     *size= ntoh16(header->length);
     *buf = malloc(*size);
     if (*buf == NULL) { log("Out of memory."); return 0; /* ack! */ }
-    memcpy(*buf, conn->read_buffer, *size);
+    memcpy(*buf, conn->read_buffer+bad_bytes, *size);
     /* Delete this packet from the read_buffer. */
     conn->read_size -= (bad_bytes + *size);
     memmove(conn->read_buffer, conn->read_buffer+bad_bytes+*size, 
