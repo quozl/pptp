@@ -1,0 +1,14 @@
+Release 1.0.0:
+
+- This is the first public release of the pptp-linux package.
+
+Release 1.0.1:
+
+- Added versioning information to sources and makefile.
+- Bugfixes to pptp_ctrl.c.
+
+Release 1.0.2:
+ 
+- Fixed some warnings.
+- glibc patches by Christoph Lameter <christoph@lameter.com>
+- Race condition fix by Gordon Chaffee <chaffee@HOME.COM>

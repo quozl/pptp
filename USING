@@ -1,0 +1,19 @@
+pptp-linux is based on pppd, so invocation is very similar:
+
+% pptp hostname [ppp-options]
+
+So, for example, I invoke pptp with:
+
+pptp my.pptp.host debug name cananian remotename ntdialup 172.18.0.2:172.18.0.3
+route add -net 172.18.0.0 netmask 255.255.0.0 gw 172.18.0.3
+
+You will see three pptp-related processes in your process list: a call
+manager, a GRE/PPP en/decapsulator, and pppd.  To shut down the pptp
+connection, kill the pppd process.
+
+NOTE THAT PPTP MUST BE RUN AS ROOT.
+
+Most trouble with pptp will probably be due to incorrect pppd
+configuration. Be sure you thoroughly understand MS-CHAP support in
+pppd.  Use the 'debug' option to pppd to log connection information;
+this will help you trouble-shoot the pppd side of pptp.
