@@ -1,3 +1,16 @@
+Fri Aug 30 09:55:05 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
+
+	pptp_gre.c: Try to send more ACK's piggy backed on data packets.
+	Previously if there were any outstanding ACK's to be sent, the 
+	program used a non-blocking select (timeout zero) to see if
+	any data packets are available. In most cases there will be none,
+	since the time passed since the last read is too short and an ACK
+	without data will be sent.
+	This change allows one outstanding ACK, for at most 0.5 second,
+	multiple outstanding ACK's are treated as before.
+	Tests show that this gives a big reduction in the number of
+	sent packets.
+
 Fri Aug 30 09:15:35 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
 
 	* pptp_gre.c: Sequence numbers of sent gre packets should start

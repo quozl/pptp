@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.15 2002/08/30 07:19:06 reink Exp $
+ * $Id: pptp_gre.c,v 1.16 2002/08/30 08:04:38 reink Exp $
  */
 
 #include <sys/types.h>
@@ -107,12 +107,16 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
     FD_SET(gre_fd, &rfds);
     FD_SET(pty_fd, &rfds);
 
-    /* if there is a pending ACK, then do non-blocking select.
+    /* if there are multiple pending ACKs, then do non-blocking select.
+       if there is a single pending ACK then timeout after 0,5 seconds
        if there is data in the queue, then timeout after 1 second.
        otherwise, block until data is available */
+
     tvp = NULL;
+    tv.tv_sec = tv.tv_usec = 0;
     if (ack_sent != seq_recv) {
-      tv.tv_sec = 0;
+      if( ack_sent + 1 == seq_recv )  /* u_int wrap-around safe */
+	      tv.tv_usec = 500000;
       tvp = &tv;
     } else if (pqueue_head != NULL) {
       tv.tv_sec = 1;
