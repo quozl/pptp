@@ -1,3 +1,8 @@
+Tue Dec 14 08:56:07 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c (ctrlp_disp): fix typo.  From: Avi Kivity
+	<avi@argo.co.il>
+
 Tue Dec  7 09:43:00 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c: add error propagation to the ctrlp_disp callchain,

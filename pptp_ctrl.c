@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.28 2004/12/06 22:51:53 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.29 2004/12/13 22:06:46 quozl Exp $
  */
 
 #include <errno.h>
@@ -790,7 +790,7 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
         }
         case PPTP_STOP_CTRL_CONN_RPLY:
         {
-            log("Received Stop Control Connection Reqply.");
+            log("Received Stop Control Connection Reply.");
             /* conn_state should be CONN_WAIT_STOP_REPLY, but it 
              * could be something else */
             if (conn->conn_state == CONN_IDLE) break;
