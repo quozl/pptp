@@ -2,7 +2,7 @@
  *                efficiently.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: vector.c,v 1.2 2003/06/17 09:54:06 reink Exp $
+ * $Id: vector.c,v 1.3 2003/06/17 10:12:55 reink Exp $
  */
 
 #include <stdlib.h>
@@ -112,8 +112,7 @@ int vector_insert(VECTOR *v, int key, PPTP_CALL * call)
 int  vector_remove(VECTOR *v, int key)
 {
     struct vector_item *tmp;
-    assert(v);
-
+    assert(v != NULL);
     if ((tmp =binary_search(v,key)) == NULL) return FALSE;
     assert(tmp >= v->item && tmp < v->item + v->size);
     memmove(tmp, tmp + 1, (v->size - (v->item - tmp) - 1) * sizeof(*(v->item)));
@@ -124,7 +123,9 @@ int  vector_remove(VECTOR *v, int key)
 /*** vector_search ************************************************************/
 int  vector_search(VECTOR *v, int key, PPTP_CALL **call)
 {
-    struct vector_item *tmp = binary_search(v, key);
+    struct vector_item *tmp;
+    assert(v != NULL);
+    tmp = binary_search(v, key);
     if (tmp ==NULL) return FALSE;
     *call = tmp->call;
     return TRUE;
@@ -141,7 +142,6 @@ int  vector_contains(VECTOR *v, int key)
 static struct vector_item *binary_search(VECTOR *v, int key)
 {
     int l,r,x;
-    assert(v != NULL);
     l = 0;
     r = v->size - 1;
     while (r >= l) {
