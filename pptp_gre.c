@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.18 2002/10/16 04:45:36 quozl Exp $
+ * $Id: pptp_gre.c,v 1.19 2002/11/20 04:33:34 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -25,6 +25,7 @@
 /* test for a 32 bit counter overflow */
 #define WRAPPED( curseq, lastseq) \
     ((((curseq) & 0xffffff00)==0) && (((lastseq) & 0xffffff00 )==0xffffff00))
+#undef REORDER_LOGGING
 
 static u_int32_t ack_sent, ack_recv;
 static u_int32_t seq_sent, seq_recv;
@@ -166,6 +167,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
 
   if ((end = read (fd, buffer, sizeof(buffer))) <= 0) {
     warn("short read (%u): %s", end, strerror(errno));
+    if (errno == EIO) warn("pppd may have shutdown, see pppd log");
     return -1;
   }
   /* FIXME: replace by warnings when the test is shown reliable */
@@ -327,7 +329,9 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   /* (handle sequence number wrap-around, and try to do it right) */
   if ( first || (seq == seq_recv+1) || 
        WRAPPED(seq, seq_recv)){
-    /* log("accepting packet %d", seq); */
+#ifdef REORDER_LOGGING
+    log("accepting packet %d", seq);
+#endif
     first = 0;
     seq_recv = seq;
     return callback(cl, buffer+ip_len+headersize, payload_len);
@@ -338,7 +342,9 @@ int decaps_gre (int fd, callback_t callback, int cl) {
 
   } else if ( seq < seq_recv+MISSING_WINDOW ||
 	      WRAPPED(seq, seq_recv+MISSING_WINDOW) ) {
-    log("buffering out-of-order packet %d (expecting %d)", seq, seq_recv+1); 
+#ifdef REORDER_LOGGING
+    log("buffering out-of-order packet %d (expecting %d)", seq, seq_recv+1);
+#endif
     pqueue_add(seq, buffer+ip_len+headersize, payload_len);
 
   } else {
@@ -362,9 +368,13 @@ int dequeue_gre (callback_t callback, int cl) {
 	  )
 	) {
     if (head->seq != seq_recv+1 && !WRAPPED(head->seq, seq_recv))
+#ifdef REORDER_LOGGING
       log("timeout waiting for %d packets", head->seq - seq_recv - 1);
+#endif
 
+#ifdef REORDER_LOGGING
     log("accepting %d from queue", head->seq);
+#endif
     seq_recv = head->seq;
     status = callback(cl, head->packet, head->packlen);
     pqueue_del(head);

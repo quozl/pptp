@@ -1,3 +1,6 @@
+Release 1.2.0:
+
+- minor hint added in case of EIO on read() of pty.
 - support synchronous HDLC ppp encoding. Synchronous mode results in an
   important improvement of the CPU efficiency.
 - handle out-of-order packets arriving on the GRE socket by buffering.

@@ -1,3 +1,8 @@
+Wed Nov 20 15:17:12 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.c: hid many packet reordering log calls in an ifdef,
+	added a hint as to cause of EIO on read of the pty.
+
 Fri Oct 11 15:44 BST  2002 Chris Wilson <chris@netservers.co.uk>
 
 	* pptp.c util.c util.h: added "--logstring" option to help identify
