@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.6 2001/07/21 10:02:08 thomas Exp $
+ * $Id: pptp.c,v 1.7 2001/08/06 07:31:50 rein Exp $
  */
 
 #include <sys/types.h>
@@ -203,6 +203,7 @@ shutdown:
       kill(parent_pid, SIGTERM);
   close(pty_fd);
   close(callmgr_sock);
+  sleep(3);     /* give ctrl manager a chance to exit */
   exit(0);
 }
 
