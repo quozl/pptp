@@ -3,9 +3,9 @@ This package was initially debianized by Christoph Lameter,
 It is now maintained by Thomas Quinot <thomas@debian.org>.
 
 The current release is available from
-  http://pptpclient.sourceforge.net
+  http://pptpclient.sourceforge.net/
 
 Copyright: GPL
 
 On Debian GNU/Linux systems, the complete text of the GNU General
-Public License can be found in `/usr/share/doc/copyright/GPL'.
+Public License can be found in `/usr/share/common-licenses/GPL'.

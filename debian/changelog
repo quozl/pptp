@@ -1,3 +1,15 @@
+pptp-linux (1.2.0-1) unstable; urgency=low
+
+  * New upstream release. Closes: #141173.
+
+ -- Thomas Quinot <thomas@debian.org>  Fri, 14 Mar 2003 00:00:00 +0000
+
+pptp-linux (1.1.0-2) unstable; urgency=low
+
+  * Update description. Closes: #150666.
+
+ -- Thomas Quinot <thomas@debian.org>  Sun, 23 Jun 2002 20:53:50 +0000
+
 pptp-linux (1.1.0-1) unstable; urgency=low
 
   * New upstream release.

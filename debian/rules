@@ -13,6 +13,7 @@ build-stamp:
 	dh_testdir
 
 	$(MAKE)
+	ln -f Reference/README Reference/README.Reference
 
 	touch build-stamp
 
@@ -22,6 +23,7 @@ clean:
 	rm -f build-stamp
 
 	-$(MAKE) distclean
+	rm -f Reference/README.Reference
 
 	dh_clean
 
@@ -31,7 +33,7 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-# Add here commands to install the package into debian/<packagename>
+	# Add here commands to install the package into debian/<packagename>
 	-$(MAKE) install DESTDIR=`pwd`/debian/`dh_listpackages`
 
 
@@ -45,13 +47,13 @@ binary-arch: build install
 	dh_testroot
 #	dh_installdebconf	
 	dh_installdocs debian/copyright \
-	README TODO USING AUTHORS debian/README.Debian \
-	Documentation/* debian/README.Reference \
+	README TODO USING AUTHORS \
+	Documentation/* \
 	Reference/rfc1701.txt \
 	Reference/rfc1702.txt \
 	Reference/rfc1990.txt \
 	Reference/pptp-draft.txt \
-	Reference/ms-chap.txt
+	Reference/ms-chap.txt Reference/README.Reference
 	dh_installexamples
 	dh_installmenu
 #	dh_installlogrotate
@@ -60,7 +62,7 @@ binary-arch: build install
 #	dh_installmime
 #	dh_installinit
 #	dh_installcron
-	dh_installman debian/pptp.8
+	dh_installman pptp.8
 	dh_installinfo
 #	dh_undocumented
 	dh_installchangelogs NEWS

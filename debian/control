@@ -12,4 +12,5 @@ Description: Point-to-Point Tunneling Protocol (PPTP) Client
  Client for the proprietary Microsoft Point-to-Point Tunneling
  Protocol, PPTP.  Allows connection to a PPTP based VPN as used
  by employers and some cable and ADSL service providers.
- Requires MPPE support in kernel, use package kernel-patch-mppe.
+ MPPE (Microsoft Point-to-Point Encryption) support requires
+ an additionnal kernel module, provided by package kernel-patch-mppe.
