@@ -1,17 +1,18 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.3 2001/06/11 14:59:19 rein Exp $
+ * $Id: util.c,v 1.4 2002/03/11 01:50:07 quozl Exp $
  */
 
 #include <stdio.h>
 #include <stdarg.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "util.h"
 
 #ifndef PROGRAM_NAME
-#define PROGRAM_NAME "(unknown)"
+#define PROGRAM_NAME "pptp"
 #endif
 
 static void open_log(void) __attribute__ ((constructor));
