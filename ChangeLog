@@ -1,3 +1,7 @@
+Wed Mar 24 08:45:12 2004  Mark-Andre Hopf  <mhopf@innominate.com>
+
+	* pptp.c: fix compile for ARM architecture.
+
 Mon Mar  8 11:04:00 2004  Chris Wilson <chris@netservers.co.uk>
 
 	* pptp.8: added documentation for command-line options where

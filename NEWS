@@ -1,3 +1,4 @@
+- fix compile for ARM architecture [Hopf]
 - do not hang when a connection is refused [McCurdy]
 
 Release 1.4.0: (2nd January 2004)
@@ -80,4 +81,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.29 2004/03/01 22:56:55 quozl Exp $	
+$Id: NEWS,v 1.30 2004/03/23 21:40:22 quozl Exp $	

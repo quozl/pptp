@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.37 2004/03/01 22:56:55 quozl Exp $
+ * $Id: pptp.c,v 1.38 2004/03/23 21:40:22 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -32,6 +32,7 @@
 #include <setjmp.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <sys/param.h>
 #if defined(__APPLE__)
 #include "getopt.h"
 #else
