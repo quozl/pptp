@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.30 2003/06/17 17:25:47 reink Exp $
+ * $Id: pptp_gre.c,v 1.31 2003/06/18 08:30:23 reink Exp $
  */
 
 #include <sys/types.h>
@@ -198,11 +198,16 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
         if (errno == EIO) warn("pppd may have shutdown, see pppd log");
         return -1;
     }
-    /* FIXME: replace by warnings when the test is shown reliable */
+    /* warn if the sync options of ppp and pptp don't match */
     if( !checkedsync) {
         checkedsync = 1;
-        log( "PPP mode seems to be %s.\n",
-                buffer[0] == HDLC_FLAG ? "Asynchronous" : "Synchronous" ); 
+        if( buffer[0] == HDLC_FLAG){
+            if( syncppp)
+                warn( "pptp --sync option is active, "
+                        "yet the ppp mode is asynchronous!\n");
+        } else if( !syncppp)
+            warn( "The ppp mode is synchronous, "
+                    "yet no pptp --sync option is specified!\n");
     }
     /* in synchronous mode there are no hdlc control characters nor checksum
      * bytes. Find end of packet with the length information in the PPP packet
