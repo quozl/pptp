@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.30 2003/11/10 04:43:01 quozl Exp $
+# $Id: Makefile,v 1.31 2004/01/01 23:06:51 quozl Exp $
 VERSION=1.4.0
-RELEASE=-rc1
+RELEASE=
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.

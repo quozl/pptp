@@ -1,7 +1,6 @@
+Release 1.4.0: (2nd January 2004)
+
 - support options before hostname [Wilson]
-
-Release 1.4.0-rc1: (release candidate 1, 10th November 2003)
-
 - defer OCRQ until after SCCRP [Cameron]
 - include uninstall target [Pieter]
 - only issue a warning if sync mode is different to pppd [Klazes]
@@ -79,4 +78,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.27 2003/12/01 01:01:55 quozl Exp $	
+$Id: NEWS,v 1.28 2004/01/01 23:06:10 quozl Exp $	
