@@ -1,3 +1,7 @@
+2nd March 2002
+
+- fix compiler warnings on pptp.c, pptp_callmgr.c, pptp_ctrl.c using gcc 2.95.4
+
 12th February 2002
 
 - clean up -T errors in pptp-command,
