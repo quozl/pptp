@@ -2,10 +2,11 @@
 #define PQUEUE_H
 
 #include <time.h>
+#include <sys/time.h>
 
 /* wait this many seconds for missing packets before forgetting about them */
-#define DEFAULT_PACKET_TIMEOUT 1
-extern int packet_timeout;
+#define DEFAULT_PACKET_TIMEOUT 0.3
+extern int packet_timeout_usecs;
 
 /* assume packet is bad/spoofed if it's more than this many seqs ahead */
 #define MISSING_WINDOW 300
@@ -15,7 +16,7 @@ typedef struct pqueue {
   struct pqueue *next;
   struct pqueue *prev;
   int seq;
-  time_t expires;
+  struct timeval expires;
   unsigned char *packet;
   int packlen;
   int capacity;
@@ -24,5 +25,6 @@ typedef struct pqueue {
 int       pqueue_add  (int seq, unsigned char *packet, int packlen);
 int       pqueue_del  (pqueue_t *point);
 pqueue_t *pqueue_head ();
+int       pqueue_expiry_time (pqueue_t *entry);
 
 #endif /* PQUEUE_H */

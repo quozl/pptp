@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.22 2003/01/02 00:30:08 quozl Exp $
+ * $Id: pptp_gre.c,v 1.23 2003/01/21 00:43:37 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -98,30 +98,51 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 
   /* Dispatch loop */
   for (;;) { /* until error happens on gre_fd or pty_fd */
-    struct timeval tv = {0, 0}; /* non-blocking select */
+    struct timeval tv = {0, 0};
     struct timeval *tvp;
     fd_set rfds;
     int retval;
+    pqueue_t *head;
+    int block_usecs = -1; /* wait forever */
 
     /* watch terminal and socket for input */
     FD_ZERO(&rfds);
     FD_SET(gre_fd, &rfds);
     FD_SET(pty_fd, &rfds);
 
-    /* if there are multiple pending ACKs, then do non-blocking select.
-       if there is a single pending ACK then timeout after 0,5 seconds
-       if there is data in the queue, then timeout after 1 second.
-       otherwise, block until data is available */
+    /*
+     * if there are multiple pending ACKs, then do non-blocking select;
+     * else if there is a single pending ACK then timeout after 0,5 seconds;
+     * else block until data is available.
+     */
 
-    tvp = NULL;
-    tv.tv_sec = tv.tv_usec = 0;
     if (ack_sent != seq_recv) {
-      if( ack_sent + 1 == seq_recv )  /* u_int wrap-around safe */
-	      tv.tv_usec = 500000;
+      if (ack_sent + 1 == seq_recv)  /* u_int wrap-around safe */
+	block_usecs = 500000;
+      else
+	block_usecs = 0;
+    }
+    /* otherwise block_usecs == -1, which means wait forever */
+
+    /*
+     * If there is a packet in the queue, then don't wait longer than
+     * the time remaining until it expires.
+     */
+
+    head = pqueue_head();
+    if (head != NULL) {
+      int expiry_time = pqueue_expiry_time(head);
+      if (block_usecs == -1 || expiry_time < block_usecs)
+	block_usecs = expiry_time;
+    }
+
+    if (block_usecs == -1) {
+      tvp = NULL;
+    } else {
       tvp = &tv;
-    } else if (pqueue_head() != NULL) {
-      tv.tv_sec = 1;
-      tvp = &tv;
+      tv.tv_usec = block_usecs;
+      tv.tv_sec  = tv.tv_usec / 1000000;
+      tv.tv_usec %= 1000000;
     }
 
     retval = select(max_fd+1, &rfds, NULL, NULL, tvp);
@@ -357,14 +378,13 @@ int decaps_gre (int fd, callback_t callback, int cl) {
 int dequeue_gre (callback_t callback, int cl) {
   pqueue_t *head;
   int status;
-  time_t now = time(NULL);
 
   head = pqueue_head();
 
   while ( head != NULL &&
 	  ( (head->seq == seq_recv+1)      || 
 	    (WRAPPED(head->seq, seq_recv)) ||
-	    (head->expires < now) 
+	    (pqueue_expiry_time(head) <= 0) 
 	  )
 	) {
 #ifdef REORDER_LOGGING

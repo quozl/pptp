@@ -18,7 +18,7 @@
 
 static int pqueue_alloc (int seq, unsigned char *packet, int packlen, pqueue_t **new);
 
-int packet_timeout = DEFAULT_PACKET_TIMEOUT;
+int packet_timeout_usecs = DEFAULT_PACKET_TIMEOUT * 1000000;
 
 
 static pqueue_t *pq_head = NULL, *pq_tail = NULL;
@@ -121,7 +121,11 @@ static int pqueue_alloc(int seq, unsigned char *packet, int packlen, pqueue_t **
   newent->next = newent->prev = NULL;
   newent->seq     = seq;
   newent->packlen = packlen;
-  newent->expires = time(NULL) + packet_timeout;
+
+  gettimeofday(&newent->expires, NULL);
+  newent->expires.tv_usec += packet_timeout_usecs;
+  newent->expires.tv_sec  += (newent->expires.tv_usec / 1000000);
+  newent->expires.tv_usec %= 1000000;
 
   *new = newent;
   return 0;
@@ -223,4 +227,16 @@ int pqueue_del (pqueue_t *point) {
 
 pqueue_t *pqueue_head () {
   return pq_head;
+}
+
+
+
+int pqueue_expiry_time (pqueue_t *entry) {
+  struct timeval tv;
+  int expiry_time;
+
+  gettimeofday(&tv, NULL);
+  expiry_time  = (entry->expires.tv_sec  - tv.tv_sec) * 1000000;
+  expiry_time += (entry->expires.tv_usec - tv.tv_usec);
+  return expiry_time;
 }

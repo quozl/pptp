@@ -1,3 +1,14 @@
+Mon Jan 20 11:46    2003  Chris Wilson <chris@netservers.co.uk>
+
+	* pqueue.c, pqueue.h: changed "expires" field of pqueue entry
+	  to a struct timeval for microsecond accuracy (in theory =)
+
+	* pptp_gre.c: use queue head expiry time as the upper bound
+	  on how long we block waiting for data from the network or pppd
+
+	* pptp.c: allow setting of packet timeout with sub-second accuracy,
+	  print error message to stderr and exit if timeout out of range
+
 Mon Jan 13 10:28    2003  Chris Wilson <chris@netservers.co.uk>
 
 	* pqueue.c, pqueue.h: added freelist support for packet queue,

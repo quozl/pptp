@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.23 2003/01/17 03:48:08 quozl Exp $
+ * $Id: pptp.c,v 1.24 2003/01/21 00:43:37 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -142,13 +142,17 @@ int main(int argc, char **argv, char **envp) {
           } else if (option_index == 4) {/* --sync specified */
             syncppp=1;
 	  } else if (option_index == 5) {/* --timeout */
-	    int new_packet_timeout = atoi(optarg);
-	    if (new_packet_timeout < 1 ||
+	    float new_packet_timeout = atof(optarg);
+	    if (new_packet_timeout < 0.0099 ||
 		new_packet_timeout > 10) {
-	      log("Packet timeout %d out of range: should be between 1 and 10",
-		  new_packet_timeout);
+	      fprintf(stderr, "Packet timeout %s (%f) out of range: "
+		      "should be between 0.01 and 10 seconds\n", optarg,
+		      new_packet_timeout);
+	      log("Packet timeout %s (%f) out of range: should be between "
+		  "0.01 and 10 seconds", optarg, new_packet_timeout);
+	      exit(2);
 	    } else {
-	      packet_timeout = new_packet_timeout;
+	      packet_timeout_usecs = new_packet_timeout * 1000000;
 	    }
 	  } else if (option_index == 6) {/* --logstring */
 	    log_string = strdup(optarg);
