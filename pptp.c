@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.16 2002/08/14 10:04:20 quozl Exp $
+ * $Id: pptp.c,v 1.17 2002/08/26 07:02:17 reink Exp $
  */
 
 #include <sys/types.h>
@@ -133,10 +133,10 @@ int main(int argc, char **argv, char **envp) {
 	      usage(argv[0]);
 	  } else if (option_index == 3) {/* --debug */
 	    debug = 1;
-	  } else {
-            /* other pptp options come here */
-            break;
-	  }
+	  } /* else {
+            other pptp options come here 
+	  } */
+	  break;
         case '?': /* unrecognised option, treat it as the first pppd option */
             /* fall through */
         default:
