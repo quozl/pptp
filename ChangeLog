@@ -1,7 +1,7 @@
-Sat Mar  2 03:51:15 2002  James Cameron  <quozl@us.netrek.org>
+Sat Mar  2 04:04:37 2002  James Cameron  <quozl@us.netrek.org>
 
+	* README: adopt new mailing lists and point to project web site.
 	* USING: include psuedo-tty activation instructions.
-
 	* Makefile: increment version, avoid clobbering editor backup
 	files on clean.
 
