@@ -1,5 +1,10 @@
 5th June 2004
 
+- command line as shown by ps is corrupted.  Reported by Andre Ruiz
+  <andre@ruiz.net>
+
+5th June 2004
+
 - on Fedora Core 2, after the tunnel is stopped by the GUI, the pptp
 process spins with a select() on FD's 0 and 1 (the control connection
 and the UNIX domain socket respectively) and read()'s on FD 0 which
@@ -72,4 +77,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.17 2004/06/06 23:27:41 quozl Exp $	
+$Id: TODO,v 1.18 2004/06/08 11:18:54 quozl Exp $	
