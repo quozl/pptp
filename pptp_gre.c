@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.6 2001/06/29 08:44:05 rein Exp $
+ * $Id: pptp_gre.c,v 1.7 2001/07/21 10:02:35 thomas Exp $
  */
 
 #include <netinet/in.h>
@@ -107,8 +107,9 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
   close(s); close(pty_fd);
 }
 
-#define HDLC_FLAG   0x7E
-#define HDLC_ESCAPE 0x7D
+#define HDLC_FLAG         0x7E
+#define HDLC_ESCAPE       0x7D
+#define HDLC_TRANSPARENCY 0x20
 
 /* ONE blocking read per call; dispatches all packets possible */
 /* returns 0 on success, or <0 on read failure                 */
@@ -134,11 +135,11 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     /* Copy to 'copy' and un-escape as we go. */
 
     while (buffer[start] != HDLC_FLAG) {
-      if (!escape && buffer[start] == HDLC_ESCAPE) {
-	escape = 1;
+      if ((escape == 0) && buffer[start] == HDLC_ESCAPE) {
+	escape = HDLC_TRANSPARENCY;
       } else {
         if (len < PACKET_MAX)
-	  copy [len++] = buffer[start] ^ ((escape) ? 0x20 : 0x00); 
+	  copy [len++] = buffer[start] ^ escape;
         escape = 0;
       }
       start++;
@@ -151,8 +152,8 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     start++;
 
     /* check for over-short packets and silently discard, as per RFC1662 */
-    if ((len < 4) || (escape == 1)) {
-      len = 0; escape=0;
+    if ((len < 4) || (escape != 0)) {
+      len = 0; escape = 0;
       continue;
     }
     /* check, then remove the 16-bit FCS checksum field */
@@ -165,7 +166,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
       return status; /* error-check */
 
     /* Great!  Let's do more! */
-    len=0; escape=0;
+    len = 0; escape = 0;
   }
 
   return 0;
