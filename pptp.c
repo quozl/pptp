@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.21 2002/10/16 04:45:36 quozl Exp $
+ * $Id: pptp.c,v 1.22 2002/12/09 05:50:37 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -234,12 +234,15 @@ int main(int argc, char **argv, char **envp) {
   if (launchpppd){
     kill(parent_pid, SIGUSR1);
     sleep(2);
-    /* be a good daemon and close our stdin/out/err fds */
+    /* become a daemon */
     if (!debug && daemon(0, 0) != 0) {
       perror("daemon");
     }
+  } else {
+    /* re-open stderr as /dev/null to release it */
+    file2fd("/dev/null", "wb", STDERR_FILENO);
   }
- 
+  
   {
     char buf[128];
     snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", 
@@ -379,6 +382,8 @@ int get_call_id(int sock, pid_t gre, pid_t pppd,
    * here, because the read and write calls would return -1 (fail) when
    * the peer goes away during the process. We know it is (or was)
    * running because the connect() call succeeded.)
+   * (James: on the other hand, if the route to the peer goes away, we
+   * wouldn't get told by read() or write() for quite some time.)
    */
   *call_id = m_call_id;
   *peer_call_id = m_peer_call_id;

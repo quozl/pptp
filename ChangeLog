@@ -1,3 +1,10 @@
+Mon Dec  9 08:52:56 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_callmgr.c, pptp.c: close stderr after becoming daemon,
+	otherwise ssh sessions, CGI scripts, or other programs that start
+	pptp don't exit properly; they are held up until the pptp
+	processes terminate and close stderr.
+
 Thu Nov 21 08:41:39 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c: log return value from the read of the GRE socket as

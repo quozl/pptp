@@ -1,7 +1,7 @@
 /* util.h ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.h,v 1.2 2002/10/16 04:45:36 quozl Exp $
+ * $Id: util.h,v 1.3 2002/12/09 05:50:37 quozl Exp $
  */
 
 #ifndef INC_UTIL_H
@@ -25,5 +25,7 @@ void _fatal(char *func, char *file, int line, char *format, ...)
 	_warn(__FUNCTION__,__FILE__,__LINE__, format , ## args)
 #define fatal(format, args...) \
 	_fatal(__FUNCTION__,__FILE__,__LINE__, format , ## args)
+
+int file2fd(const char *path, const char *mode, int fd);
 
 #endif /* INC_UTIL_H */

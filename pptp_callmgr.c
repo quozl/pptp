@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.6 2002/05/13 05:37:46 mulix Exp $
+ * $Id: pptp_callmgr.c,v 1.7 2002/12/09 05:50:37 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -129,6 +129,9 @@ int main(int argc, char **argv, char **envp) {
   default: /* Parent. Return status to caller. */
     exit(0);
   }
+
+  /* re-open stderr as /dev/null to release it */
+  file2fd("/dev/null", "wb", STDERR_FILENO);
 
   /* Step 1c: Clean up unix socket on TERM */
   if (sigsetjmp(env, 1)!=0)

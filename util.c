@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.6 2002/10/16 04:45:36 quozl Exp $
+ * $Id: util.c,v 1.7 2002/12/09 05:50:37 quozl Exp $
  */
 
 #include <stdio.h>
@@ -53,4 +53,18 @@ void _fatal(char *func, char *file, int line, char *format, ...) {
   fprintf(stderr, "%s\n", string);
   syslog(LOG_CRIT, "%s", string);
   exit(1);
+}
+
+/* connect a file to a file descriptor */
+int file2fd(const char *path, const char *mode, int fd) {
+  int ok = 0;
+  FILE *file = NULL;
+
+  file = fopen(path, mode);
+  if (file != NULL && dup2(fileno(file), fd) != -1)
+    ok = 1;
+
+  if (file) fclose(file);
+
+  return ok;
 }
