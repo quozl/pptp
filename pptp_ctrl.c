@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.19 2003/06/19 07:47:40 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.20 2003/06/22 18:43:59 reink Exp $
  */
 
 #include <errno.h>
@@ -42,6 +42,12 @@
  *  before this would work at all, which, as of this writing
  *  (linux-threads v0.6, linux kernel 2.1.72), it does not.]
  */
+
+/* Globals */
+
+/* control the number of times echo packets will be logged */
+static int nlogecho = 10;
+
 static struct thread_specific {
     struct sigaction old_sigaction; /* evil signals */
     PPTP_CONN * conn;
@@ -200,8 +206,47 @@ static void ctrlp_error( int result, int error, int cause,
     }
 }
 
-/*----------------------------------------------------------------------*/
-/* Constructors and Destructors.                                        */
+static const char *ctrl_msg_types[] = {
+         "invalid control message type",
+/*         (Control Connection Management) */
+         "Start-Control-Connection-Request",            /* 1 */
+         "Start-Control-Connection-Reply",              /* 2 */
+         "Stop-Control-Connection-Request",             /* 3 */
+         "Stop-Control-Connection-Reply",               /* 4 */
+         "Echo-Request",                                /* 5 */
+         "Echo-Reply",                                  /* 6 */
+/*         (Call Management) */
+         "Outgoing-Call-Request",                       /* 7 */
+         "Outgoing-Call-Reply",                         /* 8 */
+         "Incoming-Call-Request",                       /* 9 */
+         "Incoming-Call-Reply",                        /* 10 */
+         "Incoming-Call-Connected",                    /* 11 */
+         "Call-Clear-Request",                         /* 12 */
+         "Call-Disconnect-Notify",                     /* 13 */
+/*         (Error Reporting) */
+         "WAN-Error-Notify",                           /* 14 */
+/*         (PPP Session Control) */
+         "Set-Link-Info"                              /* 15 */
+};
+#define MAX_CTRLMSG_TYPE 15
+         
+/*** report a sent packet ****************************************************/
+static void ctrlp_rep( void * buffer, int size, int isbuff)
+{
+    struct pptp_header *packet = buffer;
+    unsigned int type;
+    if(size < sizeof(struct pptp_header)) return;
+    type = ntoh16(packet->ctrl_type);
+    /* don't keep reporting sending of echo's */
+    if( (type == PPTP_ECHO_RQST || type == PPTP_ECHO_RPLY) && nlogecho <= 0 ) return;
+    log("%s control packet type is %d '%s'\n",isbuff ? "Buffered" : "Sent", 
+            type, ctrl_msg_types[type <= MAX_CTRLMSG_TYPE ? type : 0]);
+    if( type == PPTP_CALL_CLEAR_RQST)
+            print_trace();
+
+}
+    
+    
 
 /* Open new pptp_connection.  Returns NULL on failure. */
 PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
@@ -454,6 +499,7 @@ void pptp_write_some(PPTP_CONN * conn) {
     assert(retval <= conn->write_size);
     conn->write_size -= retval;
     memmove(conn->write_buffer, conn->write_buffer + retval, conn->write_size);
+    ctrlp_rep(conn->write_buffer, retval, 0);
 }
 
 /*** Non-blocking read ********************************************************/
@@ -538,7 +584,25 @@ flushbadbytes:
 int pptp_send_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
 {
     assert(conn && conn->call); assert(buffer);
-    /* Shove this into the write buffer */
+    if( conn->write_size > 0) pptp_write_some( conn);
+    if( conn->write_size == 0) {
+        ssize_t retval;
+        retval = write(conn->inet_sock, buffer, size);
+        if (retval < 0) { /* error. */
+            if (errno == EAGAIN || errno == EINTR) { 
+                /* ignore */;
+                retval = 0;
+            } else { /* a real error */
+                log("write error: %s", strerror(errno));
+                pptp_conn_destroy(conn); /* shut down fast. */
+                return 0;
+            }
+        }
+        ctrlp_rep( buffer, retval, 0);
+        size -= retval;
+        if( size <= 0) return 1;
+    }
+    /* Shove anything not written into the write buffer */
     if (conn->write_size + size > conn->write_alloc) { /* need more memory */
         char *new_buffer = realloc(conn->write_buffer, 
                 sizeof(*(conn->write_buffer)) * conn->write_alloc * 2);
@@ -550,6 +614,7 @@ int pptp_send_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
     }
     memcpy(conn->write_buffer + conn->write_size, buffer, size);
     conn->write_size += size;
+    ctrlp_rep( buffer,size,1);
     return 1;
 }
 
@@ -578,12 +643,11 @@ void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size)
 /*** log echo request/replies *************************************************/
 static void logecho( int type)
 {
-    static int nlogecho = 0;
     /* hack to stop flooding the log files (the most interesting part is right
      * after the connection built-up) */
-    if( nlogecho < 10) {
+    if( nlogecho > 0) {
         log( "Echo Re%s received.", type == PPTP_ECHO_RQST ? "quest" :"ply");
-        if( ++nlogecho == 10)
+        if( --nlogecho == 10)
             log("no more Echo Reply/Request packets will be reported.");
     }
 }

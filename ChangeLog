@@ -1,3 +1,15 @@
+Sun Jun 22 19:08:14 2003 Rein Klazes <rklazes@xs4all.nl>
+
+        * pptp_ctrl.c: Log the buffering and sending of ALL control messages.
+        Change the way the sending of these messages is done. The 
+        original way was to first put them into a buffer ( in
+        pptp_send_ctrl_packet()) and at some later write the buffered
+        bytes to the socket ( in pptp_write_some()). Now
+        pptp_send_ctrl_packet first attempts to write the packet directly.
+        Only it the write() does not write all of the bytes, the remaining
+        ones are buffered. This should help to track bugs in this area (like
+        sending two Start_Control_Requests).
+
 Thu Jun 19 09:09:53 2003 Rein Klazes <rklazes@xs4all.nl>
 
         * pptp_ctrl.c: Improve logging of received control packets:
