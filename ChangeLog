@@ -1,3 +1,10 @@
+Thu Oct 23 12:48:54 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_callmgr.c (callmgr_main): if connection fails, pptp enters
+	a CPU loop calling select() with no file descriptors set, and
+	being given EBADF.  Introduced by yesterday's modifications.
+	Correct code to detect this situation and break the main loop.
+
 Wed Oct 22 13:02:04 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c (pptp_call_open): add an assertion to prevent a call

@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.13 2003/10/22 05:41:24 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.14 2003/10/23 04:29:23 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -175,9 +175,11 @@ int callmgr_main(int argc, char **argv, char **envp)
                 break;
         }
         /* Step 4: Wait on INET or UNIX event */
-        if ((rc = select(max_fd + 1, &read_set, &write_set, NULL, NULL)) <0)
-            /* a signal or somesuch. */
-            continue;
+        if ((rc = select(max_fd + 1, &read_set, &write_set, NULL, NULL)) <0) {
+	  if (errno == EBADF) break;
+	  /* a signal or somesuch. */
+	  continue;
+	}
         /* Step 5a: Handle INET events */
         pptp_dispatch(conn, &read_set, &write_set);
         /* Step 5b: Handle new connection to UNIX socket */
