@@ -7,7 +7,7 @@
 #define MISSING_TIMEOUT 5
 
 /* assume packet is bad/spoofed if it's more than this many seqs ahead */
-#define MISSING_WINDOW 30
+#define MISSING_WINDOW 50
 
 /* Packet queue structure: linked list of packets received out-of-order */
 typedef struct pqueue {

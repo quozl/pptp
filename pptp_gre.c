@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.12 2002/08/14 10:04:20 quozl Exp $
+ * $Id: pptp_gre.c,v 1.13 2002/08/15 23:37:32 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -131,7 +131,8 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 	if (decaps_gre (gre_fd, encaps_hdlc, pty_fd) < 0)
 	    break;
     }
-    dequeue_gre (encaps_hdlc, pty_fd);
+    if (dequeue_gre (encaps_hdlc, pty_fd) < 0)
+      break;
   }
 
   /* Close up when done. */
