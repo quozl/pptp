@@ -15,10 +15,10 @@ CFLAGS += '-DPPPD_BINARY="/usr/sbin/pppd"'
 #################################################################
 
 PPTP_BIN = pptp
-PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o pty.o \
+PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
             inststr.o util.o version.o
-PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h pty.h util.h
+PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h
 
 CALLMGR_BIN = pptp_callmgr
 CALLMGR_OBJS = pptp_callmgr.o pptp_ctrl.o dirutil.o util.o vector.o version.o
@@ -60,7 +60,7 @@ AUTHORS COPYING INSTALL Makefile NEWS README TODO USING		\
 dirutil.c dirutil.h inststr.c inststr.h ppp_fcs.c ppp_fcs.h	\
 pptp.c pptp_callmgr.c pptp_callmgr.h pptp_ctrl.c pptp_ctrl.h	\
 pptp_gre.c pptp_gre.h pptp_msg.h pptp_options.h			\
-pty.c pty.h util.c util.h vector.c vector.h vector_test.c	\
+util.c util.h vector.c vector.h vector_test.c	\
 version.c version.h \
   pptp-linux-$(VERSION)
 	cp \

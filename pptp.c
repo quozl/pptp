@@ -2,12 +2,16 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.3 2001/04/30 03:42:36 scott Exp $
+ * $Id: pptp.c,v 1.4 2001/05/11 07:48:14 thomas Exp $
  */
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#ifdef __FreeBSD__
+#include <libutil.h>
+#else
 #include <pty.h>
+#endif
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/un.h>
@@ -21,12 +25,12 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <getopt.h>
+#include <limits.h>
 #include "pptp_callmgr.h"
 #include "pptp_gre.h"
 #include "version.h"
 #include "inststr.h"
 #include "util.h"
-#include "pty.h"
 
 #ifndef PPPD_BINARY
 #define PPPD_BINARY "pppd"
@@ -64,7 +68,7 @@ void sighandler(int sig) {
 int main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;
   int callmgr_sock;
-  char ttydev[TTYMAX];
+  char ttydev[PATH_MAX];
   int pty_fd, tty_fd, rc;
   pid_t parent_pid, child_pid;
   u_int16_t call_id, peer_call_id;
@@ -124,7 +128,6 @@ int main(int argc, char **argv, char **envp) {
   callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp);
 
   /* Step 3: Find an open pty/tty pair. */
-  /* pty_fd = getpseudotty(ttydev, ptydev); */
   rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
   if (rc < 0) { close(callmgr_sock); fatal("Could not find free pty."); }
   
