@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.2 2000/12/23 08:32:15 scott Exp $
+ * $Id: pptp_gre.c,v 1.3 2001/04/30 03:40:40 scott Exp $
  */
 
 #include <netinet/in.h>
@@ -20,6 +20,9 @@
 #include "util.h"
 
 #define PACKET_MAX 8196
+/* test for a 32 bit counter overflow */
+#define WRAPPED( curseq, lastseq) \
+    ((((curseq) & 0xffffff00)==0) && (((lastseq) & 0xffffff00 )==0xffffff00))
 
 static u_int32_t ack_sent, ack_recv;
 static u_int32_t seq_sent, seq_recv;
@@ -155,7 +158,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     }
     /* check, then remove the 16-bit FCS checksum field */
     if (pppfcs16(PPPINITFCS16, copy, len) != PPPGOODFCS16)
-      warn("Bad FCS");
+      log("Bad FCS");
     len-=sizeof(u_int16_t);
     /* so now we have a packet of length 'len' in 'copy' */
     if ((status=cb(cl, copy, len))<0) return status; /* error-check */
@@ -199,9 +202,10 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
   unsigned char buffer[PACKET_MAX+64/*ip header*/];
   struct pptp_gre_header *header;
   int status, ip_len=0;
+  static int first=1;
 
   if((status=read(fd, buffer, sizeof(buffer)))<0) 
-    {warn("read: %s", strerror(errno)); return status; }
+    {log("read: %s", strerror(errno)); return status; }
   /* strip off IP header, if present */
   if ((buffer[0]&0xF0)==0x40) 
     ip_len = (buffer[0]&0xF)*4;
@@ -215,7 +219,7 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
       (!PPTP_GRE_IS_K(ntoh8(header->flags))) || /* flag K should be set     */
       ((ntoh8(header->flags)&0xF)!=0)) { /* routing and recursion ctrl = 0  */
     /* if invalid, discard this packet */
-    warn("Discarding GRE: %X %X %X %X %X %X", 
+    log("Discarding GRE: %X %X %X %X %X %X", 
 	 ntoh8(header->ver)&0x7F, ntoh16(header->protocol), 
 	 PPTP_GRE_IS_C(ntoh8(header->flags)),
 	 PPTP_GRE_IS_R(ntoh8(header->flags)), 
@@ -227,8 +231,8 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     u_int32_t ack = (PPTP_GRE_IS_S(ntoh8(header->flags)))?
       header->ack:header->seq; /* ack in different place if S=0 */
     if (ack > ack_recv) ack_recv = ack;
-    /* also handle sequence number wrap-around (we're cool!) */
-    if (((ack>>31)==0)&&((ack_recv>>31)==1)) ack_recv=ack;
+    /* also handle sequence number wrap-around  */
+    if (WRAPPED(ack,ack_recv)) ack_recv=ack;
   }
   if (PPTP_GRE_IS_S(ntoh8(header->flags))) { /* payload present */
     unsigned headersize = sizeof(*header);
@@ -238,14 +242,14 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     /* check for incomplete packet (length smaller than expected) */
     if (status-headersize<payload_len) return 0; 
     /* check for out-of-order sequence number */
-    /* (handle sequence number wrap-around, cuz we're cool) */
-    if ((seq > seq_recv) || 
-	(((seq>>31)==0) && (seq_recv>>31)==1)) {
+    /* (handle sequence number wrap-around, and try to do it right) */
+    if ( first || (seq > seq_recv) || 
+	WRAPPED( seq, seq_recv)){
       seq_recv = seq;
-
+      first=0;
       return cb(cl, buffer+ip_len+headersize, payload_len);
     } else {
-      warn("discarding out-of-order"); 
+      log("discarding out-of-order  seq is %d seqrecv is %d", seq, seq_recv); 
       return 0; /* discard out-of-order packets */
     }
   }
@@ -267,7 +271,7 @@ int encaps_gre (int fd, void *pack, unsigned len) {
   u.header.call_id	= hton16(pptp_gre_peer_call_id);
   
   /* special case ACK with no payload */
-  if (pack==NULL) 
+  if (pack==NULL) {
     if (ack_sent != seq_recv) {
       u.header.ver |= hton8(PPTP_GRE_FLAG_A);
       u.header.payload_len = hton16(0);
@@ -275,6 +279,7 @@ int encaps_gre (int fd, void *pack, unsigned len) {
       ack_sent = seq_recv;
       return write(fd, &u.header, sizeof(u.header)-sizeof(u.header.seq));
     } else return 0; /* we don't need to send ACK */
+  } /* explicit brace to avoid ambiguous `else' warning */
   /* send packet with payload */
   u.header.flags |= hton8(PPTP_GRE_FLAG_S);
   u.header.seq    = hton32(seq);
