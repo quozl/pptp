@@ -23,6 +23,15 @@ Mon Apr 14 11:57:00 2003  Chris Wilson   <chris@netservers.co.uk>
 	followed by a data packet, they should be combined into a
 	single packet.
 
+Sat Mar 8 2003 15:19:12 2003 Rein Klazes <rklazes@xs4all.nl>
+
+        * pptp_gre.c, pqueue.c: Actually copy the packet into a new entry
+        in the packet queue, fixing "unknown protocol" error messages;
+        Change the program logic making it obvious that there is not a 
+        memory leak;
+        Restore the "buffering out-of-order packet" log messages, so we
+        have a chance to notice any more side effects.
+
 Mon Feb 17 09:18:30 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_callmgr.c, pptp.c, Makefile: compile call manager from
