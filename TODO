@@ -1,3 +1,9 @@
+1st May 2002
+
+- log failure of write() to raw socket, as Ryan Murray
+  <rmurray@debian.org> has encountered an EPERM situation that was not
+  being logged.
+
 10th March 2002
 
 - redesign to avoid use of setjmp/longjmp.
