@@ -1,3 +1,7 @@
+13th February 2004
+
+- timeout connect earlier, with option to extend timeout.
+
 11th June 2003
 
 - support --version
@@ -34,4 +38,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.15 2003/06/19 00:21:02 quozl Exp $	
+$Id: TODO,v 1.16 2004/02/13 05:21:36 quozl Exp $	
