@@ -1,3 +1,8 @@
+Sat Mar  2 03:19:24 2002  James Cameron  <quozl@us.netrek.org>
+
+	* Makefile: increment version, avoid clobbering editor backup
+	files on clean.
+
 Fri Mar  1 12:13:03 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c: move #include <sys/types.h> higher up

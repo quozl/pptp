@@ -1,4 +1,4 @@
-VERSION = 1.0.3
+VERSION = 1.1
 VERSION_DEFINE = '-DPPTP_LINUX_VERSION="${VERSION}"'
 
 CC	= gcc -Wall
@@ -11,7 +11,6 @@ LDFLAGS	= -lutil
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
-
 CFLAGS += '-DPPPD_BINARY="/usr/sbin/pppd"'
 #################################################################
 
@@ -45,7 +44,7 @@ vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o
 
 clean:
-	$(RM) *.o *~
+	$(RM) *.o
 
 clobber: clean
 	$(RM) $(PPTP_BIN) $(CALLMGR_BIN) vector_test
