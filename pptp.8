@@ -25,31 +25,54 @@ However, \fBpptp\fR can also be run as a connection manager within
 \fBpppd\fR.
 .SH OPTIONS
 .LP
-The first argument on the \fBpptp\fR command line must be the host
-name or IP address of the PPTP server.  Remaining arguments are
-checked for \fBpptp\fR options, and the arguments from the first
-unrecognised option onward are passed as is to \fBpppd\fR unless
+The first non-option argument on the \fBpptp\fR command line must be the host
+name or IP address of the PPTP server.
+.LP
+All long options (starting with "--")
+are interpreted as pptp options, and a fatal error occurs if an 
+unrecognised option is used.
+.LP
+All command-line arguments which do not start
+with "-" are interpreted as ppp options, and passed as is to \fBpppd\fR unless
 \fB--nolaunchpppd\fR is given.
 .TP
+.B \--phone <number>
+Pass <number> to remote host as phone number
+.TP
 .B \--nolaunchpppd
-do not launch 
+Do not launch
 .B pppd
 but use stdin as the network connection.  Use this flag when including
 .B pptp
-as a 
+as a
 .B pppd
-connection process using the 
+connection process using the
 .B pty
 option.  See EXAMPLES.
 .TP
-.B \--phone number
-specifies the telephone number to place in the outgoing PPTP call request packet.
+.B \--quirks <quirk>
+Work around a buggy PPTP implementation, adopts special case handling for
+particular PPTP servers and ADSL modems.
+Currently recognised values are BEZEQ_ISRAEL only
 .TP
-.B \--localbind address
-optional binding to a particular local IP address on a multi-homed host.
+.B \--debug
+Run in foreground (for debugging with gdb)
 .TP
-.B \--quirks name
-adopts special case handling for particular PPTP servers and ADSL modems.
+.B \--sync
+Enable Synchronous HDLC (pppd must use it too)
+.TP
+.B \--timeout <secs>
+Time to wait for reordered packets (0.01 to 10 secs)
+.TP
+.B \--logstring <name>
+Use <name> instead of 'anon' in syslog messages
+.TP
+.B \--localbind <addr>
+Bind to specified IP address instead of wildcard
+.TP
+.B \--loglevel <level>
+Sets the debugging level (0=low, 1=default, 2=high)
+
 .SH "QUIRKS"
 
 .TP

@@ -1,3 +1,8 @@
+Mon Mar  8 11:04:00 2004  Chris Wilson <chris@netservers.co.uk>
+
+	* pptp.8: added documentation for command-line options where
+	missing.  Updated to reflect the use of getopt.
+
 Tue Mar  2 09:53:53 2004  Peter McCurdy <pmccurdy@nit.ca>
 
 	* pptp.c (main, do_nothing): do not hang when a connection is
@@ -5,6 +10,11 @@ Tue Mar  2 09:53:53 2004  Peter McCurdy <pmccurdy@nit.ca>
 	waiting for the child to send SIGUSR1, if the child died then the
 	controlling process wouldn't ever wake up.  Now if the child dies,
 	SIGCHLD gets handled and the controlling process quits.
+
+Tue Feb 10 20:35:18 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.c (decaps_hdlc): temporarily add code that captures
+	additional detail if EMSGSIZE is returned by read().
 
 Fri Jan  2 10:05:17 2004  James Cameron  <quozl@us.netrek.org>
 
