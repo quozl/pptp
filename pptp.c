@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.29 2003/04/15 12:49:16 quozl Exp $
+ * $Id: pptp.c,v 1.30 2003/05/26 07:13:43 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -64,10 +64,21 @@ void usage(char *progname) {
   fprintf(stderr,
 	  "%s\n"
 	  "Usage:\n"
-	  " %s hostname [[--phone <phone number>] [--quirks ISP_NAME] -- ][ pppd options]\n"
-	  "\nOr using pppd option pty: \n"
-	  " pty \" %s hostname --nolaunchpppd [--phone <phone number>] [--quirks ISP_NAME] [--sync]\"\n"
-	  "Currently recognized ISP_NAMEs for quirks are BEZEQ_ISRAEL\n",
+	  "  %s <hostname> [<pptp options> -- ][pppd <pppd options>]\n"
+	  "\n"
+	  "Or using pppd option pty: \n"
+	  "  pppd pty \"%s <hostname> --nolaunchpppd <pptp options>\"\n"
+	  "\n"
+	  "Available pptp options:\n"
+          "  --phone <number>	Pass <number> to remote host as phone number\n"
+	  "  --nolaunchpppd	Do not launch pppd, for use as a pppd pty\n"
+          "  --quirks <quirk>	Work around a buggy PPTP implementation\n"
+	  "			Currently recognised values are BEZEQ_ISRAEL only\n"
+	  "  --debug		Run in foreground (for debugging with gdb)\n"
+	  "  --sync		Enable Synchronous HDLC (pppd must use it too)\n"
+	  "  --timeout <secs>	Time to wait for reordered packets (0.01 to 10 secs)\n"
+	  "  --logstring <name>	Use <name> instead of 'anon' in syslog messages\n"
+          "  --localbind <addr>	Bind to specified IP address instead of wildcard\n",
 	  version, progname, progname);
   log("%s called with wrong arguments, program not started.", progname);
   
