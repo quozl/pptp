@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.10 2002/03/11 01:51:16 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.11 2002/04/04 06:10:34 quozl Exp $
  */
 
 #include <errno.h>
@@ -753,7 +753,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
       if (ntoh32(packet->send_accm)==0 && ntoh32(packet->recv_accm)==0)
 	break; /* this is what we expect. */
       /* log it, otherwise. */
-      log("PPTP_SET_LINK_INFO recieved from peer_callid %u",
+      log("PPTP_SET_LINK_INFO received from peer_callid %u",
 	  (unsigned int) ntoh16(packet->call_id_peer));
       log("  send_accm is %08lX, recv_accm is %08lX",
 	  (unsigned long) ntoh32(packet->send_accm),

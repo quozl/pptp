@@ -1,3 +1,8 @@
+Thu Apr  4 09:34:10 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c: correct spelling error.
+	From: Mary.Deck@COMPAQ.com
+
 2002-03-30 13:13:52  mulix  <mulix@actcom.co.il>
 
 	* USING: change URL for bezeq adsl howto.  
