@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.18 2004/11/09 01:42:32 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.19 2005/03/10 01:18:20 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -36,6 +36,7 @@ void close_unixsock(int fd, struct in_addr inetaddr);
 sigjmp_buf callmgr_env;
 
 void callmgr_sighandler(int sig) {
+    /* TODO: according to signal(2), siglongjmp() is unsafe used here */
     siglongjmp (callmgr_env, 1);
 }
 

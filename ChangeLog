@@ -1,3 +1,24 @@
+Thu Mar 10 11:07:52 2005  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c (pptp_handle_timer): when we close connection due to
+	loss of echo replies, say so in the log.
+	Reported by: Jean Wolter.
+
+	* pptp_ctrl.c: fix signal deadlock on kernel 2.6.x
+	Reported by: Jean Wolter.
+	
+	* util.c, util.h: adopt sigpipe implementation from pptpd.
+
+	* pptp_ctrl.c (pptp_conn_open): use sigpipe implementation instead
+	of trying I/O in signal handler (which causes deadlocks).
+
+	* pptp_ctrl.c (pptp_fd_set): include the sigpipe in the file
+	descriptor set.
+	
+	* pptp_ctrl.c (pptp_dispatch): detect queued signals via sigpipe.
+	
+	* pptp_ctrl.c (pptp_conn_destroy): close the sigpipe.
+
 Fri Feb 18 12:38:18 2005  James Cameron  <quozl@us.netrek.org>
 
 	* pptp-1.6.0 released.

@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.29 2004/12/13 22:06:46 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.30 2005/03/10 01:18:20 quozl Exp $
  */
 
 #include <errno.h>
@@ -171,7 +171,7 @@ int max_echo_wait = PPTP_TIMEOUT;
 
 /* Local prototypes */
 static void pptp_reset_timer(void);
-static void pptp_handle_timer(int sig);
+static void pptp_handle_timer();
 /* Write/read as much as we can without blocking. */
 int pptp_write_some(PPTP_CONN * conn);
 int pptp_read_some(PPTP_CONN * conn);
@@ -257,7 +257,6 @@ static void ctrlp_rep( void * buffer, int size, int isbuff)
 /* Open new pptp_connection.  Returns NULL on failure. */
 PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
 {
-    struct sigaction sigact;
     PPTP_CONN *conn;
     /* Allocate structure */
     if ((conn = malloc(sizeof(*conn))) == NULL) return NULL;
@@ -306,11 +305,9 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
     }
     /* Set up interval/keep-alive timer */
     /*   First, register handler for SIGALRM */
-    sigact.sa_handler = pptp_handle_timer;
-    sigemptyset(&sigact.sa_mask);
-    sigact.sa_flags = SA_RESTART;
+    sigpipe_create();
+    sigpipe_assign(SIGALRM);
     global.conn = conn;
-    sigaction(SIGALRM, &sigact, &global.old_sigaction);
     /* Reset event timer */
     pptp_reset_timer();
     /* all done. */
@@ -447,7 +444,7 @@ void pptp_conn_destroy(PPTP_CONN * conn)
         pptp_call_destroy(conn, vector_get_Nth(conn->call, i));
     /* notify */
     if (conn->callback != NULL) conn->callback(conn, CONN_CLOSE_DONE);
-    sigaction(SIGALRM, &global.old_sigaction, NULL);
+    sigpipe_close();
     close(conn->inet_sock);
     /* deallocate */
     vector_destroy(conn->call);
@@ -467,6 +464,10 @@ void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set,
     /* Always add fd to read_set. (always want something to read) */
     FD_SET(conn->inet_sock, read_set);
     if (*max_fd < conn->inet_sock) *max_fd = conn->inet_sock;
+    /* Add signal pipe file descriptor to set */
+    int sig_fd = sigpipe_fd();
+    FD_SET(sig_fd, read_set);
+    if (*max_fd < sig_fd) *max_fd = sig_fd;
 }
 
 /*** handle any pptp file descriptors set in fd_set, and clear them ***********/
@@ -492,6 +493,11 @@ int pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set)
             r = pptp_dispatch_packet(conn, buffer, size);
             free(buffer);
         }
+    }
+    /* Check for signals */
+    if (FD_ISSET(sigpipe_fd(), read_set)) {
+        if (sigpipe_read() == SIGALRM) pptp_handle_timer();
+	FD_CLR(sigpipe_fd(), read_set);
     }
     /* That's all, folks.  Simple, eh? */
     return r;
@@ -1026,7 +1032,7 @@ static void pptp_reset_timer(void)
 
 
 /*** Handle keep-alive timer **************************************************/
-static void pptp_handle_timer(int sig)
+static void pptp_handle_timer()
 {
     int i;
     /* "Keep Alives and Timers, 1": check connection state */
@@ -1038,16 +1044,15 @@ static void pptp_handle_timer(int sig)
             pptp_conn_close(global.conn, PPTP_STOP_NONE);
     }
     /* "Keep Alives and Timers, 2": check echo status */
-    if (global.conn->ka_state == KA_OUTSTANDING) /*no response to keep-alive*/
-        pptp_conn_close(global.conn, PPTP_STOP_NONE);
-    else { /* ka_state == NONE */ /* send keep-alive */
+    if (global.conn->ka_state == KA_OUTSTANDING) {
+        /* no response to keep-alive */
+        log ("closing control connection due to missing echo reply");
+	pptp_conn_close(global.conn, PPTP_STOP_NONE);
+    } else { /* ka_state == NONE */ /* send keep-alive */
         struct pptp_echo_rqst rqst = {
             PPTP_HEADER_CTRL(PPTP_ECHO_RQST), hton32(global.conn->ka_id) };
         pptp_send_ctrl_packet(global.conn, &rqst, sizeof(rqst));
         global.conn->ka_state = KA_OUTSTANDING;
-        /* XXX FIXME: wake up ctrl thread -- or will the SIGALRM do that
-         * automagically? XXX
-         */
     }
     /* check incoming/outgoing call states for !IDLE && !ESTABLISHED */
     for (i = 0; i < vector_size(global.conn->call); i++) {

@@ -1,3 +1,12 @@
+10th March 2005
+
+- call manager is not being reused as it was designed to be; if a
+tunnel is started within a minute of a tunnel being stopped, it does
+not succeed; symptom is LCP ConfReq's without any traffic from the
+server.
+
+--
+
 - finish --max-echo-wait
 
 11th August 2004
@@ -86,4 +95,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.21 2004/11/09 01:42:32 quozl Exp $	
+$Id: TODO,v 1.22 2005/03/10 01:18:20 quozl Exp $	

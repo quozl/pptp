@@ -1,4 +1,5 @@
 # release process for pptp and pptp-extras package (ppp below)
+# emacs: sh-mode
 
 # make local repository up to date in case of other changes
 pushd pptp-linux && cvs update -d && popd && \
@@ -7,7 +8,7 @@ pushd pptp-extras && cvs update -d && popd
 
 # set shell variables for version
 # (use -rc1 for release candidate 1, or blank for final release)
-VERSION=1.6.0
+VERSION=1.7.0
 RELEASE=
 
 TAG_VERSION=`echo ${VERSION}|tr . _`
@@ -51,12 +52,12 @@ mv pptp-extras/pptp-extras-${VERSION}${RELEASE}.tar.gz ./
 # rpm pptp
 cd /home/james/pptp-client
 cp pptp-${VERSION}${RELEASE}.tar.gz /usr/src/rpm/SOURCES/pptp-${VERSION}.tar.gz 
-cd /tmp
-tar xfz /home/james/pptp-client/pptp-extras-${VERSION}${RELEASE}.tar.gz 
-cd pptp-extras-${VERSION}/
-cp options.pptp pptp_fe.pl xpptp_fe.pl /usr/src/rpm/SOURCES/
-cd ..
-rm -rf pptp-extras-${VERSION}/
+#cd /tmp
+#tar xfz /home/james/pptp-client/pptp-extras-${VERSION}${RELEASE}.tar.gz 
+#cd pptp-extras-${VERSION}/
+#cp options.pptp pptp_fe.pl xpptp_fe.pl /usr/src/rpm/SOURCES/
+#cd ..
+#rm -rf pptp-extras-${VERSION}/
 cd /home/james/pptp-client/specs
 fakeroot rpmbuild -ba pptp.spec
 
@@ -112,7 +113,7 @@ upw
 mutt -s "pptp-1.6.0 released" pptpclient-devel@lists.sourceforge.net <<EOF
 G'day,
 
-PPTP Client 1.6.0 is available.
+PPTP Client 1.6.0 is released.
 
 Changes since 1.5.0 are:
 - fix double-free on stop control connection reply [Kivity]
@@ -124,17 +125,25 @@ Changes since 1.5.0 are:
 - rename package from pptp-linux to pptp [Cameron]
 
 Can be downloaded from:
-http://quozl.netrek.org/pptp/
-http://quozl.linux.org.au/pptp/
+	http://sourceforge.net/project/showfiles.php?group_id=33063
 
-pptp-1.6.0-0.i386.rpm
-pptp-1.6.0-0.src.rpm
-pptp-1.6.0.tar.gz
+45032f7d676afc86d6493427e92f1afb  pptp-1.6.0-0.i386.rpm
+f91b9aaf56e7704814ddba65b3352e9c  pptp-1.6.0-0.src.rpm
+9a706327fb9827541d7c86d48ceb9631  pptp-1.6.0.tar.gz
 EOF
 
 # to add to process
 # add sourceforge publishing step
 # NEW USER REQUEST ... ensure .src.rpm is published to sourceforge
+ftp upload.sourceforge.net
+anonymous
+qz@hp.com
+cd incoming
+passive
+hash
+put pptp-1.6.0-0.i386.rpm
+put pptp-1.6.0-0.src.rpm
+put pptp-1.6.0.tar.gz
 
 # https://sf.net/projects/pptpd
 # login

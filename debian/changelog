@@ -1,3 +1,9 @@
+pptp (1.7.0-0) unstable; urgency=low
+
+  * test cut
+
+ -- James Cameron <quozl@us.netrek.org>  Thu, 10 Mar 2005 11:16:43 +1100
+
 pptp (1.5.0+20040809-0) unstable; urgency=low
 
   * cut from cvs
