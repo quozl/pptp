@@ -1,3 +1,8 @@
+Thu Nov 21 08:41:39 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.c: log return value from the read of the GRE socket as
+	a signed number as well.
+
 Wed Nov 20 11:21:48 CET 2002 Rein Klazes <rklazes@xs4all.nl>
 
 	* pptp_gre.c: log return value from the read of the pty as a signed

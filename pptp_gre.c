@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.20 2002/11/20 10:58:35 reink Exp $
+ * $Id: pptp_gre.c,v 1.21 2002/11/20 21:44:26 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -276,7 +276,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   u_int32_t seq;
 
   if ((status = read (fd, buffer, sizeof(buffer))) <= 0) {
-    warn("short read (%u): %s", status, strerror(errno));
+    warn("short read (%d): %s", status, strerror(errno));
     return -1;
   }
 
