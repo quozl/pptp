@@ -1,3 +1,11 @@
+Wed Jun 11 14:06:21 2003  Rein Klazes
+
+        * pptp_gre.c: When a timeout is specified in the select call
+        make it always non-zero. Making this call block makes it likely
+        that pppd will run before the select returns. This results in a
+        big reduction in transmitted ack-only packets (number down from 
+        40% to 0.8% of received packets on my system).
+
 Tue Jun 10 13:53:00 2003  Chris Wilson  <chris@netservers.co.uk>
 
 	* pptp_callmgr.c: fixed a bug with call manager socket naming,

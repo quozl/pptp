@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.28 2003/04/15 12:49:16 quozl Exp $
+ * $Id: pptp_gre.c,v 1.29 2003/06/11 17:19:14 reink Exp $
  */
 
 #include <sys/types.h>
@@ -128,7 +128,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
     FD_SET(pty_fd, &rfds);
 
     /*
-     * if there are multiple pending ACKs, then do non-blocking select;
+     * if there are multiple pending ACKs, then do a minimal timeout;
      * else if there is a single pending ACK then timeout after 0,5 seconds;
      * else block until data is available.
      */
@@ -137,7 +137,9 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
       if (ack_sent + 1 == seq_recv)  /* u_int wrap-around safe */
 	block_usecs = 500000;
       else
-	block_usecs = 0;
+	block_usecs = 1; /* don't use zero, this will force a resceduling */
+                         /* when calling select(), giving pppd a chance to */
+                         /* run. */
     }
     /* otherwise block_usecs == -1, which means wait forever */
 
@@ -169,8 +171,8 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 	    break;
     } else if (retval == 0 && ack_sent != seq_recv) {
       /* if outstanding ack */
-      encaps_gre(gre_fd, NULL, 0);         
       /* send ack with no payload */
+      encaps_gre(gre_fd, NULL, 0);         
     }
 
     if (FD_ISSET(gre_fd, &rfds)) {
