@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.30 2003/05/26 07:13:43 quozl Exp $
+ * $Id: pptp.c,v 1.31 2003/06/03 09:17:34 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -98,7 +98,7 @@ void sighandler(int sig) {
   siglongjmp(env, 1);
 }
 
-void sig_hup_handler(int sig) {
+void sigstats(int sig) {
   syslog(LOG_NOTICE, "GRE statistics:\n");
   #define LOG(name,value) syslog(LOG_NOTICE, name "\n", stats .value)
   LOG("rx accepted  = %d", rx_accepted);
@@ -305,7 +305,7 @@ int main(int argc, char **argv, char **envp) {
   signal(SIGTERM, sighandler);
   signal(SIGKILL, sighandler);
   signal(SIGCHLD, sighandler);
-  signal(SIGHUP,  sig_hup_handler);
+  signal(SIGUSR1, sigstats);
  
   /* Step 6: Do GRE copy until close. */
   pptp_gre_copy(call_id, peer_call_id, pty_fd, gre_fd);

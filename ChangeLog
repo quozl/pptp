@@ -1,10 +1,14 @@
-Tue May 20 13:20:00 2003  Chris Wilson   <chris@netservers.co.uk>
+Tue Jun  3 19:16:52 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.8, pptp.c: change SIGHUP to SIGUSR1 for dumping stats.
+
+Tue May 20 13:20:00 2003  Chris Wilson  <chris@netservers.co.uk>
 
 	* pptp.c: rewrote command-line usage information, to increase
 	clarity and usefulness, and to describe various command-line
 	options which have been added recently.
 
-Fri May 23 20:52:05 2003  Rein Klazes <rklazes@xs4all.nl>
+Fri May 23 20:52:05 2003  Rein Klazes  <rklazes@xs4all.nl>
 
 	* pptp_ctrl.c: increase the verbosity of the log message at the
 	receipt of a Call Disconnect Notification.

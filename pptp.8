@@ -75,7 +75,7 @@ GRE packets. They are intended to be useful for debugging poor PPTP
 performance and for general monitoring of link quality. The statistics
 are cumulative since the pptp process was started.
 .PP
-The statistics can be viewed by sending a SIGHUP signal to the
+The statistics can be viewed by sending a SIGUSR1 signal to the
 "GRE-to-PPP Gateway" process, which will cause it to dump them
 to the system logs (at the LOG_NOTICE level). A better way to present
 the statistics to applications is being sought (e.g. SNMP?).
