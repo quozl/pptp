@@ -1,7 +1,3 @@
-18th June 2003
-
-- add "make uninstall" target, requested by L. Mark Stone
-
 11th June 2003
 
 - support --version
@@ -38,4 +34,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.14 2003/06/17 23:28:33 quozl Exp $	
+$Id: TODO,v 1.15 2003/06/19 00:21:02 quozl Exp $	
