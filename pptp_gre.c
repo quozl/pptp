@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.7 2001/07/21 10:02:35 thomas Exp $
+ * $Id: pptp_gre.c,v 1.8 2001/11/20 05:46:30 quozl Exp $
  */
 
 #include <netinet/in.h>
@@ -158,7 +158,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned len), int cl) {
     }
     /* check, then remove the 16-bit FCS checksum field */
     if (pppfcs16 (PPPINITFCS16, copy, len) != PPPGOODFCS16)
-      log("Bad FCS");
+      log("Bad Frame Check Sequence during PPP to GRE decapsulation");
     len -= sizeof(u_int16_t);
 
     /* so now we have a packet of length 'len' in 'copy' */
