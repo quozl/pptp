@@ -1,3 +1,11 @@
+18th June 2003
+
+- add "make uninstall" target, requested by L. Mark Stone
+
+11th June 2003
+
+- support --version
+
 20th May 2003
 
 - GRE stats to a pipe or shared memory, for GUI to use
@@ -30,4 +38,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.13 2003/05/20 01:51:20 quozl Exp $	
+$Id: TODO,v 1.14 2003/06/17 23:28:33 quozl Exp $	
