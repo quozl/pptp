@@ -8,7 +8,7 @@ pushd pptp-extras && cvs update -d && popd
 # set shell variables for version
 # (use -rc1 for release candidate 1, or blank for final release)
 VERSION=1.5.0
-RELEASE=-rc1
+RELEASE=
 
 TAG_VERSION=`echo ${VERSION}|tr . _`
 export VERSION RELEASE TAG_VERSION
@@ -48,30 +48,7 @@ mv pptp-linux/pptp-linux-${VERSION}${RELEASE}.tar.gz ./
 cd pptp-extras && make dist && cd .. && \
 mv pptp-extras/pptp-extras-${VERSION}${RELEASE}.tar.gz ./
 
-# send to my build machines
-#scp \
-#pptp-linux-${VERSION}${RELEASE}.tar.gz \
-#pptp-extras-${VERSION}${RELEASE}.tar.gz \
-#specs/pptp-linux.spec \
-#quozl:/tmp/
-#
-#scp \
-#pptp-linux-${VERSION}${RELEASE}.tar.gz \
-#pptp-extras-${VERSION}${RELEASE}.tar.gz \
-#jander:/tmp/
-
-# deb pptp-linux
-# on intel and alpha
-#cd pptp-linux
-# apt-get install debhelper fakeroot
-#fakeroot dpkg-buildpackage
-#fakeroot dpkg-buildpackage -us -uc
-#cd ..
-
 # rpm pptp-linux
-# on intel and alpha
-# (set variables)
-su
 cd /home/james/pptp-client
 cp pptp-linux-${VERSION}${RELEASE}.tar.gz /usr/src/rpm/SOURCES/pptp-linux-${VERSION}.tar.gz 
 cd /tmp
@@ -81,27 +58,15 @@ cp pptp-command options.pptp pptp_fe.pl xpptp_fe.pl /usr/src/rpm/SOURCES/
 cd ..
 rm -rf pptp-extras-${VERSION}/
 cd /home/james/pptp-client/specs
-rpmbuild -ba pptp-linux.spec
-
-# cross build onto alpha from intel
-#cd /usr/src/rpm/SRPMS
-#scp *.src.rpm alpha:/tmp/
-#cd /tmp
-#rpm --rebuild pptp-linux-${VERSION}${RELEASE}.src.rpm 
-#cd /usr/src/rpm/RPMS/alpha
+fakeroot rpmbuild -ba pptp-linux.spec
 
 # publish
-# on intel
-#su - james
-# (or ^d)
-# (set variables)
 cd ~/public_html/external/mine/pptp/
 cp /home/james/pptp-client/pptp-linux-${VERSION}${RELEASE}.tar.gz ./
 # only if final release
 cp /home/james/pptp-client/pptp-extras-${VERSION}${RELEASE}.tar.gz ./
-#cp /tmp/pptp-linux-${VERSION}${RELEASE}/pptp-linux_${VERSION}${RELEASE}* ./
-cp /usr/src/rpm/SRPMS/pptp-linux-${VERSION}${RELEASE}.src.rpm ./
-cp /usr/src/rpm/RPMS/i386/pptp-linux-${VERSION}${RELEASE}.i386.rpm ./
+cp /usr/src/rpm/SRPMS/pptp-linux-${VERSION}${RELEASE}*.src.rpm ./
+cp /usr/src/rpm/RPMS/i386/pptp-linux-${VERSION}${RELEASE}*.i386.rpm ./
 # debian packages
 #cp ~/pptp-client/pptp-linux_${VERSION}${RELEASE}_i386.deb ./
 #cp ~/pptp-client/pptp-linux_${VERSION}${RELEASE}_i386.changes ./
