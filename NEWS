@@ -1,3 +1,4 @@
+- handle out-of-order packets arriving on the GRE socket by buffering.
 - bind GRE socket early to prevent ICMP Unreachable response by client.
 
 Release 1.1.0:
