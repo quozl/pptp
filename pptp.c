@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.12 2002/03/31 11:14:56 mulix Exp $
+ * $Id: pptp.c,v 1.13 2002/05/13 05:37:46 mulix Exp $
  */
 
 #include <sys/types.h>
@@ -78,7 +78,7 @@ void sighandler(int sig) {
 
 /* TODO: redesign to avoid longjmp/setjmp.  Several variables here
    have a volatile qualifier to silence warnings from gcc < 3.0.
-   Remove the volatile qualifiers when longjmp/setjmp are removed. */
+   Remove the volatile qualifiers if longjmp/setjmp are removed. */
 
 int main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;

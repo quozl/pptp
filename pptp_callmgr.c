@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.5 2002/03/11 01:51:41 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.6 2002/05/13 05:37:46 mulix Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -51,20 +51,6 @@ struct local_conninfo {
   fd_set * call_set;
 };
 
-/* Connection callback */
-void conn_callback(PPTP_CONN *conn, enum conn_state state) {
-
-  switch(state) {
-  case CONN_OPEN_FAIL:
-  case CONN_CLOSE_DONE:
-    /* get outta here */
-    siglongjmp(env, 1);
-    break;
-  default:
-    log("Unhandled connection callback state [%d].", (int) state);
-    break;
-  }
-}
 /* Call callback */
 void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state) {
   struct local_callinfo *lci;
@@ -107,7 +93,7 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state) {
 
 /* NOTE ABOUT 'VOLATILE':                                              */
 /* several variables here get a volatile qualifier to silence warnings */
-/* from older (before 3.0) gccs. once the longjmp stuff is removed,    */
+/* from older (before 3.0) gccs. if the longjmp stuff is removed,      */
 /* the volatile qualifiers should be removed as well.                  */ 
 int main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;

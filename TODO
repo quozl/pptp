@@ -4,10 +4,6 @@
   <rmurray@debian.org> has encountered an EPERM situation that was not
   being logged.
 
-10th March 2002
-
-- redesign to avoid use of setjmp/longjmp.
-
 12th February 2002
 
 - clean up -T errors in pptp-command,

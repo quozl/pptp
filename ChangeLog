@@ -1,3 +1,10 @@
+2002-05-13 08:14:40  Muli Ben-Yehuda  <mulix@actcom.co.il>
+
+	* TODO: remove 'remove setjmp/longjmp' TODO item. 
+	* pptp.c: change comment re volatile qualifiers. 
+	* pptp_callmgr.c: remove unused function 'conn_callback' and
+	change comment re volatile qualifiers. 
+
 Thu Apr  4 09:34:10 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c: correct spelling error.
