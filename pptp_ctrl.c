@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.26 2004/07/21 19:04:00 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.27 2004/11/09 01:42:32 quozl Exp $
  */
 
 #include <errno.h>
@@ -165,12 +165,16 @@ static const char *pptp_start_ctrl_conn_rply[] = {
 
 #define MAX_START_CTRL_CONN_REPLY 4
 
+/* timing options */
+int idle_wait = PPTP_TIMEOUT;
+int max_echo_wait = PPTP_TIMEOUT;
+
 /* Local prototypes */
 static void pptp_reset_timer(void);
 static void pptp_handle_timer(int sig);
 /* Write/read as much as we can without blocking. */
-void pptp_write_some(PPTP_CONN * conn);
-void pptp_read_some(PPTP_CONN * conn);
+int pptp_write_some(PPTP_CONN * conn);
+int pptp_read_some(PPTP_CONN * conn);
 /* Make valid packets from read_buffer */
 int pptp_make_packet(PPTP_CONN * conn, void **buf, size_t *size);
 /* Add packet to write_buffer */
@@ -466,20 +470,23 @@ void pptp_fd_set(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set,
 }
 
 /*** handle any pptp file descriptors set in fd_set, and clear them ***********/
-void pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set)
+int pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set)
 {
+    int r = 0;
     assert(conn && conn->call);
     /* Check write_set could be set. */
     if (FD_ISSET(conn->inet_sock, write_set)) {
         FD_CLR(conn->inet_sock, write_set);
         if (conn->write_size > 0)
-            pptp_write_some(conn);/* write as much as we can without blocking */
+            r = pptp_write_some(conn);/* write as much as we can without blocking */
     }
     /* Check read_set */
-    if (FD_ISSET(conn->inet_sock, read_set)) {
+    if (r >= 0 && FD_ISSET(conn->inet_sock, read_set)) {
         void *buffer; size_t size;
         FD_CLR(conn->inet_sock, read_set);
-        pptp_read_some(conn); /* read as much as we can without blocking */
+        r = pptp_read_some(conn); /* read as much as we can without blocking */
+	if (r < 0)
+	    return r;
         /* make packets of the buffer, while we can. */
         while (pptp_make_packet(conn, &buffer, &size)) {
             pptp_dispatch_packet(conn, buffer, size);
@@ -487,30 +494,31 @@ void pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set)
         }
     }
     /* That's all, folks.  Simple, eh? */
+    return r;
 }
 
 /*** Non-blocking write *******************************************************/
-void pptp_write_some(PPTP_CONN * conn) {
+int pptp_write_some(PPTP_CONN * conn) {
     ssize_t retval;
     assert(conn && conn->call);
     retval = write(conn->inet_sock, conn->write_buffer, conn->write_size);
     if (retval < 0) { /* error. */
         if (errno == EAGAIN || errno == EINTR) { 
-            /* ignore */;
+            return 0;
         } else { /* a real error */
             log("write error: %s", strerror(errno));
-            pptp_conn_destroy(conn); /* shut down fast. */
+	    return -1;
         }
-        return;
     }
     assert(retval <= conn->write_size);
     conn->write_size -= retval;
     memmove(conn->write_buffer, conn->write_buffer + retval, conn->write_size);
     ctrlp_rep(conn->write_buffer, retval, 0);
+    return 0;
 }
 
 /*** Non-blocking read ********************************************************/
-void pptp_read_some(PPTP_CONN * conn)
+int pptp_read_some(PPTP_CONN * conn)
 {
     ssize_t retval;
     assert(conn && conn->call);
@@ -518,7 +526,7 @@ void pptp_read_some(PPTP_CONN * conn)
         char *new_buffer = realloc(conn->read_buffer, 
                 sizeof(*(conn->read_buffer)) * conn->read_alloc * 2);
         if (new_buffer == NULL) {
-            log("Out of memory"); return;
+            log("Out of memory"); return -1;
         }
         conn->read_alloc *= 2;
         conn->read_buffer = new_buffer;
@@ -527,22 +535,19 @@ void pptp_read_some(PPTP_CONN * conn)
             conn->read_alloc  - conn->read_size);
     if (retval == 0) {
         log("read returned zero, peer has closed");
-        pptp_conn_destroy(conn); /* shut down fast. */
-        /* BUG: conn is used by callmgr_main() after being freed here */
-        return;
+        return -1;
     }
     if (retval < 0) {
         if (errno == EINTR || errno == EAGAIN)
-            /* ignore */ ;
+	    return 0;
         else { /* a real error */
             log("read error: %s", strerror(errno));
-            pptp_conn_destroy(conn); /* shut down fast. */
-            /* BUG: conn is used by callmgr_main() after being freed here */
+            return -1;
         }
-        return;
     }
     conn->read_size += retval;
     assert(conn->read_size <= conn->read_alloc);
+    return 0;
 }
 
 /*** Packet formation *********************************************************/
@@ -1013,8 +1018,8 @@ void * pptp_conn_closure_get(PPTP_CONN * conn)
 static void pptp_reset_timer(void)
 {
     const struct itimerval tv = { {  0, 0 },   /* stop on time-out */
-        { PPTP_TIMEOUT, 0 } }; /* 60-second timer */
-        setitimer(ITIMER_REAL, &tv, NULL);
+        { idle_wait, 0 } };
+    if (idle_wait) setitimer(ITIMER_REAL, &tv, NULL);
 }
 
 

@@ -48,12 +48,7 @@ binary-arch: build install
 #	dh_installdebconf	
 	dh_installdocs debian/copyright \
 	README TODO USING AUTHORS \
-	Documentation/* \
-	Reference/rfc1701.txt \
-	Reference/rfc1702.txt \
-	Reference/rfc1990.txt \
-	Reference/pptp-draft.txt \
-	Reference/ms-chap.txt Reference/README.Reference
+	Documentation/*
 	dh_installexamples
 	dh_installmenu
 #	dh_installlogrotate

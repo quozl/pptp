@@ -1,5 +1,5 @@
-# $Id: Makefile,v 1.34 2004/06/22 09:52:26 quozl Exp $
-VERSION=1.5.0
+# $Id: Makefile,v 1.35 2004/11/09 01:42:32 quozl Exp $
+VERSION=1.5.0+20041109
 RELEASE=
 
 #################################################################
@@ -72,3 +72,13 @@ Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TODO USING \
 	tar czf pptp-$(VERSION)$(RELEASE).tar.gz pptp-$(VERSION)
 	$(RM) -r pptp-$(VERSION)
 	md5sum pptp-$(VERSION)$(RELEASE).tar.gz
+
+deb:
+	chmod +x debian/rules 
+	fakeroot dpkg-buildpackage -us -uc
+	mv ../pptp_$(VERSION)-0_i386.deb .
+
+WEB=~/public_html/external/mine/pptp/pptpconfig
+release:
+	cp pptp_$(VERSION)-0_i386.deb $(WEB)
+	cd $(WEB);make

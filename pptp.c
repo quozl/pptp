@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.40 2004/06/10 07:11:52 quozl Exp $
+ * $Id: pptp.c,v 1.41 2004/11/09 01:42:32 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -83,6 +83,8 @@ void usage(char *progname)
             "  --sync		Enable Synchronous HDLC (pppd must use it too)\n"
             "  --timeout <secs>	Time to wait for reordered packets (0.01 to 10 secs)\n"
 	    "  --nobuffer		Disable packet buffering and reordering completely\n"
+	    "  --idle-wait		Time to wait before sending echo request\n"
+            "  --max-echo-wait		Time to wait before giving up on lack of reply\n"
             "  --logstring <name>	Use <name> instead of 'anon' in syslog messages\n"
             "  --localbind <addr>	Bind to specified IP address instead of wildcard\n"
             "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n",
@@ -167,6 +169,8 @@ int main(int argc, char **argv, char **envp)
             {"localbind", 1, 0, 0},
             {"loglevel", 1, 0, 0},
 	    {"nobuffer", 0, 0, 0},
+	    {"idle-wait", 1, 0, 0},
+	    {"max-echo-wait", 1, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -219,7 +223,26 @@ int main(int argc, char **argv, char **envp)
                         usage(argv[0]);
                 } else if (option_index == 9) { /* --nobuffer */
 		    disable_buffer = 1;
-		}
+                } else if (option_index == 10) { /* --idle-wait */
+                    int x = atoi(optarg);
+                    if (x < 0) {
+                        fprintf(stderr, "--idle-wait must not be negative\n");
+                        log("--idle-wait must not be negative\n");
+                        exit(2);
+                    } else {
+                        idle_wait = x;
+                    }
+                } else if (option_index == 11) { /* --max-echo-wait */
+                    int x = atoi(optarg);
+                    if (x < 0) {
+                        fprintf(stderr, "--max-echo-wait must not be negative\n");
+                        log("--max-echo-wait must not be negative\n");
+                        exit(2);
+                    } else {
+                        max_echo_wait = x;
+                    }
+		    fprintf(stderr, "--max-echo-wait ignored, not yet implemented\n");
+                }
                 break;
             case '?': /* unrecognised option */
                 /* fall through */

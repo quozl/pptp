@@ -1,3 +1,9 @@
+pptp (1.5.0+20040809-0) unstable; urgency=low
+
+  * cut from cvs
+
+ -- James Cameron <quozl@us.netrek.org>  Mon,  9 Aug 2004 16:29:43 +1000
+
 pptp-linux (1.2.0-1) unstable; urgency=low
 
   * New upstream release. Closes: #141173.

@@ -66,7 +66,15 @@ Time to wait for reordered packets (0.01 to 10 secs)
 .TP
 .B \--nobuffer
 Completely disables buffering and reordering of packets.
-Any timeout specified will be ignored.
+Any --timeout specified will be ignored.
+.TP
+.B \--idle-wait <secs>
+Time to wait before sending a control connection echo request.
+The RFC2637 default is 60 seconds.
+.TP
+.B \--max-echo-wait <secs>
+Time to wait for an echo reply before closing the control connection.
+The RFC2637 default is 60 seconds.
 .TP
 .B \--logstring <name>
 Use <name> instead of 'anon' in syslog messages

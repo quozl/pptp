@@ -1,3 +1,20 @@
+Tue Nov  9 12:30:57 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.{8,c}, pptp_ctrl.c, pptp_options.h: add --idle-wait (time
+	to wait before sending an echo request on the control connection)
+	and --max-echo-wait (time to wait before giving up on lack of
+	reply to an echo request).  The latter is not yet implemented.
+
+Tue Nov  9 12:23:48 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_callmgr.c, pptp_ctrl.{c,h}: pptp_dispatch and its
+	subordinates insist on handling fatal errors by calling
+	pptp_conn_destroy. unfortunately, as the comments say,
+	callmgr_main uses the connection afterwards with the usual
+	results.  Added error propagation to the routines mentioned,
+	allowing callmgr_main to have the honor of closing the connection.
+	From: Avi Kivity <avi@argo.co.il>
+
 Wed Oct 27 21:03:28 2004  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_callmgr.c (callmgr_main): pptp sometimes crashes in

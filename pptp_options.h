@@ -2,7 +2,7 @@
  *                       #define STANDARD to emulate NT 4.0 exactly.
  *                       C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_options.h,v 1.2 2000/12/23 08:32:15 scott Exp $
+ * $Id: pptp_options.h,v 1.3 2004/11/09 01:42:32 quozl Exp $
  */
 
 #ifndef INC_PPTP_OPTIONS_H
@@ -12,6 +12,8 @@
 #undef  PPTP_FIRMWARE_VERSION
 #define PPTP_BUF_MAX 65536
 #define PPTP_TIMEOUT 60 /* seconds */
+extern int idle_wait;
+extern int max_echo_wait;
 #define PPTP_CONNECT_SPEED 10000000
 #define PPTP_WINDOW 3
 #define PPTP_DELAY  0
