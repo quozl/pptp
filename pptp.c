@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.8 2001/11/20 06:30:10 quozl Exp $
+ * $Id: pptp.c,v 1.9 2001/11/23 03:42:51 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -50,11 +50,10 @@ void launch_pppd(char *ttydev, int argc, char **argv);
 void usage(char *progname) {
   fprintf(stderr,
 	  "%s\n"
-	  "patched by mulix <mulix@actcom.co.il> for Bezeq, Israel\n"
 	  "Usage:\n"
 	  " %s hostname [[--phone <phone number>] [--quirks ISP_NAME] -- ][ pppd options]\n"
 	  "\nOr using pppd option pty: \n"
-	  " pty \" %s hostname --nolaunchpppd [--phone <phone number>]\"\n"
+	  " pty \" %s hostname --nolaunchpppd [--phone <phone number>] [--quirks ISP_NAME]\"\n"
 	  "Currently recognized ISP_NAMEs for quirks are BEZEQ_ISRAEL\n",
 	  version, progname, progname);
   log("%s called with wrong arguments, program not started.", progname);

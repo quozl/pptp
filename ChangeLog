@@ -1,3 +1,20 @@
+Fri Nov 23 14:42:07 2001  James Cameron  <quozl@us.netrek.org>
+
+	* USING: reformat, add version header.
+
+Tue Nov 20 11:01:10 2001  mulix  <mulix@actcom.co.il>
+
+	* AUTHORS: add mulix.
+	* USING: add paragraph on quirks support.
+	* orckit_quirks.c: remove debugging call, rename functions and
+	variables consistently.
+	* pptp.c: (usage) remove debugging print.
+	* pptp_ctrl.c: when calling quirks hooks, check their return
+	values and warn if an error occurs.
+	* pptp_quirks.c: orckit_atur3_start_ctrl_conn was renamed
+	orckit_atur3_start_ctrl_conn_hook.
+	From: mulix@actcom.co.il
+
 Tue Nov 20 17:01:10 2001  James Cameron  <quozl@us.netrek.org>
 
 	* orckit_quirks.c, orckit_quirks.h: add quirks handling for orckit

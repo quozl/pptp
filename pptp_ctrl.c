@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.5 2001/11/20 06:30:10 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.6 2001/11/23 03:42:51 quozl Exp $
  */
 
 #include <errno.h>
@@ -119,7 +119,10 @@ int pptp_send_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size);
 void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size);
 /* Dispatch packets (control messages) */
 void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size);
-/* Set link info, for pptp servers that need it */
+/* Set link info, for pptp servers that need it.
+   this is a noop, unless the user specified a quirk and
+   there's a set_link hook defined in the quirks table
+   for that quirk */
 void pptp_set_link(PPTP_CONN * conn, int peer_call_id);
 /*----------------------------------------------------------------------*/
 /* Constructors and Destructors.                                        */
@@ -164,9 +167,11 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
     };
 
     /* fix this packet, if necessary */
-    int idx;
-    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].start_ctrl_conn)
-	pptp_fixups[idx].start_ctrl_conn(&packet);
+    int idx, rc;
+    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].start_ctrl_conn) {
+	if ((rc = pptp_fixups[idx].start_ctrl_conn(&packet)))
+	    warn("calling the start_ctrl_conn hook failed (%d)", rc);
+    }
 
     if (pptp_send_ctrl_packet(conn, &packet, sizeof(packet)))
       conn->conn_state = CONN_WAIT_CTL_REPLY;
@@ -222,10 +227,13 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn,
       hton16(PPTP_WINDOW), 0, 0, 0, {0}, {0}
     };
 
-    int idx;
+    int idx, rc;
     /* if we have a quirk, build a new packet to fit it */
-    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].out_call_rqst_hook)
-      pptp_fixups[idx].out_call_rqst_hook(&packet);
+    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].out_call_rqst_hook) {
+	if ((rc = pptp_fixups[idx].out_call_rqst_hook(&packet)))
+	    warn("calling the out_call_rqst hook failed (%d)", rc);
+    }
+
 
     /* fill in the phone number if it was specified */
     if( phonenr ){
@@ -516,9 +524,11 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	PPTP_HOSTNAME, PPTP_VENDOR };
 
       /* fix this packet, if necessary */
-      int idx;
-      if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].start_ctrl_conn)
-	  pptp_fixups[idx].start_ctrl_conn(&reply);
+      int idx, rc;
+      if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].start_ctrl_conn) {
+	  if ((rc = pptp_fixups[idx].start_ctrl_conn(&reply)))
+	      warn("calling the start_ctrl_conn hook failed (%d)", rc);
+      }
 
       if (conn->conn_state == CONN_IDLE) {
 	if (ntoh16(packet->version) < PPTP_VERSION) {
@@ -683,7 +693,9 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	  call->peer_call_id = ntoh16(packet->call_id);
 	  call->speed        = ntoh32(packet->speed);
 	  pptp_reset_timer();
-	  pptp_set_link(conn, call->peer_call_id);
+	  /* call pptp_set_link. unless the user specified a quirk
+	     and this quirk has a set_link hook, this is a noop */
+ 	  pptp_set_link(conn, call->peer_call_id);
 
 	  if (call->callback!=NULL) call->callback(conn, call, CALL_OPEN_DONE);
 	  log("Outgoing call established (call ID %u, peer's call ID %u).\n",
@@ -758,16 +770,16 @@ pptp_conn_close:
 void
 pptp_set_link(PPTP_CONN* conn, int peer_call_id)
 {
-    int idx;
+    int idx, rc;
 
     /* if we need to send a set_link packet because of buggy
        hardware or pptp server, do it now */
     if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].set_link_hook) {
 	struct pptp_set_link_info packet;
-	pptp_fixups[idx].set_link_hook(&packet, peer_call_id);
+	if ((rc = pptp_fixups[idx].set_link_hook(&packet, peer_call_id)))
+	    warn("calling the set_link hook failed (%d)", rc);
 
 	if (pptp_send_ctrl_packet(conn, &packet, sizeof(packet))) {
-	    log("pptp_set_link() packet sending succesfull");
 	    pptp_reset_timer();
 	}
     }

@@ -1,7 +1,7 @@
 /* orckit_quirks.c ...... fix quirks in orckit adsl modems
  *                        mulix <mulix@actcom.co.il>
  *
- * $Id: orckit_quirks.c,v 1.1 2001/11/20 06:30:10 quozl Exp $
+ * $Id: orckit_quirks.c,v 1.2 2001/11/23 03:42:51 quozl Exp $
  */
 
 #include <string.h>
@@ -17,8 +17,7 @@
 int
 orckit_atur3_build_hook(struct pptp_out_call_rqst* packet)
 {
-
-    unsigned int length = 10;
+    unsigned int name_length = 10;
 
     struct pptp_out_call_rqst fixed_packet = {
 	PPTP_HEADER_CTRL(PPTP_OUT_CALL_RQST),
@@ -26,7 +25,7 @@ orckit_atur3_build_hook(struct pptp_out_call_rqst* packet)
 	0, /* hton16(call->sernum) */
 	hton32(PPTP_BPS_MIN), hton32(PPTP_BPS_MAX),
 	hton32(PPTP_BEARER_DIGITAL), hton32(PPTP_FRAME_ANY),
-	hton16(PPTP_WINDOW), 0, hton16(length), 0,
+	hton16(PPTP_WINDOW), 0, hton16(name_length), 0,
 	{'R','E','L','A','Y','_','P','P','P','1',0}, {0}
     };
 
@@ -35,7 +34,6 @@ orckit_atur3_build_hook(struct pptp_out_call_rqst* packet)
 
     memcpy(packet, &fixed_packet, sizeof(*packet));
 
-    log("%s called\n", __FUNCTION__);
     return 0;
 }
 
@@ -58,8 +56,9 @@ orckit_atur3_set_link_hook(struct pptp_set_link_info* packet,
     return 0;
 }
 
+/* return 0 on success, non 0 otherwise */
 int
-orckit_atur3_start_ctrl_conn(struct pptp_start_ctrl_conn* packet)
+orckit_atur3_start_ctrl_conn_hook(struct pptp_start_ctrl_conn* packet)
 {
     struct pptp_start_ctrl_conn fixed_packet = {
 	{0}, /* we'll set the header later */
