@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.17 2003/06/17 09:54:06 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.18 2003/06/17 10:04:50 reink Exp $
  */
 
 #include <errno.h>
@@ -22,30 +22,6 @@
 #include "vector.h"
 #include "util.h"
 #include "pptp_quirks.h"
-
-/* PPTP error codes: ----------------------------------------------*/
-
-/* (General Error Codes) */
-static const struct {
-    const char *name, *desc;
-} pptp_general_errors[] = {
-#define PPTP_GENERAL_ERROR_NONE                 0
-    { "(None)", "No general error" },
-#define PPTP_GENERAL_ERROR_NOT_CONNECTED        1
-    { "(Not-Connected)", "No control connection exists yet for this "
-        "PAC-PNS pair" },
-#define PPTP_GENERAL_ERROR_BAD_FORMAT           2
-    { "(Bad-Format)", "Length is wrong or Magic Cookie value is incorrect" },
-#define PPTP_GENERAL_ERROR_BAD_VALUE            3
-    { "(Bad-Value)", "One of the field values was out of range or "
-            "reserved field was non-zero" },
-#define PPTP_GENERAL_ERROR_NO_RESOURCE          4
-    { "(No-Resource)", "Insufficient resources to handle this command now" },
-#define PPTP_GENERAL_ERROR_BAD_CALLID           5
-    { "(Bad-Call ID)", "The Call ID is invalid in this context" },
-#define PPTP_GENERAL_ERROR_PAC_ERROR            6
-    { "(PAC-Error)", "A generic vendor-specific error occured in the PAC" }
-};
 
 /* BECAUSE OF SIGNAL LIMITATIONS, EACH PROCESS CAN ONLY MANAGE ONE
  * CONNECTION.  SO THIS 'PPTP_CONN' STRUCTURE IS A BIT MISLEADING.
@@ -122,6 +98,30 @@ struct PPTP_CALL {
     void * closure;
 };
 
+
+/* PPTP error codes: ----------------------------------------------*/
+
+/* (General Error Codes) */
+static const struct {
+    const char *name, *desc;
+} pptp_general_errors[] = {
+#define PPTP_GENERAL_ERROR_NONE                 0
+    { "(None)", "No general error" },
+#define PPTP_GENERAL_ERROR_NOT_CONNECTED        1
+    { "(Not-Connected)", "No control connection exists yet for this "
+        "PAC-PNS pair" },
+#define PPTP_GENERAL_ERROR_BAD_FORMAT           2
+    { "(Bad-Format)", "Length is wrong or Magic Cookie value is incorrect" },
+#define PPTP_GENERAL_ERROR_BAD_VALUE            3
+    { "(Bad-Value)", "One of the field values was out of range or "
+            "reserved field was non-zero" },
+#define PPTP_GENERAL_ERROR_NO_RESOURCE          4
+    { "(No-Resource)", "Insufficient resources to handle this command now" },
+#define PPTP_GENERAL_ERROR_BAD_CALLID           5
+    { "(Bad-Call ID)", "The Call ID is invalid in this context" },
+#define PPTP_GENERAL_ERROR_PAC_ERROR            6
+    { "(PAC-Error)", "A generic vendor-specific error occured in the PAC" }
+};
 
 /* Outgoing Call Reply Result Codes */
 static const char *pptp_out_call_reply_result[] = {
@@ -209,8 +209,8 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
         };
         /* fix this packet, if necessary */
         int idx, rc;
-        if ((idx = get_quirk_index()) != -1 &&
-                pptp_fixups[idx].start_ctrl_conn) {
+        idx = get_quirk_index();
+        if (idx != -1 && pptp_fixups[idx].start_ctrl_conn) {
             if ((rc = pptp_fixups[idx].start_ctrl_conn(&packet)))
                 warn("calling the start_ctrl_conn hook failed (%d)", rc);
         }
@@ -240,6 +240,15 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn, pptp_call_cb callback,
 {
     PPTP_CALL * call;
     int i;
+    int idx, rc;
+    /* Send off the call request */
+    struct pptp_out_call_rqst packet = {
+        PPTP_HEADER_CTRL(PPTP_OUT_CALL_RQST),
+        0,0, /*call_id, sernum */
+        hton32(PPTP_BPS_MIN), hton32(PPTP_BPS_MAX),
+        hton32(PPTP_BEARER_CAP), hton32(PPTP_FRAME_CAP), 
+        hton16(PPTP_WINDOW), 0, 0, 0, {0}, {0}
+    };
     assert(conn && conn->call);
     /* Assign call id */
     if (!vector_scan(conn->call, 0, PPTP_MAX_CHANNELS - 1, &i))
@@ -254,18 +263,11 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn, pptp_call_cb callback,
     call->sernum    = conn->call_serial_number++;
     call->callback  = callback;
     call->closure   = NULL;
-    { /* FIXME:  ident of this in next patch */
-    /* Send off the call request */
-    struct pptp_out_call_rqst packet = {
-        PPTP_HEADER_CTRL(PPTP_OUT_CALL_RQST),
-        htons(call->call_id), htons(call->sernum),
-        hton32(PPTP_BPS_MIN), hton32(PPTP_BPS_MAX),
-        hton32(PPTP_BEARER_CAP), hton32(PPTP_FRAME_CAP), 
-        hton16(PPTP_WINDOW), 0, 0, 0, {0}, {0}
-    };
+    packet.call_id = htons(call->call_id);
+    packet.call_sernum = htons(call->sernum);
     /* if we have a quirk, build a new packet to fit it */
-    int idx, rc;
-    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].out_call_rqst_hook) {
+    idx = get_quirk_index();
+    if (idx != -1 && pptp_fixups[idx].out_call_rqst_hook) {
         if ((rc = pptp_fixups[idx].out_call_rqst_hook(&packet)))
             warn("calling the out_call_rqst hook failed (%d)", rc);
     }
@@ -286,7 +288,6 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn, pptp_call_cb callback,
     } else { /* oops, unsuccessful. Deallocate. */
         free(call);
         return NULL;
-    }
     }
 }
 
@@ -568,7 +569,8 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 PPTP_HOSTNAME, PPTP_VENDOR };
             /* fix this packet, if necessary */
             int idx, rc;
-            if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].start_ctrl_conn) {
+            idx = get_quirk_index();
+            if (idx != -1 && pptp_fixups[idx].start_ctrl_conn) {
                 if ((rc = pptp_fixups[idx].start_ctrl_conn(&reply)))
                     warn("calling the start_ctrl_conn hook failed (%d)", rc);
             }
@@ -708,8 +710,9 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 log("Ack!  How did this call_type get here?"); /* XXX? */
                 break; 
             }
-            if (call->state.pns == PNS_WAIT_REPLY)
-            { /* FIXME:  ident of this in next patch */
+            if (call->state.pns != PNS_WAIT_REPLY)
+                /* FIXME: message here? */
+                break;
             /* check for errors */
             if (packet->result_code != 1) {
                 /* An error.  Log it verbosely. */
@@ -750,7 +753,6 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                     call->callback(conn, call, CALL_OPEN_DONE);
                 log("Outgoing call established (call ID %u, peer's "
                         "call ID %u).\n", call->call_id, call->peer_call_id);
-            }
             }
             break;
         }
