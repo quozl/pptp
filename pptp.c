@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.18 2002/08/26 09:48:42 reink Exp $
+ * $Id: pptp.c,v 1.19 2002/10/16 04:11:45 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -237,6 +237,7 @@ int main(int argc, char **argv, char **envp) {
   signal(SIGINT,  sighandler);
   signal(SIGTERM, sighandler);
   signal(SIGKILL, sighandler);
+  signal(SIGCHLD, sighandler);
  
   /* Step 6: Do GRE copy until close. */
   pptp_gre_copy(call_id, peer_call_id, pty_fd, gre_fd);

@@ -28,6 +28,11 @@ Mon Aug 26 08:53:45 CEST 2002 Rein Klazes <rklazes@xs4all.nl>
 	* pptp.c: fix bug in command line options parsing (misplaced break
 	in switch statement).
 	
+Wed Aug 21 10:57:01 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c: add handler for SIGCHLD.
+	From: Peter Surda <shurdeek@panorama.sth.ac.at>
+
 Thu Aug 15 09:30:00 2002  Chris Wilson  <chris@netservers.co.uk>
 
 	* pqueue.h: increased window size following James' tests
