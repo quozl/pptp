@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.4 2001/04/30 03:42:36 scott Exp $
+ * $Id: pptp_ctrl.c,v 1.5 2001/11/20 06:30:10 quozl Exp $
  */
 
 #include <errno.h>
@@ -21,6 +21,7 @@
 #include "pptp_options.h"
 #include "vector.h"
 #include "util.h"
+#include "pptp_quirks.h"
 
 /* BECAUSE OF SIGNAL LIMITATIONS, EACH PROCESS CAN ONLY MANAGE ONE
  * CONNECTION.  SO THIS 'PPTP_CONN' STRUCTURE IS A BIT MISLEADING.
@@ -118,6 +119,8 @@ int pptp_send_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size);
 void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size);
 /* Dispatch packets (control messages) */
 void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size);
+/* Set link info, for pptp servers that need it */
+void pptp_set_link(PPTP_CONN * conn, int peer_call_id);
 /*----------------------------------------------------------------------*/
 /* Constructors and Destructors.                                        */
 
@@ -159,6 +162,12 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
       hton16(PPTP_MAX_CHANNELS), hton16(PPTP_FIRMWARE_VERSION), 
       PPTP_HOSTNAME, PPTP_VENDOR
     };
+
+    /* fix this packet, if necessary */
+    int idx;
+    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].start_ctrl_conn)
+	pptp_fixups[idx].start_ctrl_conn(&packet);
+
     if (pptp_send_ctrl_packet(conn, &packet, sizeof(packet)))
       conn->conn_state = CONN_WAIT_CTL_REPLY;
     else return NULL; /* could not send initial start request. */
@@ -212,6 +221,11 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn,
       hton32(PPTP_BEARER_CAP), hton32(PPTP_FRAME_CAP), 
       hton16(PPTP_WINDOW), 0, 0, 0, {0}, {0}
     };
+
+    int idx;
+    /* if we have a quirk, build a new packet to fit it */
+    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].out_call_rqst_hook)
+      pptp_fixups[idx].out_call_rqst_hook(&packet);
 
     /* fill in the phone number if it was specified */
     if( phonenr ){
@@ -500,6 +514,12 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	hton32(PPTP_FRAME_CAP), hton32(PPTP_BEARER_CAP),
 	hton16(PPTP_MAX_CHANNELS), hton16(PPTP_FIRMWARE_VERSION),
 	PPTP_HOSTNAME, PPTP_VENDOR };
+
+      /* fix this packet, if necessary */
+      int idx;
+      if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].start_ctrl_conn)
+	  pptp_fixups[idx].start_ctrl_conn(&reply);
+
       if (conn->conn_state == CONN_IDLE) {
 	if (ntoh16(packet->version) < PPTP_VERSION) {
 	  /* Can't support this (earlier) PPTP_VERSION */
@@ -639,8 +659,21 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
       if (call->state.pns == PNS_WAIT_REPLY) {
 	/* check for errors */
 	if (packet->result_code!=1) {
-	  /* An error.  Log it. */
-	  log("Error opening call. [callid %d]", (int) callid);
+	  /* An error.  Log it verbosely. */
+	  unsigned int legal_error_value =
+	       sizeof(pptp_general_errors)/sizeof(pptp_general_errors[0]);
+	  int err = packet->error_code;
+          log("Error '%d' opening call. [callid %d]",
+	      packet->result_code, (int) callid);
+          log("Error code is '%d', Cause code is '%d'", err,
+	      packet->cause_code);
+          if ((err > 0) && (err < legal_error_value)){
+            log("Error is '%s', Error message: '%s'",
+            pptp_general_errors[err].name,
+            pptp_general_errors[err].desc);
+	  }
+
+
 	  call->state.pns = PNS_IDLE;
 	  if (call->callback!=NULL) call->callback(conn, call, CALL_OPEN_FAIL);
 	  pptp_call_destroy(conn, call);
@@ -650,6 +683,8 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size) {
 	  call->peer_call_id = ntoh16(packet->call_id);
 	  call->speed        = ntoh32(packet->speed);
 	  pptp_reset_timer();
+	  pptp_set_link(conn, call->peer_call_id);
+
 	  if (call->callback!=NULL) call->callback(conn, call, CALL_OPEN_DONE);
 	  log("Outgoing call established (call ID %u, peer's call ID %u).\n",
 		call->call_id, call->peer_call_id);
@@ -720,6 +755,23 @@ pptp_conn_close:
   pptp_conn_close(conn, close_reason);
 }
 
+void
+pptp_set_link(PPTP_CONN* conn, int peer_call_id)
+{
+    int idx;
+
+    /* if we need to send a set_link packet because of buggy
+       hardware or pptp server, do it now */
+    if ((idx = get_quirk_index()) != -1 && pptp_fixups[idx].set_link_hook) {
+	struct pptp_set_link_info packet;
+	pptp_fixups[idx].set_link_hook(&packet, peer_call_id);
+
+	if (pptp_send_ctrl_packet(conn, &packet, sizeof(packet))) {
+	    log("pptp_set_link() packet sending succesfull");
+	    pptp_reset_timer();
+	}
+    }
+}
 
 /********************* Get info from call structure *******************/
 

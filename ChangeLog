@@ -1,3 +1,16 @@
+Tue Nov 20 17:01:10 2001  James Cameron  <quozl@us.netrek.org>
+
+	* orckit_quirks.c, orckit_quirks.h: add quirks handling for orckit
+	adsl modems.
+	* pptp_quirks.c, pptp_quirks.h: add generic quirks handling.
+	* Makefile (PPTP_DEPS, PPTP_OBJS, CALLMGR_OBJS, CALLMGR_DEPS): add
+	quirks sources and objects.
+	* pptp_ctrl.c: add pptp_set_link, add code to adjust packets
+	depending on quirks.
+	* pptp.c (usage, long_options, main): add --quirks command line
+	option.
+	From: mulix@actcom.co.il
+
 Tue Nov 20 16:45:35 2001  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c: enhance error message for bad FCS.

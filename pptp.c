@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.7 2001/08/06 07:31:50 rein Exp $
+ * $Id: pptp.c,v 1.8 2001/11/20 06:30:10 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -34,6 +34,7 @@
 #include "version.h"
 #include "inststr.h"
 #include "util.h"
+#include "pptp_quirks.h"
 
 #ifndef PPPD_BINARY
 #define PPPD_BINARY "pppd"
@@ -49,11 +50,13 @@ void launch_pppd(char *ttydev, int argc, char **argv);
 void usage(char *progname) {
   fprintf(stderr,
 	  "%s\n"
-	 "Usage:\n"
-  	 " %s hostname [[--phone <phone number>] -- ][ pppd options]\n"
-         "\nOr using pppd option pty: \n"
-         " pty \" %s hostname --nolaunchpppd [--phone <phone number>]\"\n" ,
-         version, progname, progname);
+	  "patched by mulix <mulix@actcom.co.il> for Bezeq, Israel\n"
+	  "Usage:\n"
+	  " %s hostname [[--phone <phone number>] [--quirks ISP_NAME] -- ][ pppd options]\n"
+	  "\nOr using pppd option pty: \n"
+	  " pty \" %s hostname --nolaunchpppd [--phone <phone number>]\"\n"
+	  "Currently recognized ISP_NAMEs for quirks are BEZEQ_ISRAEL\n",
+	  version, progname, progname);
   log("%s called with wrong arguments, program not started.", progname);
   
   exit(1);
@@ -98,6 +101,7 @@ int main(int argc, char **argv, char **envp) {
       static struct option long_options[] = {
           {"phone", 1, 0, 0},  
           {"nolaunchpppd", 0, 0, 0},  
+	  {"quirks", 1, 0, 0},
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -114,8 +118,12 @@ int main(int argc, char **argv, char **envp) {
                 strncpy(phonenrbuf,optarg,sizeof(phonenrbuf));
                 phonenrbuf[sizeof(phonenrbuf)-1]='\0';
                 phonenr=phonenrbuf;
-            }else if(option_index == 1)  /* --nolaunchpppd specified */ 
-                launchpppd=0;
+            }else if(option_index == 1) {/* --nolaunchpppd specified */
+                  launchpppd=0;
+            }else if(option_index == 2) {/* --quirks specified */
+                if (set_quirk_index(find_quirk(optarg)))
+                    usage(argv[0]);
+            }
             /* other pptp options come here */
             break;
         case '?': /* unrecognised option, treat it as the first pppd option */

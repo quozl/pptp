@@ -17,12 +17,18 @@ CFLAGS += '-DPPPD_BINARY="/usr/sbin/pppd"'
 PPTP_BIN = pptp
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
-            inststr.o util.o version.o
-PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h
+            inststr.o util.o version.o \
+	    pptp_quirks.o orckit_quirks.o
+
+PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
+	    pptp_quirks.h orckit_quirks.h
 
 CALLMGR_BIN = pptp_callmgr
-CALLMGR_OBJS = pptp_callmgr.o pptp_ctrl.o dirutil.o util.o vector.o version.o
-CALLMGR_DEPS = pptp_callmgr.h pptp_ctrl.h dirutil.h pptp_msg.h vector.h
+CALLMGR_OBJS = pptp_callmgr.o pptp_ctrl.o dirutil.o util.o \
+               vector.o version.o pptp_quirks.o orckit_quirks.o
+CALLMGR_DEPS = pptp_callmgr.h pptp_ctrl.h dirutil.h pptp_msg.h vector.h \
+               pptp_quirks.h orckit_quirks.h
+
 
 all: $(PPTP_BIN) $(CALLMGR_BIN)
 
