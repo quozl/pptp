@@ -62,7 +62,7 @@ network in Israel.
 pppd noauth nobsdcomp nodeflate mppe-40 mppe-128
 mppe-stateless name domain\\\\\\\\username remotename PPTP
 require-chapms-v2
-pty "pptp --nolaunchpppd 10.0.0.5"
+pty "pptp 10.0.0.5 --nolaunchpppd"
 .PP
 Note that the \fBchap-secrets\fR file used by \fBpppd\fR must include an entry for domain\\\\username
 .SH "SEE ALSO"

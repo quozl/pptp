@@ -1,3 +1,8 @@
+Thu Jan  2 09:11:33 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.8: Rein Klazes spotted that the IP address should be before
+	the option.
+
 Mon Dec 30 15:57:48 2002  James Cameron  <quozl@us.netrek.org>
 
 	* Makefile (install): add install target.
