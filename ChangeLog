@@ -1,3 +1,19 @@
+Mon Dec  1 11:58:24 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c (main): remove arguments debugging printf.
+
+Wed Nov 26 12:22:00 2003  Chris Wilson   <chris@netservers.co.uk>
+
+	* pptp.c: fixed argument handling so that hostname can be supplied
+	anywhere on the command line, not just at the start.  pppd options
+	starting with "-" but before "--" are no longer supported.
+	
+	* pptp.c: added some spacing to improve readability, removed
+	pointless "Step X" comments.
+	
+	* pptp.c: fixed usage message: there should not be a "pppd" in the
+	command line.
+
 Mon Nov 10 15:39:41 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp-linux-1.4.0-rc1 released.

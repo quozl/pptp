@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.35 2003/09/08 00:35:42 quozl Exp $
+ * $Id: pptp.c,v 1.36 2003/12/01 01:01:55 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -67,9 +67,9 @@ void usage(char *progname)
     fprintf(stderr,
             "%s\n"
             "Usage:\n"
-            "  %s <hostname> [<pptp options> -- ][pppd <pppd options>]\n"
+            "  %s <hostname> [<pptp options>] [[--] <pppd options>]\n"
             "\n"
-            "Or using pppd option pty: \n"
+            "Or using pppd's pty option: \n"
             "  pppd pty \"%s <hostname> --nolaunchpppd <pptp options>\"\n"
             "\n"
             "Available pptp options:\n"
@@ -150,14 +150,7 @@ int main(int argc, char **argv, char **envp)
                           * '\0' */
     char * volatile phonenr = NULL;
     volatile int launchpppd = 1, debug = 0;
-    /* at least one argument is required */
-    if (argc < 2)
-        usage(argv[0]);
-    /* Step 1a: Get IP address for the hostname in argv[1] */
-    inetaddr = get_ip_address(argv[1]);
-    /* step 1b: Find the ppp options, extract phone number */
-    argc--;
-    argv++;
+
     while(1){ 
         /* structure with all recognised options for pptp */
         static struct option long_options[] = {
@@ -174,10 +167,8 @@ int main(int argc, char **argv, char **envp)
         };
         int option_index = 0;
         int c;
-        opterr = 0; /* suppress "unrecognised option" message, here
-                   * we assume that it is a pppd option */
         c = getopt_long (argc, argv, "", long_options, &option_index);
-        if( c == -1) break;  /* no more options */
+        if (c == -1) break;  /* no more options */
         switch (c) {
             case 0: 
                 if (option_index == 0) { /* --phone specified */
@@ -213,7 +204,8 @@ int main(int argc, char **argv, char **envp)
                     log_string = strdup(optarg);
                 } else if (option_index == 7) {/* --localbind */ 
                     if (inet_pton(AF_INET, optarg, (void *) &localbind) < 1) {
-                        fprintf(stderr, "Local bind address %s invalid\n", optarg);
+                        fprintf(stderr, "Local bind address %s invalid\n", 
+				optarg);
                         log("Local bind address %s invalid\n", optarg);
                         exit(2);
                     }
@@ -223,19 +215,28 @@ int main(int argc, char **argv, char **envp)
                         usage(argv[0]);
                 }
                 break;
-            case '?': /* unrecognised option,
-                         treat it as the first pppd option */
+            case '?': /* unrecognised option */
                 /* fall through */
             default:
-                c = -1;
-                break;
+		usage(argv[0]);
         }
         if (c == -1) break;  /* no more options for pptp */
     }
+
+    /* at least one argument is required */
+    if (argc <= optind)
+        usage(argv[0]);
+
+    /* Get IP address for the hostname in argv[1] */
+    inetaddr = get_ip_address(argv[optind]);
+    optind++;
+
+    /* Find the ppp options, extract phone number */
     pppdargc = argc - optind;
     pppdargv = argv + optind;
     log("The synchronous pptp option is %sactivated\n", syncppp ? "" : "NOT ");
-    /* Step 2a: Now we have the peer address, bind the GRE socket early,
+
+    /* Now we have the peer address, bind the GRE socket early,
        before starting pppd. This prevents the ICMP Unreachable bug
        documented in <1026868263.2855.67.camel@jander> */
     gre_fd = pptp_gre_bind(inetaddr);
@@ -243,14 +244,16 @@ int main(int argc, char **argv, char **envp)
         close(callmgr_sock);
         fatal("Cannot bind GRE socket, aborting.");
     }
-    /* Step 3: Find an open pty/tty pair. */
+
+    /* Find an open pty/tty pair. */
     if(launchpppd){
         rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
         if (rc < 0) { 
             close(callmgr_sock); 
             fatal("Could not find free pty.");
         }
-        /* Step 4: fork and wait. */
+
+        /* fork and wait. */
         signal(SIGUSR1, do_nothing); /* don't die */
         parent_pid = getpid();
         switch (child_pid = fork()) {
@@ -282,16 +285,18 @@ int main(int argc, char **argv, char **envp)
         child_pid = getpid();
         parent_pid = 0; /* don't kill pppd */
     }
+
     do {
         /*
-         * Step 2: Open connection to call manager
-         *         (Launch call manager if necessary.)
+         * Open connection to call manager (Launch call manager if necessary.)
          */
-        callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp, pty_fd);
-        /* Step 5: Exchange PIDs, get call ID */
+        callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp,
+		pty_fd);
+        /* Exchange PIDs, get call ID */
     } while (get_call_id(callmgr_sock, parent_pid, child_pid, 
                 &call_id, &peer_call_id) < 0);
-    /* Step 5b: Send signal to wake up pppd task */
+
+    /* Send signal to wake up pppd task */
     if (launchpppd) {
         kill(parent_pid, SIGUSR1);
         sleep(2);
@@ -303,16 +308,19 @@ int main(int argc, char **argv, char **envp)
         /* re-open stderr as /dev/null to release it */
         file2fd("/dev/null", "wb", STDERR_FILENO);
     }
+
     snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", 
             ttyname(tty_fd));
     inststr(argc, argv, envp, buf);
     if (sigsetjmp(env, 1)!= 0) goto shutdown;
+
     signal(SIGINT,  sighandler);
     signal(SIGTERM, sighandler);
     signal(SIGKILL, sighandler);
     signal(SIGCHLD, sighandler);
     signal(SIGUSR1, sigstats);
-    /* Step 6: Do GRE copy until close. */
+
+    /* Do GRE copy until close. */
     pptp_gre_copy(call_id, peer_call_id, pty_fd, gre_fd);
 
 shutdown:
