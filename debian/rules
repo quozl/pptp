@@ -33,8 +33,7 @@ install: build
 
 	# Add here commands to install the package into debian/<packagename>
 	mkdir -p `pwd`/debian/`dh_listpackages`/usr/sbin
-	install -o root -m 555 pptp pptp_callmgr `pwd`/debian/`dh_listpackages`/usr/sbin
-  
+	install -o root -m 555 pptp `pwd`/debian/`dh_listpackages`/usr/sbin
 
 
 # Build architecture-independent files here.
@@ -63,7 +62,6 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 	dh_installman debian/pptp.8
-	ln -s pptp.8.gz `pwd`/debian/`dh_listpackages`/usr/share/man/man8/pptp_callmgr.8.gz
 	dh_installinfo
 #	dh_undocumented
 	dh_installchangelogs NEWS

@@ -23,22 +23,10 @@ PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
 PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
 	    pptp_quirks.h orckit_quirks.h
 
-CALLMGR_BIN = pptp_callmgr
-CALLMGR_OBJS = pptp_callmgr.o pptp_ctrl.o dirutil.o util.o \
-               vector.o version.o pptp_quirks.o orckit_quirks.o
-CALLMGR_DEPS = pptp_callmgr.h pptp_ctrl.h dirutil.h pptp_msg.h vector.h \
-               pptp_quirks.h orckit_quirks.h
-
-
-all: $(PPTP_BIN) $(CALLMGR_BIN)
+all: $(PPTP_BIN)
 
 $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
-
-$(CALLMGR_BIN): $(CALLMGR_OBJS) $(CALLMGR_DEPS)
-	$(CC) -o $(CALLMGR_BIN) -DPROGRAM_NAME=$(CALLMGR_BIN) $(CALLMGR_OBJS) $(LDFLAGS) $(LIBS)
-
-pptp.o: pptp_callmgr.c
 
 vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o
@@ -47,7 +35,7 @@ clean:
 	$(RM) *.o
 
 clobber: clean
-	$(RM) $(PPTP_BIN) $(CALLMGR_BIN) vector_test
+	$(RM) $(PPTP_BIN) vector_test
 
 distclean: clobber
 	$(RM) pptp-linux-*.tar.gz
