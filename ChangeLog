@@ -1,3 +1,11 @@
+Wed Oct 27 21:03:28 2004  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_callmgr.c (callmgr_main): pptp sometimes crashes in
+	pptp_fd_set and leaves a core dump.  Think this is due to a signal
+	being caught and longjmp'ed to callmgr_main's shutdown label after
+	we are out of that function, causing garbage local variables to be
+	used.  From: Avi Kivity <avi@argo.co.il>
+
 Wed Jul 21 16:52:01 CEST 2004 Rein Klazes <rklazes@xs4all.nl>
 	
 	* pptp_ctrl.c (ctrlp_rep): Do not log sending of echo requests,
