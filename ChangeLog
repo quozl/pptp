@@ -1,3 +1,7 @@
+Mon Sep  8 10:33:41 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c: fix for compile on OpenBSD.  From: Waldemar Brodkorb
+
 Mon Aug 18 12:12:00 2003  Chris Wilson   <chris@netservers.co.uk>
 
 	* pptp.c pptp_gre.c util.h: add log level control, to increase

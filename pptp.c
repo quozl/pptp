@@ -2,14 +2,14 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.34 2003/08/19 05:17:28 quozl Exp $
+ * $Id: pptp.c,v 1.35 2003/09/08 00:35:42 quozl Exp $
  */
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #if defined(__FreeBSD__)
 #include <libutil.h>
-#elif defined(__NetBSD__)
+#elif defined(__NetBSD__) || defined(__OpenBSD__)
 #include <util.h>
 #elif defined(__APPLE__)
 #include <util.h>
