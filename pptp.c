@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.13 2002/05/13 05:37:46 mulix Exp $
+ * $Id: pptp.c,v 1.14 2002/07/18 02:34:30 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -84,7 +84,7 @@ int main(int argc, char **argv, char **envp) {
   struct in_addr inetaddr;
   volatile int callmgr_sock = -1;
   char ttydev[PATH_MAX];
-  int pty_fd, tty_fd, rc;
+  int pty_fd, tty_fd, gre_fd, rc;
   volatile pid_t parent_pid, child_pid;
   u_int16_t call_id, peer_call_id;
   int pppdargc;
@@ -142,7 +142,17 @@ int main(int argc, char **argv, char **envp) {
     }
   pppdargc = argc - optind;
   pppdargv = argv + optind;
- 
+
+  /* Step 2a: Now we are forked and have the peer address, bind the
+     GRE socket early, before starting pppd. This prevents the 
+     ICMP Unreachable bug: <1026868263.2855.67.camel@jander> */
+
+  gre_fd = pptp_gre_bind(inetaddr);
+  if (gre_fd < 0) {
+      close(callmgr_sock);
+      fatal("Cannot bind GRE socket, aborting.");
+  }
+
   /* Step 3: Find an open pty/tty pair. */
   if(launchpppd){
       rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
@@ -202,7 +212,8 @@ int main(int argc, char **argv, char **envp) {
  
   {
     char buf[128];
-    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", ttyname(tty_fd));
+    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", 
+	     ttyname(tty_fd));
     inststr(argc,argv,envp, buf);
   }
 
@@ -212,7 +223,7 @@ int main(int argc, char **argv, char **envp) {
   signal(SIGKILL, sighandler);
  
   /* Step 6: Do GRE copy until close. */
-  pptp_gre_copy(call_id, peer_call_id, pty_fd, inetaddr);
+  pptp_gre_copy(call_id, peer_call_id, pty_fd, gre_fd);
 
 shutdown:
   /* on close, kill all. */

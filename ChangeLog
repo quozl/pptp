@@ -1,3 +1,11 @@
+Thu Jul 18 12:26:25 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.h, pptp_gre.c, pptp.c: bind the GRE socket early, by
+	calling the a function pptp_gre_bind.  Also changed prototype of
+	pptp_gre_copy.  Fixes ICMP Unreachable bug:
+	<1026868263.2855.67.camel@jander> 16th July 2002.
+	From: chris@netservers.co.uk
+
 Thu May 30 18:28:02 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c (pptp_call_open): do translation to network byte

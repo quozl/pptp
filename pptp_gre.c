@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.9 2002/03/01 01:23:36 quozl Exp $
+ * $Id: pptp_gre.c,v 1.10 2002/07/18 02:34:30 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -57,54 +57,71 @@ void print_packet(int fd, void *pack, unsigned int len) {
 }
 #endif
 
-void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id, 
-		   int pty_fd, struct in_addr inetaddr) {
+/* Open IP protocol socket */
+int pptp_gre_bind(struct in_addr inetaddr) {
   struct sockaddr_in src_addr;
-  int s, n;
+
+  int s = socket(AF_INET, SOCK_RAW, PPTP_PROTO);
+  if (s<0) { warn("socket: %s", strerror(errno)); return -1; }
+
+  src_addr.sin_family = AF_INET;
+  src_addr.sin_addr   = inetaddr;
+  src_addr.sin_port   = 0;
+
+  if (connect(s, (struct sockaddr *) &src_addr, sizeof(src_addr))<0) {
+    warn("connect: %s", strerror(errno)); return -1;
+  }
+
+  return s;
+}
+
+void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id, 
+		   int pty_fd, int gre_fd) {
+  int max_fd;
 
   pptp_gre_call_id = call_id;
   pptp_gre_peer_call_id = peer_call_id;
 
-  /* Open IP protocol socket */
-  s = socket(AF_INET, SOCK_RAW, PPTP_PROTO);
-  if (s<0) { warn("socket: %s", strerror(errno)); return; }
-  src_addr.sin_family = AF_INET;
-  src_addr.sin_addr   = inetaddr;
-  src_addr.sin_port   = 0;
-  if (connect(s, (struct sockaddr *) &src_addr, sizeof(src_addr))<0) {
-    warn("connect: %s", strerror(errno)); return;
-  }
   /* Pseudo-terminal already open. */
   
   ack_sent = ack_recv = seq_sent = seq_recv = 0;
 
-  n = (s>pty_fd)?(s+1):(pty_fd+1); /* weird select semantics */
+  /* weird select semantics */
+  max_fd = gre_fd;
+  if (pty_fd > max_fd) max_fd = pty_fd;
 
   /* Dispatch loop */
-  for (;;) { /* until error happens on s or pty_fd */
+  for (;;) { /* until error happens on gre_fd or pty_fd */
     struct timeval tv = {0, 0}; /* non-blocking select */
     fd_set rfds;
     int retval;
 
     /* watch terminal and socket for input */
     FD_ZERO(&rfds);
-    FD_SET(s, &rfds);
-    FD_SET(pty_fd,&rfds);
+    FD_SET(gre_fd, &rfds);
+    FD_SET(pty_fd, &rfds);
 
     /* if there is a pending ACK, do non-blocking select,
        otherwise, block until data is available */
-    retval = select(n, &rfds, NULL, NULL, (ack_sent != seq_recv) ? &tv : NULL);
+    retval = select(max_fd+1, &rfds, NULL, NULL, 
+		    (ack_sent != seq_recv) ? &tv : NULL);
 
     if (retval == 0 && ack_sent != seq_recv) /* if outstanding ack */
-      encaps_gre(s, NULL, 0); /* send ack with no payload */
+      encaps_gre(gre_fd, NULL, 0); /* send ack with no payload */
 
-    if ((FD_ISSET(pty_fd, &rfds) && (decaps_hdlc(pty_fd, encaps_gre, s) < 0))
-     || (FD_ISSET(s,  &rfds) && (decaps_gre(s, encaps_hdlc, pty_fd) < 0)))
-        break;
+    if (FD_ISSET(pty_fd, &rfds)) {
+	if (decaps_hdlc(pty_fd, encaps_gre,  gre_fd) < 0)
+	    break;
+    }
+    if (FD_ISSET(gre_fd, &rfds)) {
+	if (decaps_gre (gre_fd, encaps_hdlc, pty_fd) < 0)
+	    break;
+    }
   }
 
   /* Close up when done. */
-  close(s); close(pty_fd);
+  close(gre_fd);
+  close(pty_fd);
 }
 
 #define HDLC_FLAG         0x7E
