@@ -1,3 +1,11 @@
+Thu Mar 31 17:41:17 2005  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c (pptp_dispatch): handle signals first, since there's
+	a possibility of premature return from the function.
+	
+	* pptp_callmgr.c (callmgr_main): terminate faster when peer closes
+	control connection.
+
 Thu Mar 10 11:07:52 2005  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c (pptp_handle_timer): when we close connection due to

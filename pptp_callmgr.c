@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.19 2005/03/10 01:18:20 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.20 2005/03/31 07:42:39 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -75,7 +75,7 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state)
         case CALL_CLOSE_DONE:
             /* don't need to do anything here, except make sure tables
              * are sync'ed */
-            log("Closing connection");
+            log("Closing connection (call state)");
             conninfo = pptp_conn_closure_get(conn);
             lci = pptp_call_closure_get(conn, call); 
             assert(lci != NULL && conninfo != NULL);
@@ -228,7 +228,7 @@ skip_accept: /* Step 5c: Handle socket close */
                 if (retval) {
                     struct local_callinfo *lci =
                         pptp_call_closure_get(conn, call);
-                    log("Closing connection");
+                    log("Closing connection (unhandled)");
                     if(lci->pid[0] > 1) kill(lci->pid[0], SIGTERM);
                     if(lci->pid[1] > 1) kill(lci->pid[1], SIGTERM);
                     free(lci);
@@ -242,6 +242,7 @@ skip_accept: /* Step 5c: Handle socket close */
     } while (vector_size(call_list) > 0 || first);
 shutdown:
     {
+        int rc;
         fd_set read_set, write_set;
         struct timeval tv;
 	signal(SIGINT, callmgr_do_nothing);
@@ -251,7 +252,7 @@ shutdown:
         for (i = 0; i < vector_size(call_list); i++) {
             PPTP_CALL *call = vector_get_Nth(call_list, i);
             struct local_callinfo *lci = pptp_call_closure_get(conn, call);
-            log("Closing connection");
+            log("Closing connection (shutdown)");
             pptp_call_close(conn, call);
             if(lci->pid[0] > 1) kill(lci->pid[0], SIGTERM);
             if(lci->pid[1] > 1) kill(lci->pid[1], SIGTERM);
@@ -260,27 +261,34 @@ shutdown:
         FD_ZERO(&read_set);
         FD_ZERO(&write_set);
         pptp_fd_set(conn, &read_set, &write_set, &max_fd);
-        pptp_dispatch(conn, &read_set, &write_set);
-        /* wait for a respond, a timeout because there might not be one */ 
-        FD_ZERO(&read_set);
-        FD_ZERO(&write_set);
-        pptp_fd_set(conn, &read_set, &write_set, &max_fd);
-        tv.tv_sec = 2;
-        tv.tv_usec = 0;
-        select(max_fd + 1, &read_set, &write_set, NULL, &tv);
-        pptp_dispatch(conn, &read_set, &write_set);
-        if (i > 0) sleep(2);
-        /* no more open calls.  Close the connection. */
-        pptp_conn_close(conn, PPTP_STOP_LOCAL_SHUTDOWN);
-        /* wait for a respond, a timeout because there might not be one */ 
-        FD_ZERO(&read_set);
-        FD_ZERO(&write_set);
-        pptp_fd_set(conn, &read_set, &write_set, &max_fd);
-        tv.tv_sec = 2;
-        tv.tv_usec = 0;
-        select(max_fd + 1, &read_set, &write_set, NULL, &tv);
-        pptp_dispatch(conn, &read_set, &write_set);
-        sleep(2);
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	select(max_fd + 1, &read_set, &write_set, NULL, &tv);
+        rc = pptp_dispatch(conn, &read_set, &write_set);
+	if (rc > 0) {
+	  /* wait for a respond, a timeout because there might not be one */ 
+	  FD_ZERO(&read_set);
+	  FD_ZERO(&write_set);
+	  pptp_fd_set(conn, &read_set, &write_set, &max_fd);
+	  tv.tv_sec = 2;
+	  tv.tv_usec = 0;
+	  select(max_fd + 1, &read_set, &write_set, NULL, &tv);
+	  rc = pptp_dispatch(conn, &read_set, &write_set);
+	  if (rc > 0) {
+	    if (i > 0) sleep(2);
+	    /* no more open calls.  Close the connection. */
+	    pptp_conn_close(conn, PPTP_STOP_LOCAL_SHUTDOWN);
+	    /* wait for a respond, a timeout because there might not be one */ 
+	    FD_ZERO(&read_set);
+	    FD_ZERO(&write_set);
+	    pptp_fd_set(conn, &read_set, &write_set, &max_fd);
+	    tv.tv_sec = 2;
+	    tv.tv_usec = 0;
+	    select(max_fd + 1, &read_set, &write_set, NULL, &tv);
+	    pptp_dispatch(conn, &read_set, &write_set);
+	    if (rc > 0) sleep(2);
+	  }
+	}
         /* with extreme prejudice */
         pptp_conn_destroy(conn);
         vector_destroy(call_list);

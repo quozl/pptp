@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.30 2005/03/10 01:18:20 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.31 2005/03/31 07:42:39 quozl Exp $
  */
 
 #include <errno.h>
@@ -475,6 +475,11 @@ int pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set)
 {
     int r = 0;
     assert(conn && conn->call);
+    /* Check for signals */
+    if (FD_ISSET(sigpipe_fd(), read_set)) {
+        if (sigpipe_read() == SIGALRM) pptp_handle_timer();
+	FD_CLR(sigpipe_fd(), read_set);
+    }
     /* Check write_set could be set. */
     if (FD_ISSET(conn->inet_sock, write_set)) {
         FD_CLR(conn->inet_sock, write_set);
@@ -493,11 +498,6 @@ int pptp_dispatch(PPTP_CONN * conn, fd_set * read_set, fd_set * write_set)
             r = pptp_dispatch_packet(conn, buffer, size);
             free(buffer);
         }
-    }
-    /* Check for signals */
-    if (FD_ISSET(sigpipe_fd(), read_set)) {
-        if (sigpipe_read() == SIGALRM) pptp_handle_timer();
-	FD_CLR(sigpipe_fd(), read_set);
     }
     /* That's all, folks.  Simple, eh? */
     return r;
