@@ -1,6 +1,18 @@
-$Id: DEVELOPERS,v 1.2 2002/03/08 10:15:48 quozl Exp $
+$Id: DEVELOPERS,v 1.3 2002/03/11 01:53:00 quozl Exp $
 
 Developers Information
+
+
+Mailing List
+
+Subscribe to the pptpclient-devel mailing list if you intend to
+contribute to this project.  On this mailing list we discuss problems
+and changes.
+
+	https://lists.sourceforge.net/lists/listinfo/pptpclient-devel
+
+
+Patches
 
 You may send patches by e-mail, direct or to the mailing list, or if
 you have CVS commit rights, you may use them.
@@ -26,7 +38,15 @@ some useful information on good patching practice.
 	http://www.linuxdoc.org/HOWTO/Software-Release-Practice-HOWTO/
 
 
-CVS Tags.
+CVS Commits Mailing List
+
+Subscribe to the pptpclient-commits mailing list and you will receive
+messages from the CVS server when another developer commits.
+
+	https://lists.sourceforge.net/lists/listinfo/pptpclient-commits
+
+
+CVS Tags
 
 There are two types of tags.  Upstream source and release tags.
 
