@@ -1,3 +1,16 @@
+Mon Jan 13 10:28    2003  Chris Wilson <chris@netservers.co.uk>
+
+	* pqueue.c, pqueue.h: added freelist support for packet queue,
+	From: Kai Poitschke <kai@poitschke.de>.  Should help to
+	prevent memory fragmentation and perhaps improve performance a
+	little.
+	
+	* pqueue.c: wrap some log() statements with DEBUG_CMD, should
+	improve performance (thanks to Kai Poitschke)
+	
+	* pptpd.c: bugfix for --log-string option: make a copy of the
+	string with strdup, because optarg will be destroyed
+
 Wed Jan 15 14:16:27 2003  James Cameron  <quozl@us.netrek.org>
 
 	* AUTHORS, DEVELOPERS, NEWS, README, TODO, USING: add or move CVS

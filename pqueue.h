@@ -18,6 +18,7 @@ typedef struct pqueue {
   time_t expires;
   unsigned char *packet;
   int packlen;
+  int capacity;
 } pqueue_t;
 
 int       pqueue_add  (int seq, unsigned char *packet, int packlen);

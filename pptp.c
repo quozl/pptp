@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.22 2002/12/09 05:50:37 quozl Exp $
+ * $Id: pptp.c,v 1.23 2003/01/17 03:48:08 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -151,7 +151,7 @@ int main(int argc, char **argv, char **envp) {
 	      packet_timeout = new_packet_timeout;
 	    }
 	  } else if (option_index == 6) {/* --logstring */
-	    log_string = optarg;
+	    log_string = strdup(optarg);
 	  } /* else {
             other pptp options come here 
 	  } */
