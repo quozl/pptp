@@ -1,3 +1,15 @@
+Thu Jun 19 09:09:53 2003 Rein Klazes <rklazes@xs4all.nl>
+
+        * pptp_ctrl.c: Improve logging of received control packets:
+        Move duplicated code to report on Result codes and General errors
+        to a separate function; Verbosely report error codes embedded in
+        start-control-connection replies; Translated some French comment;
+        Log when an unexpected Outgoing Call Reply is received; Log the
+        receipt of ALL control messages (except in case of echo
+        request/reply packets of which only the first 10 are logged);
+        Shorten the name of the function "pptp_dispatch_ctrl_packet" to
+        "ctrlp_disp", 25 characters is just too much in the log files.
+
 Thu Jun 19 10:11:26 2003  Jan Pieter  <jp@jp.dhs.org>
 
 	* Makefile (uninstall): include uninstall target, and a minor fix

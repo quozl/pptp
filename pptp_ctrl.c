@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.18 2003/06/17 10:04:50 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.19 2003/06/19 07:47:40 reink Exp $
  */
 
 #include <errno.h>
@@ -123,6 +123,9 @@ static const struct {
     { "(PAC-Error)", "A generic vendor-specific error occured in the PAC" }
 };
 
+#define  MAX_GENERAL_ERROR ( sizeof(pptp_general_errors) / \
+        sizeof(pptp_general_errors[0]) - 1)
+
 /* Outgoing Call Reply Result Codes */
 static const char *pptp_out_call_reply_result[] = {
 /* 0 */	"Unknown Result Code",
@@ -146,6 +149,16 @@ static const char *pptp_call_disc_ntfy[] = {
 
 #define MAX_CALL_DISC_NTFY 4
 
+/* Call Disconnect Notify  Result Codes */
+static const char *pptp_start_ctrl_conn_rply[] = {
+/* 0 */	"Unknown Result Code",
+/* 1 */	"Successful Channel Establishment",
+/* 2 */	"General Error",
+/* 3 */	"Command Channel Already Exists",
+/* 4 */	"Requester is not Authorized" };
+
+#define MAX_START_CTRL_CONN_REPLY 4
+
 /* Local prototypes */
 static void pptp_reset_timer(void);
 static void pptp_handle_timer(int sig);
@@ -159,12 +172,33 @@ int pptp_send_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size);
 /* Dispatch packets (general) */
 void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size);
 /* Dispatch packets (control messages) */
-void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size);
+void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size);
 /* Set link info, for pptp servers that need it.
    this is a noop, unless the user specified a quirk and
    there's a set_link hook defined in the quirks table
    for that quirk */
 void pptp_set_link(PPTP_CONN * conn, int peer_call_id);
+
+/*** log error information in control packets *********************************/
+static void ctrlp_error( int result, int error, int cause,
+        const char *result_text[], int max_result)
+{
+    if( cause >= 0)
+        log("Result code is %d '%s'. Error code is %d, Cause code is %d",
+                result, result_text[result <= max_result ?  result : 0], error,
+                cause );
+    else
+        log("Reply result code is %d '%s'. Error code is %d",
+                result, result_text[result <= max_result ?  result : 0], error);
+    if ((error > 0) && (error <= MAX_GENERAL_ERROR)){
+        if( result != PPTP_RESULT_GENERAL_ERROR )
+            log("Result code is something else then \"general error\", "
+                    "so the following error is probably bogus.");
+        log("Error is '%s', Error message: '%s'",
+                pptp_general_errors[error].name,
+                pptp_general_errors[error].desc);
+    }
+}
 
 /*----------------------------------------------------------------------*/
 /* Constructors and Destructors.                                        */
@@ -528,7 +562,7 @@ void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size)
     assert(ntoh16(header->length) == size);
     switch (ntoh16(header->pptp_type)) {
         case PPTP_MESSAGE_CONTROL:
-            pptp_dispatch_ctrl_packet(conn, buffer, size);
+            ctrlp_disp(conn, buffer, size);
             break;
         case PPTP_MESSAGE_MANAGE:
             /* MANAGEMENT messages aren't even part of the spec right now. */
@@ -541,8 +575,21 @@ void pptp_dispatch_packet(PPTP_CONN * conn, void * buffer, size_t size)
     }
 }
 
+/*** log echo request/replies *************************************************/
+static void logecho( int type)
+{
+    static int nlogecho = 0;
+    /* hack to stop flooding the log files (the most interesting part is right
+     * after the connection built-up) */
+    if( nlogecho < 10) {
+        log( "Echo Re%s received.", type == PPTP_ECHO_RQST ? "quest" :"ply");
+        if( ++nlogecho == 10)
+            log("no more Echo Reply/Request packets will be reported.");
+    }
+}
+
 /*** pptp_dispatch_ctrl_packet ************************************************/
-void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
+void ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
 {
     struct pptp_header *header = (struct pptp_header *)buffer;
     u_int8_t close_reason = PPTP_STOP_NONE;
@@ -567,8 +614,9 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 hton32(PPTP_FRAME_CAP), hton32(PPTP_BEARER_CAP),
                 hton16(PPTP_MAX_CHANNELS), hton16(PPTP_FIRMWARE_VERSION),
                 PPTP_HOSTNAME, PPTP_VENDOR };
-            /* fix this packet, if necessary */
             int idx, rc;
+            log("Received Start Control Connection Request");
+            /* fix this packet, if necessary */
             idx = get_quirk_index();
             if (idx != -1 && pptp_fixups[idx].start_ctrl_conn) {
                 if ((rc = pptp_fixups[idx].start_ctrl_conn(&reply)))
@@ -596,6 +644,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
         {
             struct pptp_start_ctrl_conn *packet = 
                 (struct pptp_start_ctrl_conn *) buffer;
+            log("Received Start Control Connection Reply");
             if (conn->conn_state == CONN_WAIT_CTL_REPLY) {
                 /* XXX handle collision XXX [see rfc] */
                 if (ntoh16(packet->version) != PPTP_VERSION) {
@@ -604,11 +653,19 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                     close_reason = PPTP_STOP_PROTOCOL;
                     goto pptp_conn_close;
                 }
-                /* J'ai change le if () afin que la connection ne se ferme pas
-                 * pour un "rien" :p adel@cybercable.fr -
-                 */                                            
                 if (ntoh8(packet->result_code) != 1 &&
+                    /* J'ai change le if () afin que la connection ne se ferme
+                     * pas pour un "rien" :p adel@cybercable.fr -
+                     * 
+                     * Don't close the connection if the result code is zero
+                     * (feature found in certain ADSL modems)
+                     */
                         ntoh8(packet->result_code) != 0) { 
+                    log("Negative reply received to our Start Control "
+                            "Connection Request");
+                    ctrlp_error(packet->result_code, packet->error_code,
+                            -1, pptp_start_ctrl_conn_rply,
+                            MAX_START_CTRL_CONN_REPLY);
                     if (conn->callback != NULL)
                         conn->callback(conn, CONN_OPEN_FAIL);
                     close_reason = PPTP_STOP_PROTOCOL;
@@ -636,6 +693,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 PPTP_HEADER_CTRL(PPTP_STOP_CTRL_CONN_RPLY), 
                 hton8(1), hton8(PPTP_GENERAL_ERROR_NONE), 0
             };
+            log("Received Stop Control Connection Request.");
             if (conn->conn_state == CONN_IDLE) break;
             if (pptp_send_ctrl_packet(conn, &reply, sizeof(reply))) {
                 if (conn->callback != NULL)
@@ -647,6 +705,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
         }
         case PPTP_STOP_CTRL_CONN_RPLY:
         {
+            log("Received Stop Control Connection Reqply.");
             /* conn_state should be CONN_WAIT_STOP_REPLY, but it 
              * could be something else */
             if (conn->conn_state == CONN_IDLE) break;
@@ -659,6 +718,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
         {
             struct pptp_echo_rply *packet = 
                 (struct pptp_echo_rply *) buffer;
+            logecho( PPTP_ECHO_RPLY);
             if ((conn->ka_state == KA_OUTSTANDING) && 
                     (ntoh32(packet->identifier) == conn->ka_id)) {
                 conn->ka_id++;
@@ -676,6 +736,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 packet->identifier, /* skip hton32(ntoh32(id)) */
                 hton8(1), hton8(PPTP_GENERAL_ERROR_NONE), 0
             };
+            logecho( PPTP_ECHO_RQST);
             pptp_send_ctrl_packet(conn, &reply, sizeof(reply));
             pptp_reset_timer();
             break;
@@ -691,6 +752,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 hton32(PPTP_CONNECT_SPEED), 
                 hton16(PPTP_WINDOW), hton16(PPTP_DELAY), 0 
             };
+            log("Received Outgoing Call Request.");
             /* XXX PAC: eventually this should make an outgoing call. XXX */
             reply.result_code = hton8(7); /* outgoing calls verboten */
             pptp_send_ctrl_packet(conn, &reply, sizeof(reply));
@@ -702,6 +764,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 (struct pptp_out_call_rply *)buffer;
             PPTP_CALL * call;
             u_int16_t callid = ntoh16(packet->call_id_peer);
+            log("Received Outgoing Call Reply.");
             if (!vector_search(conn->call, (int) callid, &call)) {
                 log("PPTP_OUT_CALL_RPLY received for non-existant call.");
                 break;
@@ -710,32 +773,18 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 log("Ack!  How did this call_type get here?"); /* XXX? */
                 break; 
             }
-            if (call->state.pns != PNS_WAIT_REPLY)
-                /* FIXME: message here? */
+            if (call->state.pns != PNS_WAIT_REPLY) {
+                warn("Unexpected(?) Outgoing Call Reply will be ignored.");
                 break;
+            }
             /* check for errors */
             if (packet->result_code != 1) {
                 /* An error.  Log it verbosely. */
-                unsigned int legal_error_value = sizeof(pptp_general_errors) /
-                    sizeof(pptp_general_errors[0]);
-                int err = packet->error_code;
                 log("Our outgoing call request [callid %d] has not been "
                         "accepted.", (int) callid);
-                log("Reply result code is %d '%s'. Error code is %d, "
-                        "Cause code is %d", packet->result_code,
-                        pptp_out_call_reply_result[packet->result_code <=
-                                MAX_OUT_CALL_REPLY_RESULT ?
-                                packet->result_code : 0], err,
-                                packet->cause_code );
-                if ((err > 0) && (err < legal_error_value)){
-                    if( packet->result_code != PPTP_RESULT_GENERAL_ERROR )
-                        log("Result code is something else then \"general "
-                                "error\", so the following error is probably "
-                                "bogus.");
-                    log("Error is '%s', Error message: '%s'",
-                            pptp_general_errors[err].name,
-                            pptp_general_errors[err].desc);
-                }
+                ctrlp_error(packet->result_code, packet->error_code,
+                        packet->cause_code, pptp_out_call_reply_result,
+                        MAX_OUT_CALL_REPLY_RESULT);
                 call->state.pns = PNS_IDLE;
                 if (call->callback != NULL)
                     call->callback(conn, call, CALL_OPEN_FAIL);
@@ -767,6 +816,7 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
                 PPTP_HEADER_CTRL(PPTP_CALL_CLEAR_NTFY), packet->call_id,
                 1, PPTP_GENERAL_ERROR_NONE, 0, 0, {0}
             };
+            log("Received Call Clear Request.");
             if (vector_contains(conn->call, ntoh16(packet->call_id))) {
                 PPTP_CALL * call;
                 vector_search(conn->call, ntoh16(packet->call_id), &call);
@@ -782,28 +832,14 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
         {
             struct pptp_call_clear_ntfy *packet =
                 (struct pptp_call_clear_ntfy *)buffer;
+            log("Call disconnect notification received (call id %d)",
+                    ntoh16(packet->call_id));
             if (vector_contains(conn->call, ntoh16(packet->call_id))) {
                 PPTP_CALL * call;
-                int err = packet->error_code;
-                unsigned int legal_error_value = sizeof(pptp_general_errors) /
-                    sizeof(pptp_general_errors[0]);
+                ctrlp_error(packet->result_code, packet->error_code,
+                        packet->cause_code, pptp_call_disc_ntfy,
+                        MAX_CALL_DISC_NTFY);
                 vector_search(conn->call, ntoh16(packet->call_id), &call);
-                log("Call disconnect notification received (call id %d)",
-                        (int) call->call_id);
-                log("Result code is %d: '%s'. Error code is %d, "
-                        "Cause code is %d", packet->result_code,
-                        pptp_call_disc_ntfy[packet->result_code <=
-                                MAX_CALL_DISC_NTFY ? packet->result_code : 0],
-                        err, packet->cause_code );
-                if ((err > 0) && (err < legal_error_value)){
-                    if( packet->result_code != PPTP_RESULT_GENERAL_ERROR )
-                        log("Result code is something else then \"general "
-                                "error\", so the following error is probably "
-                                "bogus.");
-                    log("Error is '%s', Error message: '%s'",
-                            pptp_general_errors[err].name,
-                            pptp_general_errors[err].desc);
-                }
                 pptp_call_destroy(conn, call);
             }
             /* XXX we could log call stats here XXX */
@@ -816,15 +852,15 @@ void pptp_dispatch_ctrl_packet(PPTP_CONN * conn, void * buffer, size_t size)
             /* this is really dealt with in the HDLC deencapsulation, anyway. */
             struct pptp_set_link_info *packet =
                 (struct pptp_set_link_info *)buffer;
-            if (ntoh32(packet->send_accm) == 0 &&
-                    ntoh32(packet->recv_accm) == 0)
-                break; /* this is what we expect. */
-            /* log it, otherwise. */
+            /* log it. */
             log("PPTP_SET_LINK_INFO received from peer_callid %u",
                     (unsigned int) ntoh16(packet->call_id_peer));
             log("  send_accm is %08lX, recv_accm is %08lX",
                     (unsigned long) ntoh32(packet->send_accm),
                     (unsigned long) ntoh32(packet->recv_accm));
+            if (!(ntoh32(packet->send_accm) == 0 &&
+                    ntoh32(packet->recv_accm) == 0))
+                warn("Non-zero Async Control Character Maps are not supported!");
             break;
         }
         default:
