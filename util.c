@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.7 2002/12/09 05:50:37 quozl Exp $
+ * $Id: util.c,v 1.8 2003/06/17 17:25:47 reink Exp $
  */
 
 #include <stdio.h>
@@ -21,13 +21,6 @@ char *log_string = "anon";
 static void open_log(void) __attribute__ ((constructor));
 static void close_log(void) __attribute__ ((destructor));
 
-static void open_log(void) {
-  openlog(PROGRAM_NAME, LOG_PID, LOG_DAEMON);
-}
-static void close_log(void) {
-  closelog();
-}
-
 #define MAKE_STRING(label) 				\
 va_list ap;						\
 char buf[256], string[256];				\
@@ -37,34 +30,49 @@ snprintf(string, sizeof(string), "%s %s[%s:%s:%d]: %s",	\
 	 log_string, label, func, file, line, buf);	\
 va_end(ap)
 
-void _log(char *func, char *file, int line, char *format, ...) {
-  MAKE_STRING("log");
-  syslog(LOG_NOTICE, "%s", string);
+/*** open log *****************************************************************/
+static void open_log(void) {
+    openlog(PROGRAM_NAME, LOG_PID, LOG_DAEMON);
 }
 
-void _warn(char *func, char *file, int line, char *format, ...) {
-  MAKE_STRING("warn");
-  fprintf(stderr, "%s\n", string);
-  syslog(LOG_WARNING, "%s", string);
+/*** close log ****************************************************************/
+static void close_log(void)
+{
+    closelog();
 }
 
-void _fatal(char *func, char *file, int line, char *format, ...) {
-  MAKE_STRING("fatal");
-  fprintf(stderr, "%s\n", string);
-  syslog(LOG_CRIT, "%s", string);
-  exit(1);
+/*** print a message to syslog ************************************************/
+void _log(char *func, char *file, int line, char *format, ...)
+{
+    MAKE_STRING("log");
+    syslog(LOG_NOTICE, "%s", string);
 }
 
-/* connect a file to a file descriptor */
-int file2fd(const char *path, const char *mode, int fd) {
-  int ok = 0;
-  FILE *file = NULL;
+/*** print a warning to syslog ************************************************/
+void _warn(char *func, char *file, int line, char *format, ...)
+{
+    MAKE_STRING("warn");
+    fprintf(stderr, "%s\n", string);
+    syslog(LOG_WARNING, "%s", string);
+}
 
-  file = fopen(path, mode);
-  if (file != NULL && dup2(fileno(file), fd) != -1)
-    ok = 1;
+/*** print a fatal warning to syslog and exit *********************************/
+void _fatal(char *func, char *file, int line, char *format, ...)
+{
+    MAKE_STRING("fatal");
+    fprintf(stderr, "%s\n", string);
+    syslog(LOG_CRIT, "%s", string);
+    exit(1);
+}
 
-  if (file) fclose(file);
-
-  return ok;
+/*** connect a file to a file descriptor **************************************/
+int file2fd(const char *path, const char *mode, int fd)
+{
+    int ok = 0;
+    FILE *file = NULL;
+    file = fopen(path, mode);
+    if (file != NULL && dup2(fileno(file), fd) != -1)
+        ok = 1;
+    if (file) fclose(file);
+    return ok;
 }
