@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.14 2003/10/23 04:29:23 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.15 2004/06/10 06:49:16 reink Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -159,11 +159,11 @@ int callmgr_main(int argc, char **argv, char **envp)
     }
     if (sigsetjmp(callmgr_env, 1) != 0) goto shutdown;
     /* Step 3: Get FD_SETs */
+    max_fd = unix_sock;
     do {
         int rc;
         fd_set read_set = call_set, write_set;
         FD_ZERO (&write_set);
-	max_fd = 0;
         if (pptp_conn_established(conn)) {
 	  FD_SET (unix_sock, &read_set);
 	  if (unix_sock > max_fd) max_fd = unix_sock;

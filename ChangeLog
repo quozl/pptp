@@ -1,3 +1,9 @@
+Thu Jun 10 08:34:17 CEST 2004 Rein Klazes <rklazes@xs4all.nl>
+
+	* pptp_callmgr.c: fix a case when the call manager does not
+	shutdown properly, a regression introduced by the changes on
+	2003 Oct 22 and 23.
+
 Wed Jun  9 10:08:02 2004  Chris Wilson  <chris@netservers.co.uk>
 
 	* pptp.8, pptp.c, pptp_gre.c, pptp_gre.h: add --nobuffer option to
