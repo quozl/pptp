@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.22 2003/04/28 12:37:47 quozl Exp $
+# $Id: Makefile,v 1.23 2003/04/29 09:14:35 quozl Exp $
 VERSION=1.3.0
-RELEASE=-rc2
+RELEASE=-rc3
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
@@ -64,6 +64,7 @@ dist: clobber
 	cp --recursive ChangeLog Makefile *.c *.h pptp.8 Documentation \
 Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TODO USING \
 	pptp-linux-$(VERSION)/
+	rm -rf pptp-linux-$(VERSION)/CVS pptp-linux-$(VERSION)/*/CVS
 	tar czf pptp-linux-$(VERSION)$(RELEASE).tar.gz pptp-linux-$(VERSION)
 	$(RM) -r pptp-linux-$(VERSION)
 	md5sum pptp-linux-$(VERSION)$(RELEASE).tar.gz

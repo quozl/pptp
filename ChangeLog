@@ -1,3 +1,8 @@
+Tue Apr 29 19:13:33 2003  James Cameron  <quozl@us.netrek.org>
+
+	* Makefile (dist): remove CVS directory from distribution.
+	Reported by: Ola Lundqvist
+
 Tue Apr 15 10:28:00 2003  Chris Wilson   <chris@netservers.co.uk>
 
 	* pptp.c, pptp_gre.c, pptp_gre.h: Added GRE statistics counters
