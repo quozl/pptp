@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.23 2003/01/21 00:43:37 quozl Exp $
+ * $Id: pptp_gre.c,v 1.24 2003/02/14 14:59:03 reink Exp $
  */
 
 #include <sys/types.h>
@@ -325,6 +325,7 @@ int decaps_gre (int fd, callback_t callback, int cl) {
   if (PPTP_GRE_IS_A(ntoh8(header->ver))) { /* acknowledgement present */
     u_int32_t ack = (PPTP_GRE_IS_S(ntoh8(header->flags)))?
       header->ack:header->seq; /* ack in different place if S=0 */
+    ack = ntoh32( ack);
     if (ack > ack_recv) ack_recv = ack;
     /* also handle sequence number wrap-around  */
     if (WRAPPED(ack,ack_recv)) ack_recv=ack;

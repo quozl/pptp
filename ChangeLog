@@ -1,3 +1,8 @@
+Fri Feb 14 11:46:10 CET 2003 Rein Klazes <rklazes@xs4all.nl>
+
+	* pptp_ctrl.c, pptp_msg.h: tweak the outgoing call reply messages
+	once more. Print the error text that come with the result code. 
+
 Mon Jan 20 11:46    2003  Chris Wilson <chris@netservers.co.uk>
 
 	* pqueue.c, pqueue.h: changed "expires" field of pqueue entry to a
