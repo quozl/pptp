@@ -1,4 +1,4 @@
-Release ?.?.?: (unreleased)
+Release 1.4.1: (release candidate 1, 10th November 2003)
 
 - defer OCRQ until after SCCRP [Cameron]
 - include uninstall target [Pieter]
@@ -77,4 +77,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.24 2003/10/22 05:41:24 quozl Exp $	
+$Id: NEWS,v 1.25 2003/11/10 04:42:39 quozl Exp $	

@@ -1,3 +1,7 @@
+Mon Nov 10 15:39:41 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp-linux-1.4.0-rc1 released.
+
 Thu Oct 23 12:48:54 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_callmgr.c (callmgr_main): if connection fails, pptp enters
