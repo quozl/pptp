@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.10 2002/07/18 02:34:30 quozl Exp $
+ * $Id: pptp_gre.c,v 1.11 2002/08/14 01:33:44 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -18,6 +18,7 @@
 #include "ppp_fcs.h"
 #include "pptp_msg.h"
 #include "util.h"
+#include "pqueue.h"
 
 #define PACKET_MAX 8196
 /* test for a 32 bit counter overflow */
@@ -28,12 +29,15 @@ static u_int32_t ack_sent, ack_recv;
 static u_int32_t seq_sent, seq_recv;
 static u_int16_t pptp_gre_call_id, pptp_gre_peer_call_id;
 
-/* decaps gets all the packets possible with ONE blocking read */
+typedef int (*callback_t)(int cl, void *pack, unsigned int len);
+
+/* decaps_hdlc gets all the packets possible with ONE blocking read */
 /* returns <0 if read() call fails */
-int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl);
+int decaps_hdlc(int fd, callback_t callback, int cl);
 int encaps_hdlc(int fd, void *pack, unsigned int len);
-int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl);
+int decaps_gre (int fd, callback_t callback, int cl);
 int encaps_gre (int fd, void *pack, unsigned int len);
+int dequeue_gre(callback_t callback, int cl);
 
 #if 1
 #include <stdio.h>
@@ -117,6 +121,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 	if (decaps_gre (gre_fd, encaps_hdlc, pty_fd) < 0)
 	    break;
     }
+    dequeue_gre (encaps_hdlc, pty_fd);
   }
 
   /* Close up when done. */
@@ -222,11 +227,14 @@ int encaps_hdlc(int fd, void *pack, unsigned int len) {
   return write(fd, dest, pos);
 }
 
-int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl) {
+int decaps_gre (int fd, callback_t callback, int cl) {
   unsigned char buffer[PACKET_MAX+64/*ip header*/];
   struct pptp_gre_header *header;
   int status, ip_len=0;
   static int first=1;
+  unsigned int headersize;
+  unsigned int payload_len;
+  u_int32_t seq;
 
   if ((status = read (fd, buffer, sizeof(buffer))) <= 0) {
     log("short read (%u): %s", status, strerror(errno));
@@ -261,27 +269,70 @@ int decaps_gre (int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
     /* also handle sequence number wrap-around  */
     if (WRAPPED(ack,ack_recv)) ack_recv=ack;
   }
-  if (PPTP_GRE_IS_S(ntoh8(header->flags))) { /* payload present */
-    unsigned int headersize = sizeof(*header);
-    unsigned int payload_len= ntoh16(header->payload_len);
-    u_int32_t seq       = ntoh32(header->seq);
-    if (!PPTP_GRE_IS_A(ntoh8(header->ver))) headersize-=sizeof(header->ack);
-    /* check for incomplete packet (length smaller than expected) */
-    if (status-headersize<payload_len) return 0; 
-    /* check for out-of-order sequence number */
-    /* (handle sequence number wrap-around, and try to do it right) */
-    if ( first || (seq > seq_recv) || 
-	WRAPPED( seq, seq_recv)){
-      seq_recv = seq;
-      first=0;
-      return cb(cl, buffer+ip_len+headersize, payload_len);
-    } else {
-      log("discarding out-of-order  seq is %d seqrecv is %d", seq, seq_recv); 
-      return 0; /* discard out-of-order packets */
-    }
+
+  if (!PPTP_GRE_IS_S(ntoh8(header->flags))) /* no payload present */
+    return 0; /* ack, but no payload */
+
+  headersize  = sizeof(*header);
+  payload_len = ntoh16(header->payload_len);
+  seq         = ntoh32(header->seq);
+
+  if (!PPTP_GRE_IS_A(ntoh8(header->ver))) headersize-=sizeof(header->ack);
+
+  /* check for incomplete packet (length smaller than expected) */
+  if (status-headersize < payload_len) {
+    log("discarding truncated packet (expected %d, got %d bytes)",
+	payload_len, status-headersize);
+    return 0; 
   }
-  return 0; /* ack, but no payload */
+
+  /* check for out-of-order sequence number */
+  /* (handle sequence number wrap-around, and try to do it right) */
+  if ( first || (seq == seq_recv+1) || 
+       WRAPPED(seq, seq_recv)){
+    first=0;
+    seq_recv = seq;
+    return callback(cl, buffer+ip_len+headersize, payload_len);
+
+  } else if ( seq < seq_recv+1 || WRAPPED(seq_recv,seq) ) {
+    log("discarding duplicate or old packet %d (expecting %d)",
+	 seq, seq_recv+1);
+
+  } else if ( seq < seq_recv+MISSING_WINDOW ||
+	      WRAPPED(seq, seq_recv+MISSING_WINDOW) ) {
+    log("buffering out-of-order packet %d (expecting %d)", seq, seq_recv+1); 
+    pqueue_add(seq, buffer+ip_len+headersize, payload_len);
+
+  } else {
+    log("discarding bogus packet %d (expecting %d)", seq, seq_recv+1);
+  }
+
+  return 0;
 }
+
+int dequeue_gre (callback_t callback, int cl) {
+  pqueue_t *head;
+  int status;
+  time_t now = time(NULL);
+
+  head = pqueue_head();
+  if (head == NULL) return 0;
+
+  while ( (head->seq == seq_recv+1)      || 
+	  (WRAPPED(head->seq, seq_recv)) ||
+	  (head->expires < now) ) {
+    log("dequeueing %d", head->seq);
+    seq_recv = head->seq;
+    status = callback(cl, head->packet, head->packlen);
+    pqueue_del(head);
+    if (status != 0)
+      return status;
+    head = pqueue_head();
+  }
+
+  return 0;
+}
+
 int encaps_gre (int fd, void *pack, unsigned int len) {
   union {
     struct pptp_gre_header header;

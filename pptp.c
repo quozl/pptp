@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.14 2002/07/18 02:34:30 quozl Exp $
+ * $Id: pptp.c,v 1.15 2002/08/14 01:33:44 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -92,7 +92,8 @@ int main(int argc, char **argv, char **envp) {
   char phonenrbuf[65]; /* maximum length of field plus one for the trailing
                         * '\0' */
   char * volatile phonenr = NULL;
-  volatile int launchpppd = 1;
+  volatile int launchpppd = 1, debug = 0;
+  
   if (argc < 2)
     usage(argv[0]);
 
@@ -108,6 +109,7 @@ int main(int argc, char **argv, char **envp) {
           {"phone", 1, 0, 0},  
           {"nolaunchpppd", 0, 0, 0},  
 	  {"quirks", 1, 0, 0},
+	  {"debug", 1, 0, 0},
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -118,20 +120,23 @@ int main(int argc, char **argv, char **envp) {
       if( c==-1) break;  /* no more options */
       switch (c) {
         case 0: 
-            if(option_index == 0) { /* --phone specified */
-                /* copy it to a buffer, as the argv's will be overwritten by 
-                 * inststr() */
-                strncpy(phonenrbuf,optarg,sizeof(phonenrbuf));
-                phonenrbuf[sizeof(phonenrbuf)-1]='\0';
-                phonenr=phonenrbuf;
-            }else if(option_index == 1) {/* --nolaunchpppd specified */
-                  launchpppd=0;
-            }else if(option_index == 2) {/* --quirks specified */
-                if (set_quirk_index(find_quirk(optarg)))
-                    usage(argv[0]);
-            }
+	  if (option_index == 0) { /* --phone specified */
+	    /* copy it to a buffer, as the argv's will be overwritten by 
+	     * inststr() */
+	    strncpy(phonenrbuf,optarg,sizeof(phonenrbuf));
+	    phonenrbuf[sizeof(phonenrbuf)-1]='\0';
+	    phonenr=phonenrbuf;
+	  } else if (option_index == 1) {/* --nolaunchpppd specified */
+	    launchpppd=0;
+	  } else if (option_index == 2) {/* --quirks specified */
+	    if (set_quirk_index(find_quirk(optarg)))
+	      usage(argv[0]);
+	  } else if (option_index == 3) {/* --debug */
+	    debug = 1;
+	  } else {
             /* other pptp options come here */
             break;
+	  }
         case '?': /* unrecognised option, treat it as the first pppd option */
             /* fall through */
         default:
@@ -143,14 +148,19 @@ int main(int argc, char **argv, char **envp) {
   pppdargc = argc - optind;
   pppdargv = argv + optind;
 
-  /* Step 2a: Now we are forked and have the peer address, bind the
-     GRE socket early, before starting pppd. This prevents the 
-     ICMP Unreachable bug: <1026868263.2855.67.camel@jander> */
+  /* Step 2a: Now we have the peer address, bind the GRE socket early,
+     before starting pppd. This prevents the ICMP Unreachable bug
+     documented in <1026868263.2855.67.camel@jander> */
 
   gre_fd = pptp_gre_bind(inetaddr);
   if (gre_fd < 0) {
       close(callmgr_sock);
       fatal("Cannot bind GRE socket, aborting.");
+  }
+
+  /* Step 2b: be a good daemon and close our stdin/out/err fds */
+  if (!debug && daemon(0, 0) != 0) {
+      perror("daemon");
   }
 
   /* Step 3: Find an open pty/tty pair. */
@@ -244,7 +254,7 @@ struct in_addr get_ip_address(char *name) {
     else if (h_errno == NO_ADDRESS)
       fatal("gethostbyname '%s': NO IP ADDRESS", name);
     else
-      fatal("gethostbyname '%s': name server error %d", name, h_errno);
+      fatal("gethostbyname '%s': name server error", name);
   }
   
   if (host->h_addrtype != AF_INET)

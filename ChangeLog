@@ -1,3 +1,67 @@
+Wed Aug 14 11:14:05 2002  James Cameron  <quozl@us.netrek.org>
+
+	* pqueue.c, pqueue.h, pptp_gre.c: major changes to support packet
+	re-ordering.
+
+	Queueing
+
+	Packets are added to the queue by decaps_gre if their sequence
+	number is higher than expected, but within the window. The default
+	window is defined as 30 packets.
+
+	Packets which are below the window (older than the most recent
+	packet read) or above the window (too far ahead) are discarded, to
+	protect against denial-of-service attacks.
+
+	Dequeueing
+
+	The new function dequeue_gre retrieves packets from the head of
+	the queue which are:
+
+	1. Next in sequence (unwrapped or wrapped)
+
+	2. Older than five seconds (assuming that the intermediate packets
+	have been lost by the network).
+
+	The function will continue to read packets from the head of the
+	queue until it finds one which doesn't match these criteria, and
+	then stop.
+
+	Limitations
+	
+	There are some limitations with this patch:
+
+	- The receive window is hardcoded at 30 packets. I couldn't see
+	where to get the negotiated and/or current window size from.
+
+	- The timeout is hardcoded at 5 seconds. A packet which was
+	received and queued within the window, but which should have been
+	preceded by other packets which never appeared, will be accepted
+	anyway after this time (increasing the sequence number to its
+	own).
+
+	- There may be memory leaks or other bugs in the reordering code.
+	
+	* pqueue.c, pqueue.h, Makefile (PPTP_OBJS, PPTP_DEPS): add two new
+	files to the pptp executable. pqueue.c implements the packet queue
+	used by the reordering code, and pqueue.h describes its public
+	interface. The queue is implemented as a linked list. This is
+	required for reordering.
+	
+	* pptp.c: Add a new command-line option, --debug.  Prevents pptp
+	from going into the background.
+
+	Change to call the daemon(3) function to change the current
+	directory and close the standard file descriptors. This prevents a
+	shell from hanging open if pptp is started remotely.
+
+	* Makefile (CFLAGS): reduce the optimisation level (gcc's -O flag)
+	to zero (none), to make debugging easier.
+
+	* pptp.c (get_ip_address): avoid reporting h_errno value.
+
+	From: chris@netservers.co.uk
+
 Thu Jul 18 12:26:25 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.h, pptp_gre.c, pptp.c: bind the GRE socket early, by

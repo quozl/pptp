@@ -9,7 +9,7 @@ CC	= gcc
 RM	= rm -f
 DEBUG	= -g
 INCLUDE =
-CFLAGS  = -Wall -O1 $(DEBUG) $(INCLUDE)
+CFLAGS  = -Wall -O0 $(DEBUG) $(INCLUDE)
 LIBS	=
 LDFLAGS	= -lutil
 
@@ -18,10 +18,10 @@ PPTP_BIN = pptp
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
             inststr.o util.o version.o \
-	    pptp_quirks.o orckit_quirks.o
+	    pptp_quirks.o orckit_quirks.o pqueue.o
 
 PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
-	    pptp_quirks.h orckit_quirks.h config.h
+	    pptp_quirks.h orckit_quirks.h config.h pqueue.h
 
 all: config.h $(PPTP_BIN)
 
