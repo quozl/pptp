@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.33 2004/06/22 08:09:55 quozl Exp $
+# $Id: Makefile,v 1.34 2004/06/22 09:52:26 quozl Exp $
 VERSION=1.5.0
 RELEASE=
 
@@ -62,13 +62,13 @@ uninstall:
 	$(RM) $(BINDIR)/pptp $(MANDIR)/pptp.8
 
 dist: clobber
-	$(RM) pptp-linux-$(VERSION)$(RELEASE).tar.gz
-	$(RM) -r pptp-linux-$(VERSION)
-	mkdir pptp-linux-$(VERSION)
+	$(RM) pptp-$(VERSION)$(RELEASE).tar.gz
+	$(RM) -r pptp-$(VERSION)
+	mkdir pptp-$(VERSION)
 	cp --recursive ChangeLog Makefile *.c *.h pptp.8 Documentation \
 Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TODO USING \
-	pptp-linux-$(VERSION)/
-	$(RM) -r pptp-linux-$(VERSION)/CVS pptp-linux-$(VERSION)/*/CVS
-	tar czf pptp-linux-$(VERSION)$(RELEASE).tar.gz pptp-linux-$(VERSION)
-	$(RM) -r pptp-linux-$(VERSION)
-	md5sum pptp-linux-$(VERSION)$(RELEASE).tar.gz
+	pptp-$(VERSION)/
+	$(RM) -r pptp-$(VERSION)/CVS pptp-$(VERSION)/*/CVS
+	tar czf pptp-$(VERSION)$(RELEASE).tar.gz pptp-$(VERSION)
+	$(RM) -r pptp-$(VERSION)
+	md5sum pptp-$(VERSION)$(RELEASE).tar.gz

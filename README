@@ -1,6 +1,6 @@
-pptp-linux
+pptp
 
-pptp-linux is an implementation of the PPTP protocol for Linux and
+pptp is an implementation of the PPTP protocol for Linux and
 other Unix systems.
 
 The code is released under the terms of the GPL; see the file COPYING
@@ -8,7 +8,7 @@ for details.
 
 You can find notes on installing in the file INSTALL, usage notes in
 the file USING, design notes in the Documentation directory, and the
-standards documents used to implement pptp-linux can be found in the
+standards documents used to implement pptp can be found in the
 Reference directory.
 
 New versions and additional documentation can be found on the PPTP
@@ -32,4 +32,4 @@ James Cameron <james.cameron@hp.com> (maintainer, release engineer)
 C. Scott Ananian <cananian@alumni.princeton.edu> (original author)
 
 
-$Id: README,v 1.3 2003/01/15 05:29:20 quozl Exp $	
+$Id: README,v 1.4 2004/06/22 09:52:26 quozl Exp $	

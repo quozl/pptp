@@ -1,4 +1,4 @@
-Primary author of this package:
+Primary author of this package (when it was called pptp-linux):
 
 C. Scott Ananian <cananian@alumni.princeton.edu>
 
@@ -21,4 +21,6 @@ Ed Meaney <epm@cisco.com>
 Yury Tarasievich <grog@grsu.by>
 Paul Howarth <paul@city-fan.org>
 
-$Id: AUTHORS,v 1.12 2004/06/08 23:40:14 quozl Exp $
+Package renamed from pptp-linux to pptp after version 1.5.0.
+
+$Id: AUTHORS,v 1.13 2004/06/22 09:52:26 quozl Exp $
