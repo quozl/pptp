@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.21 2003/06/25 11:10:17 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.22 2003/06/27 14:23:26 reink Exp $
  */
 
 #include <errno.h>
@@ -241,8 +241,6 @@ static void ctrlp_rep( void * buffer, int size, int isbuff)
     if( (type == PPTP_ECHO_RQST || type == PPTP_ECHO_RPLY) && nlogecho <= 0 ) return;
     log("%s control packet type is %d '%s'\n",isbuff ? "Buffered" : "Sent", 
             type, ctrl_msg_types[type <= MAX_CTRLMSG_TYPE ? type : 0]);
-    if( type == PPTP_CALL_CLEAR_RQST)
-            print_trace();
 
 }
     
@@ -647,7 +645,7 @@ static void logecho( int type)
      * after the connection built-up) */
     if( nlogecho > 0) {
         log( "Echo Re%s received.", type == PPTP_ECHO_RQST ? "quest" :"ply");
-        if( --nlogecho == 10)
+        if( --nlogecho == 0)
             log("no more Echo Reply/Request packets will be reported.");
     }
 }
