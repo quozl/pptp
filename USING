@@ -1,4 +1,4 @@
-$Id: USING,v 1.4 2002/03/31 11:14:56 mulix Exp $	
+Usage Notes
 
 pptp is started as a psuedo-tty child process using pppd's pty option:
 
@@ -25,12 +25,15 @@ You will see three pptp-related processes in your process list: a call
 manager, a GRE/PPP en/decapsulator, and pppd.  To shut down the pptp
 connection, kill the pppd process.
 
-NOTE THAT PPTP MUST BE RUN AS ROOT.
+NOTE THAT PPTP MUST BE RUN AS ROOT.  This is so that it can generate
+GRE packets using a raw socket.
 
 Most trouble with pptp will probably be due to incorrect pppd
 configuration.  Be sure you thoroughly understand MS-CHAP support in
 pppd.  Use the 'debug' option to pppd to log connection information;
 this will help you trouble-shoot the pppd side of pptp.
+
+See the project web site for diagnosis assistance.
 
 QUIRKS HANDLING:
 
@@ -47,3 +50,6 @@ Bezeq, you probably want the '--quirks BEZEQ_ISRAEL' switch.
 More information on Bezeq's ADSL service can be found at
 http://vipe.technion.il/~mulix/adsl-howto.txt and
 http://damyen.technion.ac.il/~dani/adsl-howto.txt.
+
+
+$Id: USING,v 1.5 2003/01/15 05:29:20 quozl Exp $	

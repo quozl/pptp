@@ -1,3 +1,13 @@
+Wed Jan 15 14:16:27 2003  James Cameron  <quozl@us.netrek.org>
+
+	* AUTHORS, DEVELOPERS, NEWS, README, TODO, USING: add or move CVS
+	header to tail.
+	* DEVELOPERS: change IRC server name to new alias.
+	* AUTHORS: change a few addresses.
+	* INSTALL: rewrite.
+	* README, USING: review and adjust, minor changes.
+	* Makefile (install): add MANDIR and man page.
+
 Thu Jan  2 11:28:41 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c: fix response to dropped packets.  From: Rein Klazes.

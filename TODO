@@ -1,7 +1,3 @@
-6th December 2002
-
-- no 'make install' target
-
 1st May 2002
 
 - log failure of write() to raw socket, as Ryan Murray
@@ -11,7 +7,6 @@
 12th February 2002
 
 - clean up -T errors in pptp-command,
-- implement GRE reordering from PoPToP to make client more resilient.
 
 23rd December 2000
 
@@ -35,3 +30,5 @@ Things to do:
    will want to limit the hosts we give PPTP access to.  Maybe not,
    though.  We could allow everyone and then allow pppd to do the
    access control.
+
+$Id: TODO,v 1.10 2003/01/15 05:29:20 quozl Exp $	

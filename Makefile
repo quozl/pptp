@@ -1,10 +1,14 @@
+# $Id: Makefile,v 1.17 2003/01/15 05:29:20 quozl Exp $
 VERSION=1.2.0
-RELEASE=-rc2
+RELEASE=-rc3
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
 PPPD = /usr/sbin/pppd
 #################################################################
+
+BINDIR=$(DESTDIR)/usr/sbin
+MANDIR=$(DESTDIR)/usr/share/man/man8
 
 CC	= gcc
 RM	= rm -f
@@ -47,10 +51,11 @@ distclean: clobber
 
 test: vector_test
 
-BINDIR=$(DESTDIR)/usr/sbin
 install:
 	mkdir -p $(BINDIR)
 	install -o root -m 555 pptp $(BINDIR)
+	mkdir -p $(MANDIR)
+	install pptp.8 $(MANDIR)
 
 dist: clobber
 	$(RM) pptp-linux-$(VERSION)$(RELEASE).tar.gz
