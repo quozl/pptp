@@ -94,6 +94,9 @@ upw
 # test http://quozl.netrek.org/pptp/
 # test http://quozl.linux.org.au/pptp/
 
+# update http://pptpclient.sourceforge.net/#download
+
+
 # compose release candidate announcement
 # To: pptpclient-devel@lists.sourceforge.net		(candidates)
 # To: pptpclient-announce@lists.sourceforge.net		(final)
