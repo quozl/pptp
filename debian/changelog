@@ -1,3 +1,9 @@
+pptp-linux (1.0.3-2) frozen unstable; urgency=low
+
+  * Update upstream distribution information. Closes: #97159.
+
+ -- Thomas Quinot <thomas@debian.org>  Fri, 11 May 2001 16:57:11 +0200
+
 pptp-linux (1.0.3-1) frozen unstable; urgency=low
 
   * New upstream release. Debian patches have been integrated.
