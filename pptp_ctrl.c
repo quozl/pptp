@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.22 2003/06/27 14:23:26 reink Exp $
+ * $Id: pptp_ctrl.c,v 1.23 2003/10/22 05:41:24 quozl Exp $
  */
 
 #include <errno.h>
@@ -309,6 +309,10 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
     return conn;
 }
 
+int pptp_conn_established(PPTP_CONN *conn) {
+  return (conn->conn_state == CONN_ESTABLISHED);
+}
+
 /* This currently *only* works for client call requests.
  * We need to do something else to allocate calls for incoming requests.
  */
@@ -327,6 +331,7 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn, pptp_call_cb callback,
         hton16(PPTP_WINDOW), 0, 0, 0, {0}, {0}
     };
     assert(conn && conn->call);
+    assert(conn->conn_state == CONN_ESTABLISHED);
     /* Assign call id */
     if (!vector_scan(conn->call, 0, PPTP_MAX_CHANNELS - 1, &i))
         /* no more calls available! */

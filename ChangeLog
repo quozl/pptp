@@ -1,3 +1,20 @@
+Wed Oct 22 13:02:04 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_ctrl.c (pptp_call_open): add an assertion to prevent a call
+	open attempt while the control connection is not established.
+
+	* pptp_callmgr.c (callmgr_main): avoid accepting a UNIX socket
+	connection and therefore calling pptp_call_open() if the control
+	connection has not yet been established.
+
+	* pptp_ctrl.c (pptp_conn_established): add function for
+	pptp_callmgr.c to use to determine if the control connection has
+	been established.
+
+	TODO: if a connection reply is not received, what happens?
+
+	Reported by: John BouAntoun
+
 Mon Sep  8 10:33:41 2003  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.c: fix for compile on OpenBSD.  From: Waldemar Brodkorb

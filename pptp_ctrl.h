@@ -1,7 +1,7 @@
 /* pptp_ctrl.h ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.h,v 1.3 2001/04/30 03:42:36 scott Exp $
+ * $Id: pptp_ctrl.h,v 1.4 2003/10/22 05:41:24 quozl Exp $
  */
 
 #ifndef INC_PPTP_CTRL_H
@@ -27,6 +27,7 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient,
 			   pptp_conn_cb callback);
 PPTP_CALL * pptp_call_open(PPTP_CONN * conn, 
 			   pptp_call_cb callback, char *phonenr);
+int pptp_conn_established(PPTP_CONN * conn);
 /* soft close.  Will callback on completion. */
 void pptp_call_close(PPTP_CONN * conn, PPTP_CALL * call);
 /* hard close. */
