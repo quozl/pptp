@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.24 2003/01/21 00:43:37 quozl Exp $
+ * $Id: pptp.c,v 1.25 2003/02/14 14:53:52 reink Exp $
  */
 
 #include <sys/types.h>
@@ -47,7 +47,7 @@
 int syncppp = 0;
 
 struct in_addr get_ip_address(char *name);
-int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
+int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd);
 void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
 int get_call_id(int sock, pid_t gre, pid_t pppd, 
 		 u_int16_t *call_id, u_int16_t *peer_call_id);
@@ -218,7 +218,8 @@ int main(int argc, char **argv, char **envp) {
         fatal("Could not launch pppd");
       }
   } else { /* ! launchpppd */
-      pty_fd=tty_fd=0;
+      pty_fd = tty_fd = STDIN_FILENO;
+      close(STDOUT_FILENO); /* close unused file descriptor, that is redirected to the pty */
       child_pid=getpid();
       parent_pid=0; /* don't kill pppd */
   }
@@ -228,7 +229,7 @@ int main(int argc, char **argv, char **envp) {
      * Step 2: Open connection to call manager
      *         (Launch call manager if necessary.)
      */
-    callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp);
+    callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp, pty_fd);
 
   /* Step 5: Exchange PIDs, get call ID */
   } while (get_call_id(callmgr_sock, parent_pid, child_pid, 
@@ -292,7 +293,7 @@ struct in_addr get_ip_address(char *name) {
   return retval;
 }
 
-int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, char **envp)
+int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, char **envp, int pty_fd)
 {
   /* Try to open unix domain socket to call manager. */
   struct sockaddr_un where;
@@ -324,6 +325,8 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv, 
       case 0: /* child */
 	  {
 	      close (fd);
+	      /* close the pty in the call manager */
+	      close(pty_fd);
 	      launch_callmgr(inetaddr, phonenr, argc,argv,envp);
 	  }
       default: /* parent */
