@@ -1,3 +1,8 @@
+Thu Aug  7 12:20:09 2003  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.c (decaps_gre): fix reporting of packet loss.
+	From: Chris Wilson
+
 Wed Jun 25 12:59:28 2003 Rein Klazes <rklazes@xs4all.nl>
 
         * pptp_callmgr.c: Wait for the replies on our Call-Clear-Request's and
