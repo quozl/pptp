@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.5 2002/10/16 04:14:30 quozl Exp $
+ * $Id: util.c,v 1.6 2002/10/16 04:45:36 quozl Exp $
  */
 
 #include <stdio.h>
@@ -14,6 +14,9 @@
 #ifndef PROGRAM_NAME
 #define PROGRAM_NAME "pptp"
 #endif
+
+/* implementation of log_string, defined as extern in util.h */
+char *log_string = "anon";
 
 static void open_log(void) __attribute__ ((constructor));
 static void close_log(void) __attribute__ ((destructor));
@@ -30,8 +33,8 @@ va_list ap;						\
 char buf[256], string[256];				\
 va_start(ap, format);					\
 vsnprintf(buf, sizeof(buf), format, ap);		\
-snprintf(string, sizeof(string), "%s[%s:%s:%d]: %s",	\
-	 label, func, file, line, buf);			\
+snprintf(string, sizeof(string), "%s %s[%s:%s:%d]: %s",	\
+	 log_string, label, func, file, line, buf);	\
 va_end(ap)
 
 void _log(char *func, char *file, int line, char *format, ...) {

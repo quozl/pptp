@@ -1,4 +1,10 @@
-Wed Oct 02 10:31:00 BST  2002 Chris Wilson <chris@netservers.co.uk>
+Fri Oct 11 15:44 BST  2002 Chris Wilson <chris@netservers.co.uk>
+
+	* pptp.c util.c util.h: added "--logstring" option to help identify
+	  connections in syslog output where multiple connections are made
+	  from the same host.
+
+Wed Oct 02 10:31 BST  2002 Chris Wilson <chris@netservers.co.uk>
 
 	* pptp_gre.c pqueue.c: changed some "log" statements to "warn" to
 	  reflect the severity of the condition, allowing much better filtering

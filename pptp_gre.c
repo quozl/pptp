@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.17 2002/10/16 04:14:30 quozl Exp $
+ * $Id: pptp_gre.c,v 1.18 2002/10/16 04:45:36 quozl Exp $
  */
 
 #include <sys/types.h>

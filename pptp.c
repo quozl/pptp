@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.20 2002/10/16 04:14:30 quozl Exp $
+ * $Id: pptp.c,v 1.21 2002/10/16 04:45:36 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -115,6 +115,7 @@ int main(int argc, char **argv, char **envp) {
 	  {"debug", 0, 0, 0},
 	  {"sync", 0, 0, 0},
 	  {"timeout", 1, 0, 0},
+	  {"logstring", 1, 0, 0},
           {0, 0, 0, 0}
       };
       int option_index = 0;
@@ -149,6 +150,8 @@ int main(int argc, char **argv, char **envp) {
 	    } else {
 	      packet_timeout = new_packet_timeout;
 	    }
+	  } else if (option_index == 6) {/* --logstring */
+	    log_string = optarg;
 	  } /* else {
             other pptp options come here 
 	  } */
