@@ -1,3 +1,12 @@
+Wed Jun 18 12:19:09 2003 Rein Klazes <rklazes@xs4all.nl>
+
+        * pptp_gre.c: Instead of logging the (a)synchronous mode
+        of ppp, only issue a warning when it conflicts with the
+        mode of pptp.
+        Comparing two sequence numbers for(in)equality is safe even when
+        a wrap-around has occurred. This contrasts with comparing for 
+        smaller/bigger. Remove a few unneeded tests for wrap-around.
+
 Tue Jun 17 19:40:41 2003 Rein Klazes <rklazes@xs4all.nl>
 
         * dirutil.c, ppp_fcs.c, pptp.c, pptp_gre.c, util.c, vector_test.c,

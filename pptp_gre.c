@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.31 2003/06/18 08:30:23 reink Exp $
+ * $Id: pptp_gre.c,v 1.32 2003/06/18 14:33:26 reink Exp $
  */
 
 #include <sys/types.h>
@@ -365,10 +365,8 @@ int decaps_gre (int fd, callback_t callback, int cl)
         stats.rx_truncated++;
         return 0; 
     }
-    /* check for out-of-order sequence number */
-    /* (handle sequence number wrap-around, and try to do it right) */
-    if ( first || (seq == seq_recv + 1) || 
-            WRAPPED(seq, seq_recv)){
+    /* check for expected sequence number */
+    if ( first || (seq == seq_recv + 1)) { /* wrap-around safe */
 #if REORDER_LOGGING_VERBOSE
         log("accepting packet %d", seq);
 #endif
@@ -376,11 +374,13 @@ int decaps_gre (int fd, callback_t callback, int cl)
         first = 0;
         seq_recv = seq;
         return callback(cl, buffer + ip_len + headersize, payload_len);
-
-    } else if ( seq < seq_recv + 1 || WRAPPED(seq_recv,seq) ) {
+    /* out of order, check if the number is too low and discard thepacket. 
+     * (handle sequence number wrap-around, and try to do it right) */
+    } else if ( seq < seq_recv + 1 || WRAPPED(seq_recv, seq) ) {
         log("discarding duplicate or old packet %d (expecting %d)",
                 seq, seq_recv + 1);
         stats.rx_underwin++;
+    /* sequence number too high, is it reasonably close? */
     } else if ( seq < seq_recv + MISSING_WINDOW ||
             WRAPPED(seq, seq_recv + MISSING_WINDOW) ) {
 #if 1 /* some logging of reordening is required, we might miss some "side effects" */
@@ -388,6 +388,7 @@ int decaps_gre (int fd, callback_t callback, int cl)
 #endif
         pqueue_add(seq, buffer + ip_len + headersize, payload_len);
         stats.rx_buffered++;
+    /* no, packet must be discarded */
     } else {
         warn("discarding bogus packet %d (expecting %d)", seq, seq_recv + 1);
         stats.rx_overwin++;
@@ -400,16 +401,16 @@ int dequeue_gre (callback_t callback, int cl)
 {
     pqueue_t *head;
     int status;
-
+    /* process packets in the queue that either are expected or have 
+     * timed out. */
     head = pqueue_head();
     while ( head != NULL &&
-            ( (head->seq == seq_recv + 1)      || 
-              (WRAPPED(head->seq, seq_recv)) ||
+            ( (head->seq == seq_recv + 1) || /* wrap-around safe */ 
               (pqueue_expiry_time(head) <= 0) 
             )
           ) {
-
-        if (head->seq != seq_recv + 1 && !WRAPPED(head->seq, seq_recv)) {
+        /* if it is timed out... */
+        if (head->seq != seq_recv + 1 ) {  /* wrap-around safe */          
             stats.rx_lost += head->seq - seq_recv - 1;
 #ifdef REORDER_LOGGING
             log("timeout waiting for %d packets", head->seq - seq_recv - 1);
