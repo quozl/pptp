@@ -1,3 +1,9 @@
+pptp-linux (1.1-1) frozen unstable; urgency=low
+
+  * Increment version
+
+ -- James Cameron <james.cameron@compaq.com>  Sat,  2 Mar 2002 03:25:07 +1100
+
 pptp-linux (1.0.3-2) frozen unstable; urgency=low
 
   * Update upstream distribution information. Closes: #97159.
