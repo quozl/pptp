@@ -1,32 +1,37 @@
 VERSION = 1.1.0
-VERSION_DEFINE = '-DPPTP_LINUX_VERSION="${VERSION}"'
-
-CC	= gcc -Wall
-RM	= rm -f
-DEBUG	= -g
-INCLUDE =
-CFLAGS  = -O1 $(VERSION_DEFINE) $(DEBUG) $(INCLUDE) -DPROGRAM_NAME=\"pptp\"
-LIBS	=
-LDFLAGS	= -lutil
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
-CFLAGS += '-DPPPD_BINARY="/usr/sbin/pppd"'
+PPPD = /usr/sbin/pppd
 #################################################################
 
+CC	= gcc
+RM	= rm -f
+DEBUG	= -g
+INCLUDE =
+CFLAGS  = -Wall -O1 $(DEBUG) $(INCLUDE)
+LIBS	=
+LDFLAGS	= -lutil
+
 PPTP_BIN = pptp
+
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
             inststr.o util.o version.o \
 	    pptp_quirks.o orckit_quirks.o
 
 PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
-	    pptp_quirks.h orckit_quirks.h
+	    pptp_quirks.h orckit_quirks.h config.h
 
 all: $(PPTP_BIN)
 
 $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
+
+config.h:
+	echo "/* text added by Makefile target config.h */" >> config.h
+	echo "#define PPTP_LINUX_VERSION \"$(VERSION)\"" >> config.h
+	echo "#define PPPD_BINARY \"$(PPPD)\"" >> config.h
 
 vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o
