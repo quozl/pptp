@@ -1,3 +1,8 @@
+Wed Nov 20 16:07:30 2002  James Cameron  <quozl@us.netrek.org>
+
+	* Makefile (dist): adjust distribution target to include new files
+	since prior use.
+
 Wed Nov 20 15:17:12 2002  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c: hid many packet reordering log calls in an ifdef,

@@ -1,4 +1,4 @@
-VERSION = 1.1.0
+VERSION = 1.2.0-rc1
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
@@ -43,8 +43,6 @@ clobber: clean
 	$(RM) $(PPTP_BIN) vector_test
 
 distclean: clobber
-	$(RM) pptp-linux-*.tar.gz
-	$(RM) -r pptp-linux-*
 
 test: vector_test
 
@@ -52,32 +50,9 @@ dist: clobber
 	$(RM) pptp-linux-$(VERSION).tar.gz
 	$(RM) -r pptp-linux-$(VERSION)
 	mkdir pptp-linux-$(VERSION)
-	mkdir pptp-linux-$(VERSION)/Documentation
-	mkdir pptp-linux-$(VERSION)/Reference
-	cp \
-AUTHORS COPYING INSTALL Makefile NEWS README TODO USING		\
-dirutil.c dirutil.h inststr.c inststr.h ppp_fcs.c ppp_fcs.h	\
-pptp.c pptp_callmgr.c pptp_callmgr.h pptp_ctrl.c pptp_ctrl.h	\
-pptp_gre.c pptp_gre.h pptp_msg.h pptp_options.h			\
-util.c util.h vector.c vector.h vector_test.c	\
-version.c version.h \
-  pptp-linux-$(VERSION)
-	cp \
-Documentation/DESIGN.CALLMGR	\
-Documentation/DESIGN.PPTP	\
-Documentation/PORTING	\
-  pptp-linux-$(VERSION)/Documentation
-	cp \
-Reference/README	\
-Reference/ms-chap.txt	\
-Reference/pptp-draft.txt	\
-Reference/rfc1661.txt	\
-Reference/rfc1662.txt	\
-Reference/rfc1701.txt	\
-Reference/rfc1702.txt	\
-Reference/rfc1990.txt	\
-Reference/rfc791.txt	\
-Reference/rfc793.txt	\
-  pptp-linux-$(VERSION)/Reference
+	cp --recursive ChangeLog Makefile *.c *.h pptp.8 Documentation \
+Reference AUTHORS COPYING INSTALL NEWS README DEVELOPERS TAGS TODO USING \
+	pptp-linux-$(VERSION)/
 	tar czf pptp-linux-$(VERSION).tar.gz pptp-linux-$(VERSION)
 	$(RM) -r pptp-linux-$(VERSION)
+	md5sum pptp-linux-$(VERSION).tar.gz
