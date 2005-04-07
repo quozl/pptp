@@ -1,3 +1,46 @@
+8th April 2005
+
+On Thu, Apr 07, 2005 at 07:36:41AM -0700, Roark Hennessy wrote:
+> I find in order to get the tunnel working I have to do a
+> route add -host <target_vpn_addr> gateway <my-netgear-wireless-router> dev
++ethN
+> Can this be done automatically in the config somewhere?
+
+Not everybody needs this in order to get the tunnel working, it depends
+on the configuration of the server, and it is problematic calculating
+the correct route to add.  However, the GUI PPTP client (pptpconfig)
+does this automatically, and when done unnecessarily it seems harmless.
+
+I'll take a patch that implements the same thing in C within pptp, so
+that people who don't use the GUI get it done for them.
+
+Here's what the pptpconfig.php program does;
+
+- the IP address of the PPTP server is obtained from the name, using
+  gethostbyname(),
+
+- the command "ip route get $ip | head -1" is executed, where $ip is the
+  IP address determined above, and the result of the command is stored;
+  it is a route specification of the path to the server before the
+  tunnel is started,
+
+- in routing_start(), an "ip route add" command is done using the route
+  specification obtained above,
+
+- when the tunnel is shutdown, an "ip route del" command is done using
+  the same route specification.
+
+I would prefer that the patch implements this by embedding the
+equivalent syscalls within the pptp program, rather than use system() or
+popen() to execute the /usr/sbin/ip program.
+
+I would also prefer that there be a command line option for disabling
+the feature.
+
+
+--
+
+
 10th March 2005
 
 - call manager is not being reused as it was designed to be; if a
@@ -95,4 +138,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.22 2005/03/10 01:18:20 quozl Exp $	
+$Id: TODO,v 1.23 2005/04/07 23:35:11 quozl Exp $	
