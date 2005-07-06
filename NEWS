@@ -1,4 +1,5 @@
 - adopt sigpipe for use with SIGALRM on control connection [Wolter/Cameron]
+- fixes known valgrind heap violations in 1.6.0 [Cameron]
 - properly report control connection echo reply loss [Wolter]
 
 Release 1.6.0: (18th February 2005)
@@ -104,4 +105,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.41 2005/03/10 01:18:20 quozl Exp $	
+$Id: NEWS,v 1.42 2005/07/06 09:39:38 quozl Exp $	
