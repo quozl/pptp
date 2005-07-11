@@ -1,3 +1,8 @@
+Mon Jul 11 13:17:37 2005  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.c (decaps_gre): silently discard packets that are not
+	for this call.  Reported by: Alan Jenkins.
+
 Thu Mar 31 17:41:17 2005  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_ctrl.c (pptp_dispatch): handle signals first, since there's

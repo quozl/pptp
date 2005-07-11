@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.38 2004/06/26 04:43:38 quozl Exp $
+ * $Id: pptp_gre.c,v 1.39 2005/07/11 03:23:48 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -352,7 +352,10 @@ int decaps_gre (int fd, callback_t callback, int cl)
         stats.rx_invalid++;
         return 0;
     }
-    if (PPTP_GRE_IS_A(ntoh8(header->ver))) { /* acknowledgement present */
+    /* silently discard packets not for this call */
+    if (ntoh16(header->call_id) != pptp_gre_call_id) return 0;
+    /* test if acknowledgement present */
+    if (PPTP_GRE_IS_A(ntoh8(header->ver))) { 
         u_int32_t ack = (PPTP_GRE_IS_S(ntoh8(header->flags)))?
             header->ack:header->seq; /* ack in different place if S = 0 */
         ack = ntoh32( ack);
