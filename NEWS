@@ -1,6 +1,8 @@
+Release 1.7.0: (27th July 2005)
+
 - silently discard packets not for the call [Cameron/Jenkins]
 - adopt sigpipe for use with SIGALRM on control connection [Wolter/Cameron]
-- fixes known valgrind heap violations in 1.6.0 [Cameron]
+- fixes known valgrind heap violations in 1.6.0 [Cameron/Thorne]
 - properly report control connection echo reply loss [Wolter]
 
 Release 1.6.0: (18th February 2005)
@@ -106,4 +108,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.43 2005/07/11 03:23:48 quozl Exp $	
+$Id: NEWS,v 1.44 2005/07/27 10:51:44 quozl Exp $	

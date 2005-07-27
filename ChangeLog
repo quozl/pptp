@@ -1,3 +1,7 @@
+Wed Jul 27 20:49:30 2005  James Cameron  <quozl@us.netrek.org>
+
+	* pptp-1.7.0 released.
+
 Mon Jul 11 13:17:37 2005  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c (decaps_gre): silently discard packets that are not
