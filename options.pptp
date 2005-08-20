@@ -1,5 +1,5 @@
 ###############################################################################
-# $Id: options.pptp,v 1.1 2005/02/18 01:40:23 quozl Exp $
+# $Id: options.pptp,v 1.2 2005/08/20 13:16:38 quozl Exp $
 #
 # Sample PPTP PPP options file /etc/ppp/options.pptp
 # Options used by PPP when a connection is made by a PPTP client.
@@ -38,7 +38,7 @@ nodeflate
 # ppp-2.4.2 or later with MPPE only, kernel module ppp_mppe.o
 # {{{
 # Require MPPE 128-bit encryption
-require-mppe-128
+#require-mppe-128
 # }}}
 
 # http://polbox.com/h/hs001/ fork from PPP project by Jan Dubiec

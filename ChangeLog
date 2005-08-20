@@ -1,3 +1,13 @@
+Sat Aug 20 23:14:25 2005  James Cameron  <quozl@us.netrek.org>
+
+	* options.pptp: default to not require MPPE, per Red Hat Bugzilla
+	#166394.
+
+Thu Aug 11 10:46:32 2005  James Cameron  <quozl@us.netrek.org>
+
+	* PROTOCOL-SECURITY: add write-up regarding protocol security risks.
+	* Makefile (dist): add PROTOCOL-SECURITY write-up.
+
 Wed Jul 27 20:49:30 2005  James Cameron  <quozl@us.netrek.org>
 
 	* pptp-1.7.0 released.

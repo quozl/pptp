@@ -1,3 +1,6 @@
+- default options file to not require MPPE (#166394) [Howarth]
+- add PROTOCOL-SECURITY discussion [Cameron/Mueller]
+
 Release 1.7.0: (27th July 2005)
 
 - silently discard packets not for the call [Cameron/Jenkins]
@@ -108,4 +111,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.44 2005/07/27 10:51:44 quozl Exp $	
+$Id: NEWS,v 1.45 2005/08/20 13:16:38 quozl Exp $	
