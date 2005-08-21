@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.38 2005/03/10 01:18:20 quozl Exp $
+# $Id: Makefile,v 1.39 2005/08/21 00:15:04 quozl Exp $
 VERSION=1.7.0
 RELEASE=
 
@@ -70,7 +70,7 @@ dist: clobber
 	mkdir pptp-$(VERSION)
 	cp --recursive ChangeLog Makefile *.c *.h options.pptp pptp.8 \
 		Documentation Reference AUTHORS COPYING INSTALL NEWS \
-		README DEVELOPERS TODO USING \
+		README DEVELOPERS TODO USING PROTOCOL-SECURITY \
 		pptp-$(VERSION)/
 	$(RM) -r pptp-$(VERSION)/CVS pptp-$(VERSION)/*/CVS
 	tar czf pptp-$(VERSION)$(RELEASE).tar.gz pptp-$(VERSION)
