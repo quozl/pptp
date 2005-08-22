@@ -1,3 +1,4 @@
+- remove superfluous sigset [Cameron/Gono]
 - default options file to not require MPPE (#166394) [Howarth]
 - add PROTOCOL-SECURITY discussion [Cameron/Mueller]
 
@@ -111,4 +112,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.45 2005/08/20 13:16:38 quozl Exp $	
+$Id: NEWS,v 1.46 2005/08/22 00:49:48 quozl Exp $	
