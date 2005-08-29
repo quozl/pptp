@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.42 2004/11/09 21:56:46 quozl Exp $
+ * $Id: pptp.c,v 1.43 2005/08/29 05:51:12 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -76,6 +76,7 @@ void usage(char *progname)
             "  pppd pty \"%s <hostname> --nolaunchpppd <pptp options>\"\n"
             "\n"
             "Available pptp options:\n"
+            "  --version        Display version number and exit\n"
             "  --phone <number>	Pass <number> to remote host as phone number\n"
             "  --nolaunchpppd	Do not launch pppd, for use as a pppd pty\n"
             "  --quirks <quirk>	Work around a buggy PPTP implementation\n"
@@ -172,6 +173,7 @@ int main(int argc, char **argv, char **envp)
 	    {"nobuffer", 0, 0, 0},
 	    {"idle-wait", 1, 0, 0},
 	    {"max-echo-wait", 1, 0, 0},
+	    {"version", 0, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -243,6 +245,9 @@ int main(int argc, char **argv, char **envp)
                         max_echo_wait = x;
                     }
 		    fprintf(stderr, "--max-echo-wait ignored, not yet implemented\n");
+                } else if (option_index == 12) { /* --version */
+		    fprintf(stdout, "%s\n", version);
+		    exit(0);
                 }
                 break;
             case '?': /* unrecognised option */
