@@ -60,6 +60,7 @@ cp pptp-${VERSION}${RELEASE}.tar.gz /usr/src/rpm/SOURCES/pptp-${VERSION}.tar.gz
 #rm -rf pptp-extras-${VERSION}/
 cd /home/james/pptp-client/specs
 fakeroot rpmbuild -ba pptp.spec
+# mdomsch comments that "--addsign" is needed here.  [2005-11-07]
 
 # publish
 cd ~/public_html/external/mine/pptp/
