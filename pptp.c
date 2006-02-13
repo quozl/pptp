@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.43 2005/08/29 05:51:12 quozl Exp $
+ * $Id: pptp.c,v 1.44 2006/02/13 03:06:25 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -43,7 +43,11 @@
 #include "pptp_callmgr.h"
 #include "pptp_gre.h"
 #include "version.h"
+#if defined(__linux__)
+#include <linux/prctl.h>
+#else
 #include "inststr.h"
+#endif
 #include "util.h"
 #include "pptp_quirks.h"
 #include "pqueue.h"
@@ -351,6 +355,10 @@ int main(int argc, char **argv, char **envp)
 
     snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", 
             ttyname(tty_fd));
+#ifdef PR_SET_NAME
+    rc = prctl(PR_SET_NAME, "pptpgw", 0, 0, 0);
+    if (rc != 0) perror("prctl");
+#endif
     inststr(argc, argv, envp, buf);
     if (sigsetjmp(env, 1)!= 0) goto shutdown;
 

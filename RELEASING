@@ -8,7 +8,7 @@ pushd pptp-extras && cvs update -d && popd
 
 # set shell variables for version
 # (use -rc1 for release candidate 1, or blank for final release)
-VERSION=1.7.0
+VERSION=1.7.1
 RELEASE=
 
 TAG_VERSION=`echo ${VERSION}|tr . _`
@@ -70,6 +70,7 @@ cp /home/james/pptp-client/pptp-extras-${VERSION}${RELEASE}.tar.gz ./
 cp /usr/src/rpm/SRPMS/pptp-${VERSION}${RELEASE}*.src.rpm ./
 cp /usr/src/rpm/RPMS/i386/pptp-${VERSION}${RELEASE}*.i386.rpm ./
 # debian packages
+fakeroot dpkg-buildpackage -us -uc
 #cp ~/pptp-client/pptp_${VERSION}${RELEASE}_i386.deb ./
 #cp ~/pptp-client/pptp_${VERSION}${RELEASE}_i386.changes ./
 #cp ~/pptp-client/pptp_${VERSION}${RELEASE}.dsc ./

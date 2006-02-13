@@ -1,3 +1,13 @@
+Mon Feb 13 14:01:34 2006  James Cameron  <quozl@us.netrek.org>
+
+	* pptp-1.7.1 released.
+
+Fri Feb 10 10:59:31 2006  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c: use prctl(2) to set process name for gateway process so
+	that killall(1) of pptp will affect control connection call
+	manager only.
+
 Mon Aug 29 15:42:03 2005  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.c: add --version feature.
