@@ -59,8 +59,7 @@ cp pptp-${VERSION}${RELEASE}.tar.gz /usr/src/rpm/SOURCES/pptp-${VERSION}.tar.gz
 #cd ..
 #rm -rf pptp-extras-${VERSION}/
 cd /home/james/pptp-client/specs
-fakeroot rpmbuild -ba pptp.spec
-# mdomsch comments that "--addsign" is needed here.  [2005-11-07]
+fakeroot rpmbuild -ba --sign pptp.spec
 
 # publish
 cd ~/public_html/external/mine/pptp/
@@ -112,40 +111,40 @@ upw
 # http://quozl.linux.org.au/pptp/
 # sign mail
 
-mutt -s "pptp-1.6.0 released" pptpclient-devel@lists.sourceforge.net <<EOF
+mutt -s "pptp-1.7.1 released" pptpclient-devel@lists.sourceforge.net <<EOF
 G'day,
 
-PPTP Client 1.6.0 is released.
+PPTP Client 1.7.1 is released.
+This is a minor release with very little changed.
 
-Changes since 1.5.0 are:
-- fix double-free on stop control connection reply [Kivity]
-- add --idle-wait option [Cameron]
-- fix segfault on fatal connection error [Kivity]
-- prevent a possible signal race [Kivity]
-- prevent kill of init [Shurdeek]
-- portability fix for non-Linux systems [Quinot]
-- rename package from pptp-linux to pptp [Cameron]
+Changes since 1.7.0 are:
+- use prctl(2) to set process name [Cameron]
+- add --version option [Cameron]
+- remove superfluous sigset [Cameron/Gono]
+- default options file to not require MPPE (#166394) [Howarth]
+- add PROTOCOL-SECURITY discussion [Cameron/Mueller]
 
 Can be downloaded from:
 	http://sourceforge.net/project/showfiles.php?group_id=33063
 
-45032f7d676afc86d6493427e92f1afb  pptp-1.6.0-0.i386.rpm
-f91b9aaf56e7704814ddba65b3352e9c  pptp-1.6.0-0.src.rpm
-9a706327fb9827541d7c86d48ceb9631  pptp-1.6.0.tar.gz
+d70f0d807112f6347977d662cf3fe032  pptp-1.7.1-2.i386.rpm
+db9054d8a7654cf79b240d7a28f0168f  pptp-1.7.1-2.src.rpm
+b47735ba5d6d37dfdbccb85afc044ede  pptp-1.7.1.tar.gz
 EOF
 
 # to add to process
 # add sourceforge publishing step
 # NEW USER REQUEST ... ensure .src.rpm is published to sourceforge
-ftp upload.sourceforge.net
-anonymous
-qz@hp.com
+ftp -n upload.sourceforge.net <<EOF
+user anonymous
+pass qz@hp.com
 cd incoming
 passive
 hash
-put pptp-1.6.0-0.i386.rpm
-put pptp-1.6.0-0.src.rpm
-put pptp-1.6.0.tar.gz
+put pptp-1.7.1-2.i386.rpm
+put pptp-1.7.1-2.src.rpm
+put pptp-1.7.1.tar.gz
+EOF
 
 # https://sf.net/projects/pptpd
 # login

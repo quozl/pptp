@@ -1,3 +1,9 @@
+13th February 2006
+
+pty write may block, which prevents read, according to patch #502930 on
+SourceForge.  Generally a lack of flow control.  We don't implement flow
+control well.
+
 8th April 2005
 
 On Thu, Apr 07, 2005 at 07:36:41AM -0700, Roark Hennessy wrote:
@@ -93,4 +99,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.26 2006/02/13 03:06:25 quozl Exp $	
+$Id: TODO,v 1.27 2006/02/13 04:13:16 quozl Exp $	
