@@ -1,3 +1,7 @@
+Mon Apr  3 15:28:37 2006  James Cameron  <quozl@us.netrek.org>
+
+	* pptpsetup: add script contributed by Nelson Ferraz.
+
 Mon Mar 27 10:09:20 2006  James Cameron  <quozl@us.netrek.org>
 
 	* options.pptp: add refuse-pap to default options, along with a
