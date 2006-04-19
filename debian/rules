@@ -13,7 +13,6 @@ build-stamp:
 	dh_testdir
 
 	$(MAKE)
-	ln -f Reference/README Reference/README.Reference
 
 	touch build-stamp
 
@@ -23,7 +22,6 @@ clean:
 	rm -f build-stamp
 
 	-$(MAKE) distclean
-	rm -f Reference/README.Reference
 
 	dh_clean
 
