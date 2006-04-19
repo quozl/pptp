@@ -1,3 +1,12 @@
+Thu Apr 20 08:52:45 2006  James Cameron  <quozl@us.netrek.org>
+
+	* Makefile (dist): remove Reference documentation as the license
+	is non-free.  The documentation is available from other sources.
+
+Thu Apr 20 08:49:01 2006  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.8: merge Debian contribution in 1.7.0-2 by Ola Lundqvist.
+
 Mon Apr  3 15:28:37 2006  James Cameron  <quozl@us.netrek.org>
 
 	* pptpsetup: add script contributed by Nelson Ferraz.

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.40 2006/02/13 03:06:25 quozl Exp $
+# $Id: Makefile,v 1.41 2006/04/19 22:58:56 quozl Exp $
 VERSION=1.7.1
 RELEASE=
 
@@ -25,10 +25,10 @@ PPTP_BIN = pptp
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
             inststr.o util.o version.o \
-	    pptp_quirks.o orckit_quirks.o pqueue.o pptp_callmgr.o
+	    pptp_quirks.o orckit_quirks.o pqueue.o pptp_callmgr.o routing.o
 
 PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
-	    pptp_quirks.h orckit_quirks.h config.h pqueue.h
+	    pptp_quirks.h orckit_quirks.h config.h pqueue.h routing.h
 
 all: config.h $(PPTP_BIN)
 
@@ -69,7 +69,7 @@ dist: clobber
 	$(RM) -r pptp-$(VERSION)
 	mkdir pptp-$(VERSION)
 	cp --recursive ChangeLog Makefile *.c *.h options.pptp pptp.8 \
-		Documentation Reference AUTHORS COPYING INSTALL NEWS \
+		Documentation AUTHORS COPYING INSTALL NEWS \
 		README DEVELOPERS TODO USING PROTOCOL-SECURITY \
 		pptp-$(VERSION)/
 	$(RM) -r pptp-$(VERSION)/CVS pptp-$(VERSION)/*/CVS
