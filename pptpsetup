@@ -3,7 +3,7 @@
 use strict;
 use Getopt::Long;
 
-my ( $SERVER, $TUNNEL, $DOMAIN, $USERNAME, $PASSWORD, $ENCRYPT, $DONT_START );
+my ( $SERVER, $TUNNEL, $DOMAIN, $USERNAME, $PASSWORD, $ENCRYPT, $NOSTART );
 
 my $result = GetOptions(
     "server|s=s"   => \$SERVER,
@@ -12,7 +12,7 @@ my $result = GetOptions(
     "username|u=s" => \$USERNAME,
     "password|p=s" => \$PASSWORD,
     "encrypt|e"    => \$ENCRYPT,
-    "dont-start"   => \$DONT_START,
+    "nostart"      => \$NOSTART,
     "help|h"       => \&help
 );
 
@@ -23,28 +23,19 @@ my $result = GetOptions(
 ($USERNAME)   = $USERNAME   =~ m{^(.+)$}    or die "Invalid username ('$USERNAME').\n";
 ($PASSWORD)   = $PASSWORD   =~ m{^(.+)$}    or warn "Warning: null password!\n";
 ($ENCRYPT)    = $ENCRYPT    =~ m{^(.*)$};
-($DONT_START) = $DONT_START =~ m{^(.*)$};
+($NOSTART)    = $NOSTART    =~ m{^(.*)$};
 
- # put '\' between domain and username IF specified a domain
+# put '\' between domain and username IF specified a domain
 $DOMAIN = "$DOMAIN\\" if $DOMAIN;
 
 # CONFIGURE
-
-# create the /etc/ppp/options.pptp file, which sets options common to all tunnelings
-my $options_file = "/etc/ppp/options.$TUNNEL";
-open( FILE, ">$options_file" )
-  or die "Can't write '$options_file': $!\n";
-
-print FILE "lock noauth nobsdcomp nodeflate\n";
-
-close FILE;
 
 # create or add lines to the /etc/ppp/chap-secrets file, which holds usernames and passwords
 my $chap_secrets_file = '/etc/ppp/chap-secrets';
 open( FILE, ">>$chap_secrets_file" )
   or die "Can't write '$chap_secrets_file\n': $!";
 
-print FILE "$DOMAIN$USERNAME PPTP $PASSWORD *\n";
+print FILE "# added by pptpsetup\n$DOMAIN$USERNAME $TUNNEL \"$PASSWORD\" *\n";
 
 close FILE;
 
@@ -54,28 +45,36 @@ open( FILE, ">$tunnel_file" )
   or die "Can't write '$tunnel_file': $!\n";
 
 print FILE <<"TUNNEL";
-pty "pptp $SERVER --nolaunchpppd
-
+# written by pptpsetup
+pty "pptp $SERVER --nolaunchpppd"
+lock
+noauth
+nobsdcomp
+nodeflate
 name $DOMAIN$USERNAME
-
-remotename PPTP
-require-mppe-128
-file /etc/ppp/options.$TUNNEL
+remotename $TUNNEL
 ipparam $TUNNEL
 TUNNEL
+
+print FILE "require-mppe-128\n" if $ENCRYPT;
 
 close FILE;
 
 # start tunneling with pon
-system("pon $TUNNEL") unless $DONT_START;
+system("pppd call $TUNNEL updetach") unless $NOSTART;
 
 ###
 
 sub help {
     print <<'EOF';
-ppptsetup --server <SERVER> --tunnel <TUNNEL> [--domain <DOMAIN>]
+pptpsetup version 1.0, Copyright (C) 2006 Nelson Ferraz
+pptpsetup comes with ABSOLUTELY NO WARRANTY; for details see source.
+This is free software, and you are welcome to redistribute it
+under certain conditions; see source for details.
+
+pptpsetup --server <SERVER> --tunnel <TUNNEL> [--domain <DOMAIN>]
           --username <USERNAME> --password <PASSWORD>
-          [--encrypt] [--dont-start]
+          [--encrypt] [--nostart]
 
 Flags:
 
@@ -85,7 +84,7 @@ Flags:
 * the username you are to use,
 * the password you are to use,
 * whether encryption is required,
-* whether the connection shouldn't be started after config.
+* whether to not start the connection after configuration.
 EOF
 
     exit;
@@ -108,7 +107,7 @@ pptpsetup - Point-to-Point Tunneling Protocol setup
 PPTP Client is a Linux, FreeBSD, NetBSD and OpenBSD client for the 
 proprietary Microsoft Point-to-Point Tunneling Protocol, PPTP. 
 
-This script configures PPTP Client.
+This script configures PPTP Client on Linux.
 
 =head1 OPTIONS
 
@@ -138,7 +137,7 @@ the password you are to use
 
 whether encryption is required
 
-=item dont-start
+=item nostart
 
 whether the connection shouldn't be started after config
 
