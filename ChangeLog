@@ -1,3 +1,17 @@
+Wed Aug  2 16:21:08 2006  James Cameron  <quozl@us.netrek.org>
+
+	* routing.c, routing.h, pptp_callmgr.c (callmgr_main): add route
+	to pptp server.  Experimental feature.
+
+Wed Aug  2 16:19:06 2006  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c: fix a few compilation warnings.
+
+Wed Aug  2 16:02:23 2006  James Cameron  <quozl@us.netrek.org>
+
+	* pptpsetup: merge updates from Nelson Ferraz as of 24th April.
+	* Makefile (dist): include pptpsetup in kit.
+
 Thu Apr 20 08:52:45 2006  James Cameron  <quozl@us.netrek.org>
 
 	* Makefile (dist): remove Reference documentation as the license

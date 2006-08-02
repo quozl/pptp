@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.44 2006/02/13 03:06:25 quozl Exp $
+ * $Id: pptp.c,v 1.45 2006/08/02 06:22:34 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -44,7 +44,7 @@
 #include "pptp_gre.h"
 #include "version.h"
 #if defined(__linux__)
-#include <linux/prctl.h>
+#include <sys/prctl.h>
 #else
 #include "inststr.h"
 #endif
@@ -358,8 +358,9 @@ int main(int argc, char **argv, char **envp)
 #ifdef PR_SET_NAME
     rc = prctl(PR_SET_NAME, "pptpgw", 0, 0, 0);
     if (rc != 0) perror("prctl");
-#endif
+#else
     inststr(argc, argv, envp, buf);
+#endif
     if (sigsetjmp(env, 1)!= 0) goto shutdown;
 
     signal(SIGINT,  sighandler);
@@ -455,7 +456,13 @@ void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,
       char *my_argv[3] = { argv[0], inet_ntoa(inetaddr), phonenr };
       char buf[128];
       snprintf(buf, sizeof(buf), "pptp: call manager for %s", my_argv[1]);
+#ifdef PR_SET_NAME
+      int rc;
+      rc = prctl(PR_SET_NAME, "pptpcm", 0, 0, 0);
+      if (rc != 0) perror("prctl");
+#else
       inststr(argc, argv, envp, buf);
+#endif
       exit(callmgr_main(3, my_argv, envp));
 }
 

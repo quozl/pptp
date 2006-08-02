@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.39 2005/07/11 03:23:48 quozl Exp $
+ * $Id: pptp_gre.c,v 1.40 2006/08/02 06:22:34 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -197,7 +197,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
         warn("short read (%d): %s", end, strerror(saved_errno));
 	switch (saved_errno) {
 	  case EMSGSIZE: {
-	    int optval, optlen = sizeof(optval);
+	    socklen_t optval, optlen = sizeof(optval);
 	    warn("transmitted GRE packet triggered an ICMP destination unreachable, fragmentation needed, or exceeds the MTU of the network interface");
 #define IP_MTU 14
 	    if(getsockopt(fd, IPPROTO_IP, IP_MTU, &optval, &optlen) < 0)

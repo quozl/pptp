@@ -1,6 +1,6 @@
 - remove non-free reference documentation [Cameron]
 - fix quoting and pppd options [Lundqvist]
-- pptpsetup script [Ferraz]
+- pptpsetup script (Debian Bug #167216?) [Ferraz]
 
 Release 1.7.1: (13th February 2006)
 
@@ -120,4 +120,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.50 2006/04/19 22:58:56 quozl Exp $	
+$Id: NEWS,v 1.51 2006/08/02 06:22:34 quozl Exp $	

@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.31 2005/03/31 07:42:39 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.32 2006/08/02 06:22:34 quozl Exp $
  */
 
 #include <errno.h>
@@ -360,7 +360,7 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn, pptp_call_cb callback,
     }
     /* fill in the phone number if it was specified */
     if (phonenr) {
-        strncpy(packet.phone_num, phonenr, sizeof(packet.phone_num));
+        strncpy((char *)packet.phone_num, phonenr, sizeof(packet.phone_num));
         packet.phone_len = strlen(phonenr);
         if( packet.phone_len > sizeof(packet.phone_num))
             packet.phone_len = sizeof(packet.phone_num);
