@@ -1,3 +1,4 @@
+- add route to PPTP server [Cameron]
 - remove non-free reference documentation [Cameron]
 - fix quoting and pppd options [Lundqvist]
 - pptpsetup script (Debian Bug #167216?) [Ferraz]
@@ -120,4 +121,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.51 2006/08/02 06:22:34 quozl Exp $	
+$Id: NEWS,v 1.52 2006/08/02 07:02:47 quozl Exp $	

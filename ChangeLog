@@ -1,7 +1,9 @@
 Wed Aug  2 16:21:08 2006  James Cameron  <quozl@us.netrek.org>
 
 	* routing.c, routing.h, pptp_callmgr.c (callmgr_main): add route
-	to pptp server.  Experimental feature.
+	to PPTP server.  Experimental feature.  Note that this has a
+	side-effect of leaving a route to the server in place after the
+	tunnel has terminated.
 
 Wed Aug  2 16:19:06 2006  James Cameron  <quozl@us.netrek.org>
 

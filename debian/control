@@ -7,7 +7,7 @@ Build-Depends: debhelper
 
 Package: pptp
 Architecture: any
-Depends: ${shlibs:Depends}, ppp
+Depends: ${shlibs:Depends}, ppp, binutils, iproute
 Replaces: pptp-linux
 Conflicts: pptp-linux
 Description: Point-to-Point Tunneling Protocol (PPTP) Client

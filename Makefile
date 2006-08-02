@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.42 2006/08/02 06:22:34 quozl Exp $
+# $Id: Makefile,v 1.43 2006/08/02 07:02:47 quozl Exp $
 VERSION=1.7.1
 RELEASE=
 
@@ -56,6 +56,7 @@ test: vector_test
 install:
 	mkdir -p $(BINDIR)
 	install -o root -m 555 pptp $(BINDIR)
+	install -o root -m 555 pptpsetup $(BINDIR)
 	mkdir -p $(MANDIR)
 	install -m 644 pptp.8 $(MANDIR)
 	mkdir -p $(PPPDIR)

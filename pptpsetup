@@ -190,7 +190,7 @@ sub Check_MPPE_in_kernel {
 }
 
 sub Check_MPPE_in_pppd {
-    my $command = q/strings \`which pppd\`|grep -i mppe|wc --lines/;
+    my $command = q/strings `which pppd`|grep -i mppe|wc --lines/;
     my $answer  = `$command`;
     if ($answer > 0) {
         # ok!

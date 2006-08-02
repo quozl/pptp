@@ -1,3 +1,9 @@
+pptp (1.7.2-rc4) unstable; urgency=low
+
+  * test
+
+ -- James Cameron <quozl@us.netrek.org>  Wed,  2 Aug 2006 16:27:58 +1000
+
 pptp (1.7.1-0) unstable; urgency=low
 
   * test cut
