@@ -1,3 +1,7 @@
+Thu Aug 17 14:36:18 2006  James Cameron  <quozl@us.netrek.org>
+
+	* Makefile: add pptpsetup man page using pod2man.
+
 Wed Aug  2 16:21:08 2006  James Cameron  <quozl@us.netrek.org>
 
 	* routing.c, routing.h, pptp_callmgr.c (callmgr_main): add route

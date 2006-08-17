@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.43 2006/08/02 07:02:47 quozl Exp $
+# $Id: Makefile,v 1.44 2006/08/17 04:39:28 quozl Exp $
 VERSION=1.7.1
 RELEASE=
 
@@ -30,10 +30,13 @@ PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
 PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
 	    pptp_quirks.h orckit_quirks.h config.h pqueue.h routing.h
 
-all: config.h $(PPTP_BIN)
+all: config.h $(PPTP_BIN) pptpsetup.8
 
 $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
+
+pptpsetup.8: pptpsetup
+	pod2man $? > $@
 
 config.h: 
 	echo "/* text added by Makefile target config.h */" > config.h
@@ -59,6 +62,7 @@ install:
 	install -o root -m 555 pptpsetup $(BINDIR)
 	mkdir -p $(MANDIR)
 	install -m 644 pptp.8 $(MANDIR)
+	install -m 644 pptpsetup.8 $(MANDIR)
 	mkdir -p $(PPPDIR)
 	install -m 644 options.pptp $(PPPDIR)
 
