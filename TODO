@@ -1,3 +1,10 @@
+18th September 2006
+
+https://sourceforge.net/tracker/?func=detail&atid=407155&aid=1560433&group_id=33063
+
+Feature request, add code to attempt multiple IPs in a round-robin DNS
+rotation.
+
 12th September 2006
 
 https://sourceforge.net/tracker/?func=detail&atid=407152&aid=1556506&group_id=33063
@@ -105,4 +112,4 @@ Things to do:
    already-existing gre-copy process in the same way it uses an
    already-existing call manager.
 
-$Id: TODO,v 1.28 2006/09/11 23:00:00 quozl Exp $	
+$Id: TODO,v 1.29 2006/09/18 01:50:05 quozl Exp $	
