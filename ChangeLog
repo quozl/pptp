@@ -1,3 +1,9 @@
+Thu Oct 12 13:52:46 2006  James Cameron  <quozl@us.netrek.org>
+
+	* pptp_gre.c (pptp_gre_copy): select(2) may return error, and the
+	code was checking the read file descriptors without checking if
+	they are valid.
+
 Thu Aug 17 14:36:18 2006  James Cameron  <quozl@us.netrek.org>
 
 	* Makefile: add pptpsetup man page using pod2man.

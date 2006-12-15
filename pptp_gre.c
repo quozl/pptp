@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.40 2006/08/02 06:22:34 quozl Exp $
+ * $Id: pptp_gre.c,v 1.41 2006/12/15 04:40:49 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -155,7 +155,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
             tv.tv_usec %= 1000000;
         }
         retval = select(max_fd + 1, &rfds, NULL, NULL, tvp);
-        if (FD_ISSET(pty_fd, &rfds)) {
+        if (retval > 0 && FD_ISSET(pty_fd, &rfds)) {
             if (decaps_hdlc(pty_fd, encaps_gre,  gre_fd) < 0)
                 break;
         } else if (retval == 0 && ack_sent != seq_recv) {
@@ -163,7 +163,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
             /* send ack with no payload */
             encaps_gre(gre_fd, NULL, 0);         
         }
-        if (FD_ISSET(gre_fd, &rfds)) {
+        if (retval > 0 && FD_ISSET(gre_fd, &rfds)) {
             if (decaps_gre (gre_fd, encaps_hdlc, pty_fd) < 0)
                 break;
         }
