@@ -1,3 +1,4 @@
+- ignore transient send errors [Adda]
 - fix flaw in return status check of select in GRE pipe [Cameron]
 - add route to PPTP server [Cameron]
 - remove non-free reference documentation [Cameron]
@@ -122,4 +123,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.54 2006/12/15 04:40:49 quozl Exp $	
+$Id: NEWS,v 1.55 2006/12/15 05:05:51 quozl Exp $	

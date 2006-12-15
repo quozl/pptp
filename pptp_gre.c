@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.41 2006/12/15 04:40:49 quozl Exp $
+ * $Id: pptp_gre.c,v 1.42 2006/12/15 05:05:51 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -479,6 +479,8 @@ int encaps_gre (int fd, void *pack, unsigned int len)
             ack_sent = seq_recv;
             rc = write(fd, &u.header, sizeof(u.header) - sizeof(u.header.seq));
             if (rc < 0) {
+                if (errno == ENOBUFS)
+                    rc = 0;         /* Simply ignore it */
                 stats.tx_failed++;
             } else if (rc < sizeof(u.header) - sizeof(u.header.seq)) {
                 stats.tx_short++;
@@ -511,6 +513,8 @@ int encaps_gre (int fd, void *pack, unsigned int len)
     /* print_packet(2, u.buffer, header_len + len); */
     rc = write(fd, u.buffer, header_len + len);
     if (rc < 0) {
+        if (errno == ENOBUFS)
+            rc = 0;         /* Simply ignore it */
         stats.tx_failed++;
     } else if (rc < header_len + len) {
         stats.tx_short++;

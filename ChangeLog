@@ -1,3 +1,8 @@
+Fri Dec 15 02:02:08 2006  Michael Adda  <michael@hackers.co.il>
+
+	* pptp_gre.c: when we fail to write due to a transient error
+	simply ignore it (treat it as a drop).
+
 Thu Oct 12 13:52:46 2006  James Cameron  <quozl@us.netrek.org>
 
 	* pptp_gre.c (pptp_gre_copy): select(2) may return error, and the
