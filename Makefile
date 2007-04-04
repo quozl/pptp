@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.44 2006/08/17 04:39:28 quozl Exp $
+# $Id: Makefile,v 1.45 2007/04/04 06:43:15 quozl Exp $
 VERSION=1.7.1
 RELEASE=
 
@@ -24,10 +24,10 @@ PPTP_BIN = pptp
 
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
-            inststr.o util.o version.o \
+            inststr.o util.o version.o test.o \
 	    pptp_quirks.o orckit_quirks.o pqueue.o pptp_callmgr.o routing.o
 
-PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h \
+PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h test.h \
 	    pptp_quirks.h orckit_quirks.h config.h pqueue.h routing.h
 
 all: config.h $(PPTP_BIN) pptpsetup.8

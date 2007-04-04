@@ -1,3 +1,4 @@
+- add packet reordering test code for pptpd testing [Cameron]
 - ignore transient send errors [Adda]
 - fix flaw in return status check of select in GRE pipe [Cameron]
 - add route to PPTP server [Cameron]
@@ -123,4 +124,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.55 2006/12/15 05:05:51 quozl Exp $	
+$Id: NEWS,v 1.56 2007/04/04 06:43:15 quozl Exp $	

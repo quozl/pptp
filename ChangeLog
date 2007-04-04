@@ -1,3 +1,13 @@
+Wed Apr  4 16:30:24 2007  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.8, pptp.c: add --test-type and --test-rate options.
+
+	* pptp_gre.c: use alternate write(2) function for sending GRE
+	packets.
+
+	* test.c: implement reordering tests to assist with pptpd testing.
+	These tests reorder the stream to simulate real-world examples.
+
 Fri Dec 15 02:02:08 2006  Michael Adda  <michael@hackers.co.il>
 
 	* pptp_gre.c: when we fail to write due to a transient error

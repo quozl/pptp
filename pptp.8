@@ -85,6 +85,15 @@ Bind to specified IP address instead of wildcard
 .B \-\-loglevel <level>
 Sets the debugging level (0=low, 1=default, 2=high)
 
+.TP
+.B \-\-test-type <n>
+Enable packet reordering tests that damage the integrity of the packet stream to the server.  Use this only when testing servers.  Zero is the default, and means that packets are sent in the correct order.  A value of one (1) causes a single swap between two packets, such that the sequence numbers might be 1 2 3 4 6 5 7 8 9.  A value of two (2) causes ten packets to be buffered, then sent out of order but ascending, such that the sequence numbers might be 1 2 3 4 16 6 7 8 9 10 11 12 13 14 15 17 18 19 20.  A value of three (3) causes ten packets to be buffered, then sent in the reverse order, like this; 1 2 3 4 16 15 14 13 12 11 10 9 8 7 6 5 17 18 19 20.
+
+.TP
+.B \-\-test-rate <n>
+Sets the number of packets to pass before causing a reordering test.  Default is 100.  Has no effect if test-type is zero.  The result of test types 2 and 3 are undefined if this value is less than ten.
+
+
 .SH "QUIRKS"
 
 .TP

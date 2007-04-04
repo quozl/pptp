@@ -2,7 +2,7 @@
  *            the pppd from the command line.
  *            C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp.c,v 1.45 2006/08/02 06:22:34 quozl Exp $
+ * $Id: pptp.c,v 1.46 2007/04/04 06:43:15 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -60,6 +60,8 @@
 int syncppp = 0;
 int log_level = 1;
 int disable_buffer = 0;
+int test_type = 0;
+int test_rate = 100;
 
 struct in_addr get_ip_address(char *name);
 int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd, int gre_fd);
@@ -93,7 +95,9 @@ void usage(char *progname)
             "  --max-echo-wait		Time to wait before giving up on lack of reply\n"
             "  --logstring <name>	Use <name> instead of 'anon' in syslog messages\n"
             "  --localbind <addr>	Bind to specified IP address instead of wildcard\n"
-            "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n",
+            "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n"
+            "  --test-type <type>	Damage the packet stream by reordering\n"
+            "  --test-rate <n>		Do the test every n packets\n",
 
             version, progname, progname);
     log("%s called with wrong arguments, program not started.", progname);
@@ -178,6 +182,8 @@ int main(int argc, char **argv, char **envp)
 	    {"idle-wait", 1, 0, 0},
 	    {"max-echo-wait", 1, 0, 0},
 	    {"version", 0, 0, 0},
+            {"test-type", 1, 0, 0},
+            {"test-rate", 1, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -252,6 +258,10 @@ int main(int argc, char **argv, char **envp)
                 } else if (option_index == 12) { /* --version */
 		    fprintf(stdout, "%s\n", version);
 		    exit(0);
+                } else if (option_index == 13) { /* --test-type */
+                    test_type = atoi(optarg);
+                } else if (option_index == 14) { /* --test-rate */
+                    test_rate = atoi(optarg);
                 }
                 break;
             case '?': /* unrecognised option */

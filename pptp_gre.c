@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.42 2006/12/15 05:05:51 quozl Exp $
+ * $Id: pptp_gre.c,v 1.43 2007/04/04 06:43:15 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -20,6 +21,7 @@
 #include "pptp_gre.h"
 #include "util.h"
 #include "pqueue.h"
+#include "test.h"
 
 #define PACKET_MAX 8196
 /* test for a 32 bit counter overflow */
@@ -41,6 +43,9 @@ int encaps_hdlc(int fd, void *pack, unsigned int len);
 int decaps_gre (int fd, callback_t callback, int cl);
 int encaps_gre (int fd, void *pack, unsigned int len);
 int dequeue_gre(callback_t callback, int cl);
+
+/* test redirection function pointers */
+struct test_redirections *my;
 
 #if 1
 #include <stdio.h>
@@ -94,6 +99,8 @@ int pptp_gre_bind(struct in_addr inetaddr)
     if (connect(s, (struct sockaddr *) &src_addr, sizeof(src_addr)) < 0) {
         warn("connect: %s", strerror(errno)); close(s); return -1;
     }
+    my = test_redirections();
+
     return s;
 }
 
@@ -477,7 +484,8 @@ int encaps_gre (int fd, void *pack, unsigned int len)
             /* ack is in odd place because S == 0 */
             u.header.seq = hton32(seq_recv);
             ack_sent = seq_recv;
-            rc = write(fd, &u.header, sizeof(u.header) - sizeof(u.header.seq));
+            rc = (*my->write)(fd, &u.header,
+                                 sizeof(u.header) - sizeof(u.header.seq));
             if (rc < 0) {
                 if (errno == ENOBUFS)
                     rc = 0;         /* Simply ignore it */
@@ -511,7 +519,7 @@ int encaps_gre (int fd, void *pack, unsigned int len)
     seq_sent = seq; seq++;
     /* write this baby out to the net */
     /* print_packet(2, u.buffer, header_len + len); */
-    rc = write(fd, u.buffer, header_len + len);
+    rc = (*my->write)(fd, u.buffer, header_len + len);
     if (rc < 0) {
         if (errno == ENOBUFS)
             rc = 0;         /* Simply ignore it */
