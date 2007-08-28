@@ -1,3 +1,4 @@
+- make copyright and license clearer [Cameron/Ananian]
 - add packet reordering test code for pptpd testing [Cameron]
 - ignore transient send errors [Adda]
 - fix flaw in return status check of select in GRE pipe [Cameron]
@@ -124,4 +125,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.56 2007/04/04 06:43:15 quozl Exp $	
+$Id: NEWS,v 1.57 2007/08/28 00:17:13 quozl Exp $	

@@ -1,9 +1,24 @@
-/* pptp.c ... client shell to launch call managers, data handlers, and
- *            the pppd from the command line.
- *            C. Scott Ananian <cananian@alumni.princeton.edu>
- *
- * $Id: pptp.c,v 1.46 2007/04/04 06:43:15 quozl Exp $
- */
+/*
+	an implementation of the PPTP protocol
+	Copyright (C) 2000  Free Software Foundation
+
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+	pptp.c ... client shell to launch call managers, data handlers, and
+	the pppd from the command line.
+*/
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -75,6 +90,13 @@ void usage(char *progname)
 {
     fprintf(stderr,
             "%s\n"
+
+"Copyright (C) 2000  Free Software Foundation\n\n"
+
+"This program comes with ABSOLUTELY NO WARRANTY; for details see source.\n"
+"This is free software, and you are welcome to redistribute it under certain\n"
+"conditions; see source for details.\n\n"
+
             "Usage:\n"
             "  %s <hostname> [<pptp options>] [[--] <pppd options>]\n"
             "\n"
@@ -536,4 +558,3 @@ void launch_pppd(char *ttydev, int argc, char **argv)
     new_argv[i] = NULL;
     execvp(new_argv[0], new_argv);
 }
-

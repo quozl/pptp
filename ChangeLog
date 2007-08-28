@@ -1,3 +1,10 @@
+Tue Aug 28 10:17:36 2007  James Cameron  <quozl@us.netrek.org>
+
+	* README, pptp.c: assign copyright to Free Software Foundation,
+	and make license explicit.
+
+	Signed-off-by: "C. Scott Ananian" <cscott@cscott.net>
+
 Wed Apr  4 16:30:24 2007  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.8, pptp.c: add --test-type and --test-rate options.
