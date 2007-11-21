@@ -1,3 +1,8 @@
+Wed Nov 21 14:29:46 2007  Leo Savernik  <l.savernik@aon.at>
+
+	* pptp_ctrl.c (pptp_fd_set): fix compile with an ANSI
+	C89-compliant compiler.
+
 Tue Aug 28 10:17:36 2007  James Cameron  <quozl@us.netrek.org>
 
 	* README, pptp.c: assign copyright to Free Software Foundation,
