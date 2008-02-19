@@ -28,6 +28,7 @@
 #include <util.h>
 #elif defined(__APPLE__)
 #include <util.h>
+#elif defined (__SVR4) && defined (__sun)
 #else
 #include <pty.h>
 #endif
@@ -67,6 +68,7 @@
 #include "pptp_quirks.h"
 #include "pqueue.h"
 #include "pptp_options.h"
+#include "pptp_compat.h"
 
 #ifndef PPPD_BINARY
 #define PPPD_BINARY "pppd"
@@ -126,7 +128,11 @@ void usage(char *progname)
     exit(1);
 }
 
+#if defined (__SVR4) && defined (__sun)
+struct in_addr localbind = { INADDR_ANY };
+#else
 struct in_addr localbind = { INADDR_NONE };
+#endif
 static int signaled = 0;
 
 /*** do nothing signal handler ************************************************/
@@ -385,8 +391,9 @@ int main(int argc, char **argv, char **envp)
         file2fd("/dev/null", "wb", STDERR_FILENO);
     }
 
-    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s", 
-            ttyname(tty_fd));
+    char *tty_name = ttyname(tty_fd);
+    snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s",
+              tty_name ? tty_name : "(null)");
 #ifdef PR_SET_NAME
     rc = prctl(PR_SET_NAME, "pptpgw", 0, 0, 0);
     if (rc != 0) perror("prctl");

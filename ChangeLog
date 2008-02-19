@@ -1,3 +1,8 @@
+Fri Jan 11 13:20:18 2008  Ilya Voronin  <ivoronin@gmail.com>
+
+	* ppp_fcs.h, pptp.c, pptp_ctrl.h, pptp_gre.h, pptp_msg.h: port to
+	Solaris 10/11.
+
 Wed Nov 21 14:29:46 2007  Leo Savernik  <l.savernik@aon.at>
 
 	* pptp_ctrl.c (pptp_fd_set): fix compile with an ANSI
