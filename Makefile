@@ -1,10 +1,10 @@
-# $Id: Makefile,v 1.46 2008/02/19 05:05:03 quozl Exp $
-VERSION=1.7.1
+# $Id: Makefile,v 1.47 2008/05/14 06:32:52 quozl Exp $
+VERSION=1.7.2
 RELEASE=
 
 #################################################################
 # CHANGE THIS LINE to point to the location of your pppd binary.
-PPPD = /usr/bin/pppd
+PPPD = /usr/sbin/pppd
 #################################################################
 
 BINDIR=$(DESTDIR)/usr/sbin
@@ -17,9 +17,9 @@ OPTIMIZE= -O0
 DEBUG	= -g
 INCLUDE =
 CFLAGS  = -Wall $(OPTIMIZE) $(DEBUG) $(INCLUDE)
-# LIBS	= -lutil
+LIBS	= -lutil
 # Solaris 10
-LIBS	= -lnsl -lsocket -lresolv
+# LIBS	= -lnsl -lsocket -lresolv
 # Solaris Nevada build 14 or above
 # LIBS    = -lnsl -lsocket
 LDFLAGS	=
@@ -28,7 +28,7 @@ PPTP_BIN = pptp
 
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
-            inststr.o util.o version.o test.o \
+	    inststr.o util.o version.o test.o \
 	    pptp_quirks.o orckit_quirks.o pqueue.o pptp_callmgr.o routing.o \
 	    pptp_compat.o
 

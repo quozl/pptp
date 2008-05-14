@@ -1,3 +1,7 @@
+Wed May 14 15:59:17 2008  James Cameron  <quozl@us.netrek.org>
+
+	* pptp-1.7.2 released.
+
 Fri Jan 11 13:20:18 2008  Ilya Voronin  <ivoronin@gmail.com>
 
 	* ppp_fcs.h, pptp.c, pptp_ctrl.h, pptp_gre.h, pptp_msg.h: port to

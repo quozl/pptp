@@ -9,7 +9,7 @@ pushd pptp-extras && cvs update -d && popd
 # set shell variables for version
 # (use -rc1 for release candidate 1, or blank for final release)
 VERSION=1.7.2
-RELEASE=-rc1
+RELEASE=
 
 TAG_VERSION=`echo ${VERSION}|tr . _`
 export VERSION RELEASE TAG_VERSION

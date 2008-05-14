@@ -210,8 +210,8 @@ int main(int argc, char **argv, char **envp)
 	    {"idle-wait", 1, 0, 0},
 	    {"max-echo-wait", 1, 0, 0},
 	    {"version", 0, 0, 0},
-            {"test-type", 1, 0, 0},
-            {"test-rate", 1, 0, 0},
+	    {"test-type", 1, 0, 0},
+	    {"test-rate", 1, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -286,10 +286,10 @@ int main(int argc, char **argv, char **envp)
                 } else if (option_index == 12) { /* --version */
 		    fprintf(stdout, "%s\n", version);
 		    exit(0);
-                } else if (option_index == 13) { /* --test-type */
-                    test_type = atoi(optarg);
-                } else if (option_index == 14) { /* --test-rate */
-                    test_rate = atoi(optarg);
+		} else if (option_index == 13) { /* --test-type */
+		    test_type = atoi(optarg);
+		} else if (option_index == 14) { /* --test-rate */
+		    test_rate = atoi(optarg);
                 }
                 break;
             case '?': /* unrecognised option */
