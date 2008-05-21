@@ -111,25 +111,31 @@ upw
 # http://quozl.linux.org.au/pptp/
 # sign mail
 
-mutt -s "pptp-1.7.1 released" pptpclient-devel@lists.sourceforge.net <<EOF
+mutt -s "pptp-1.7.2 released" pptpclient-devel@lists.sourceforge.net <<EOF
 G'day,
 
-PPTP Client 1.7.1 is released.
-This is a minor release with very little changed.
+PPTP Client 1.7.2 is released.
 
-Changes since 1.7.0 are:
-- use prctl(2) to set process name [Cameron]
-- add --version option [Cameron]
-- remove superfluous sigset [Cameron/Gono]
-- default options file to not require MPPE (#166394) [Howarth]
-- add PROTOCOL-SECURITY discussion [Cameron/Mueller]
+Changes since 1.7.1 are:
+- port for Solaris 10/11 [Voronin]
+- make copyright and license clearer [Cameron/Ananian]
+- add packet reordering test code for pptpd testing [Cameron]
+- ignore transient send errors [Adda]
+- fix flaw in return status check of select in GRE pipe (possibly
+  fixes Debian Bug #427586) [Cameron]
+- add route to PPTP server [Cameron]
+- remove non-free reference documentation [Cameron]
+- fix quoting and pppd options [Lundqvist]
+- pptpsetup script with man page (Debian Bug #167216) [Ferraz]
 
 Can be downloaded from:
+        http://quozl.linux.org.au/pptp/
 	http://sourceforge.net/project/showfiles.php?group_id=33063
 
-d70f0d807112f6347977d662cf3fe032  pptp-1.7.1-2.i386.rpm
-db9054d8a7654cf79b240d7a28f0168f  pptp-1.7.1-2.src.rpm
-b47735ba5d6d37dfdbccb85afc044ede  pptp-1.7.1.tar.gz
+4c3d19286a37459a632c7128c92a9857  pptp-1.7.2.tar.gz
+
+The .tar.gz file is much smaller because the reference documentation
+was removed.
 EOF
 
 # to add to process
