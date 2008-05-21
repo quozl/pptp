@@ -1,3 +1,6 @@
+- add IP_BINARY [Cameron]
+- add include file build dependencies [Cameron]
+
 Release 1.7.2: (14th May 2008)
 
 - port for Solaris 10/11 [Voronin]
@@ -129,4 +132,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.59 2008/05/14 06:32:52 quozl Exp $	
+$Id: NEWS,v 1.60 2008/05/21 23:47:17 quozl Exp $	

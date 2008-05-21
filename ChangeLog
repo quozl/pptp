@@ -1,3 +1,10 @@
+Thu May 22 09:44:19 2008  James Cameron  <quozl@us.netrek.org>
+
+	* routing.c: add config.h and use IP_BINARY.
+
+	* Makefile (IP): add pointer to IP binary, store it in config.h,
+	and add dependencies to support parallel make and development.
+
 Wed May 14 15:59:17 2008  James Cameron  <quozl@us.netrek.org>
 
 	* pptp-1.7.2 released.
