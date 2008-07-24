@@ -129,7 +129,7 @@ void usage(char *progname)
 }
 
 #if defined (__SVR4) && defined (__sun)
-struct in_addr localbind = { INADDR_ANY };
+struct in_addr localbind = { .s_addr = INADDR_ANY };
 #else
 struct in_addr localbind = { INADDR_NONE };
 #endif

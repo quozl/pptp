@@ -1,3 +1,8 @@
+Thu Jul 24 15:28:32 2008  Ilya Voronin  <ivoronin@gmail.com>
+
+	* routing.c, Makefile: fixe use of /bin/ip and all compiler
+	warnings on Solaris.
+
 Thu May 22 09:44:19 2008  James Cameron  <quozl@us.netrek.org>
 
 	* routing.c: add config.h and use IP_BINARY.

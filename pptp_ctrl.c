@@ -1,10 +1,14 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.33 2007/11/21 03:36:47 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.34 2008/07/24 05:37:47 quozl Exp $
  */
 
 #include <errno.h>
+#if defined (__SVR4) && defined (__sun) /* Solaris */
+#define _XPG4_2
+#define __EXTENSIONS__
+#endif /* Solaris */
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>

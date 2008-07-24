@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.21 2006/08/02 06:22:34 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.22 2008/07/24 05:37:47 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -15,6 +15,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined (__SVR4) && defined (__sun)
+#include <strings.h>
+#endif
 #include <assert.h>
 #include <setjmp.h>
 #include <stdio.h>

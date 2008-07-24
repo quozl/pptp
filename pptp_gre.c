@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.43 2007/04/04 06:43:15 quozl Exp $
+ * $Id: pptp_gre.c,v 1.44 2008/07/24 05:37:47 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -14,6 +14,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined (__SVR4) && defined (__sun)
+#include <strings.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include "ppp_fcs.h"

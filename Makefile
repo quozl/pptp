@@ -1,10 +1,12 @@
-# $Id: Makefile,v 1.48 2008/05/21 23:47:17 quozl Exp $
+# $Id: Makefile,v 1.49 2008/07/24 05:37:47 quozl Exp $
 VERSION=1.7.2
 RELEASE=
 
 #################################################################
 # CHANGE THIS LINE to point to the location of binaries
 PPPD = /usr/sbin/pppd
+# Solaris
+# PPPD = /usr/bin/pppd
 IP = /bin/ip
 #################################################################
 
@@ -18,6 +20,8 @@ OPTIMIZE= -O0
 DEBUG	= -g
 INCLUDE =
 CFLAGS  = -Wall $(OPTIMIZE) $(DEBUG) $(INCLUDE)
+# Solaris
+# CFLAGS +=  -D_XPG4_2 -D__EXTENSIONS__
 LIBS	= -lutil
 # Solaris 10
 # LIBS	= -lnsl -lsocket -lresolv
