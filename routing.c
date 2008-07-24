@@ -110,8 +110,10 @@ void routing_init(char *ip) {
     }
 #else /* Solaris */ 
   char buf[256];
+  FILE *p;
+
   snprintf(buf, 255, "%s route get %s", IP_BINARY, ip);
-  FILE *p = popen(buf, "r");
+  p = popen(buf, "r");
   fgets(buf, 255, p);
   /* TODO: check for failure of fgets */
   route = strdup(buf);
@@ -142,8 +144,10 @@ void routing_start() {
   }
 #else /* Solaris */
   char buf[256];
+  FILE *p;
+
   snprintf(buf, 255, "%s route replace %s", IP_BINARY, route);
-  FILE *p = popen(buf, "r");
+  p = popen(buf, "r");
   pclose(p);
 #endif /* Solaris */
 }
@@ -170,8 +174,10 @@ void routing_end() {
   }
 #else /* Solaris */
   char buf[256];
+  FILE *p;
+
   snprintf(buf, 255, "%s route delete %s", IP_BINARY, route);
-  FILE *p = popen(buf, "r");
+  p = popen(buf, "r");
   pclose(p);
 #endif /* Solaris */
 }

@@ -1,3 +1,8 @@
+Thu Jul 24 15:51:30 2008  Paul Howarth  <paul@city-fan.org>
+
+	* routing.c, pptp_compat.c: compilation fixes for old
+	distributions.
+
 Thu Jul 24 15:28:32 2008  Ilya Voronin  <ivoronin@gmail.com>
 
 	* routing.c, Makefile: fixe use of /bin/ip and all compiler

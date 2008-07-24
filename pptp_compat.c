@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stropts.h>
 #include <stdlib.h>
 #include <strings.h>
 #include "pptp_compat.h"

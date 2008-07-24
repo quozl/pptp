@@ -61,9 +61,8 @@
 #include "version.h"
 #if defined(__linux__)
 #include <sys/prctl.h>
-#else
-#include "inststr.h"
 #endif
+#include "inststr.h"
 #include "util.h"
 #include "pptp_quirks.h"
 #include "pqueue.h"
@@ -183,6 +182,7 @@ int main(int argc, char **argv, char **envp)
     struct in_addr inetaddr;
     volatile int callmgr_sock = -1;
     char ttydev[PATH_MAX];
+    char *tty_name;
     int pty_fd, tty_fd, gre_fd, rc;
     volatile pid_t parent_pid, child_pid;
     u_int16_t call_id, peer_call_id;
@@ -391,7 +391,7 @@ int main(int argc, char **argv, char **envp)
         file2fd("/dev/null", "wb", STDERR_FILENO);
     }
 
-    char *tty_name = ttyname(tty_fd);
+    tty_name = ttyname(tty_fd);
     snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s",
               tty_name ? tty_name : "(null)");
 #ifdef PR_SET_NAME
