@@ -1,3 +1,4 @@
+- retain permissions on chap-secrets, closes RH BZ #492090 [Howarth]
 - compilation fixes for older distributions of Linux [Howarth]
 - port routing change feature for Solaris [Voronin]
 - add IP_BINARY [Cameron]
@@ -134,4 +135,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.62 2008/07/24 05:53:05 quozl Exp $	
+$Id: NEWS,v 1.63 2009/03/26 01:16:26 quozl Exp $	
