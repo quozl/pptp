@@ -1,3 +1,8 @@
+Thu Jun 25 11:39:24 2009  James Cameron  <quozl@us.netrek.org>
+
+	* AUTHORS: maintainer mail address change, james.cameron@hp.com is
+	no longer valid.
+
 Mon Jun  1 14:43:00 2009  Paul Howarth  <paul@city-fan.org>
 
 	* pptpsetup: only check for MPPE support in kernel and pppd if
