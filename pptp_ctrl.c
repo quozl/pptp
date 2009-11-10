@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.34 2008/07/24 05:37:47 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.35 2009/11/10 04:44:31 quozl Exp $
  */
 
 #include <errno.h>
@@ -899,6 +899,7 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                     call->callback(conn, call, CALL_OPEN_DONE);
                 log("Outgoing call established (call ID %u, peer's "
                         "call ID %u).\n", call->call_id, call->peer_call_id);
+                vector_insert(conn->call, call->peer_call_id, call);
             }
             break;
         }

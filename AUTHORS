@@ -24,7 +24,8 @@ Peter Surda <shurdeek@routehat.org>
 Nelson Ferraz <nferraz@gmail.com>
 Michael Adda <michael@hackers.co.il>
 Ilya Voronin <ivoronin@gmail.com>
+Charles Shen <cshen@cisco.com>
 
 Package renamed from pptp-linux to pptp after version 1.5.0.
 
-$Id: AUTHORS,v 1.18 2009/06/25 01:40:35 quozl Exp $
+$Id: AUTHORS,v 1.19 2009/11/10 04:44:30 quozl Exp $
