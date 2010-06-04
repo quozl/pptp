@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.35 2009/11/10 04:44:31 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.36 2010/06/04 01:04:12 quozl Exp $
  */
 
 #include <errno.h>
@@ -397,9 +397,10 @@ void pptp_call_close(PPTP_CONN * conn, PPTP_CALL * call)
     /* don't check state against WAIT_DISCONNECT... allow multiple disconnect
      * requests to be made.
      */
-    pptp_send_ctrl_packet(conn, &rqst, sizeof(rqst));
-    pptp_reset_timer();
-    call->state.pns = PNS_WAIT_DISCONNECT;
+    if (pptp_send_ctrl_packet(conn, &rqst, sizeof(rqst))) {
+        pptp_reset_timer();
+        call->state.pns = PNS_WAIT_DISCONNECT;
+    }
     /* call structure will be freed when we have confirmation of disconnect. */
 }
 
@@ -432,9 +433,10 @@ void pptp_conn_close(PPTP_CONN * conn, u_int8_t close_reason)
         pptp_call_close(conn, vector_get_Nth(conn->call, i));
     /* now close connection */
     log("Closing PPTP connection");
-    pptp_send_ctrl_packet(conn, &rqst, sizeof(rqst));
-    pptp_reset_timer(); /* wait 60 seconds for reply */
-    conn->conn_state = CONN_WAIT_STOP_REPLY;
+    if (pptp_send_ctrl_packet(conn, &rqst, sizeof(rqst))) {
+        pptp_reset_timer(); /* wait 60 seconds for reply */
+        conn->conn_state = CONN_WAIT_STOP_REPLY;
+    }
     return;
 }
 
@@ -724,8 +726,8 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                     reply.version = packet->version;
                     /* protocol version not supported */
                     reply.result_code = hton8(5);
-                    pptp_send_ctrl_packet(conn, &reply, sizeof(reply));
-                    pptp_reset_timer(); /* give sender a chance for a retry */
+                    if (pptp_send_ctrl_packet(conn, &reply, sizeof(reply)))
+                        pptp_reset_timer(); /* give sender a chance for a retry */
                 } else { /* same or greater version */
                     if (pptp_send_ctrl_packet(conn, &reply, sizeof(reply))) {
                         conn->conn_state = CONN_ESTABLISHED;
@@ -832,8 +834,8 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                 hton8(1), hton8(PPTP_GENERAL_ERROR_NONE), 0
             };
             logecho( PPTP_ECHO_RQST);
-            pptp_send_ctrl_packet(conn, &reply, sizeof(reply));
-            pptp_reset_timer();
+            if (pptp_send_ctrl_packet(conn, &reply, sizeof(reply)))
+                pptp_reset_timer();
             break;
         }
             /* ----------- OUTGOING CALL MESSAGES ------------ */
@@ -920,9 +922,10 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                 vector_search(conn->call, ntoh16(packet->call_id), &call);
                 if (call->callback != NULL)
                     call->callback(conn, call, CALL_CLOSE_RQST);
-                pptp_send_ctrl_packet(conn, &reply, sizeof(reply));
-                pptp_call_destroy(conn, call);
-                log("Call closed (RQST) (call id %d)", (int) call->call_id);
+                if (pptp_send_ctrl_packet(conn, &reply, sizeof(reply))) {
+                    pptp_call_destroy(conn, call);
+                    log("Call closed (RQST) (call id %d)", (int) call->call_id);
+                }
             }
             break;
         }
@@ -1057,8 +1060,9 @@ static void pptp_handle_timer()
     } else { /* ka_state == NONE */ /* send keep-alive */
         struct pptp_echo_rqst rqst = {
             PPTP_HEADER_CTRL(PPTP_ECHO_RQST), hton32(global.conn->ka_id) };
-        pptp_send_ctrl_packet(global.conn, &rqst, sizeof(rqst));
-        global.conn->ka_state = KA_OUTSTANDING;
+        if (pptp_send_ctrl_packet(global.conn, &rqst, sizeof(rqst))) {
+            global.conn->ka_state = KA_OUTSTANDING;
+        }
     }
     /* check incoming/outgoing call states for !IDLE && !ESTABLISHED */
     for (i = 0; i < vector_size(global.conn->call); i++) {

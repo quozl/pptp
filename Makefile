@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.49 2008/07/24 05:37:47 quozl Exp $
+# $Id: Makefile,v 1.50 2010/06/04 01:04:12 quozl Exp $
 VERSION=1.7.2
 RELEASE=
 
@@ -16,7 +16,7 @@ PPPDIR=$(DESTDIR)/etc/ppp
 
 CC	= gcc
 RM	= rm -f
-OPTIMIZE= -O0
+OPTIMIZE= -O -Wuninitialized
 DEBUG	= -g
 INCLUDE =
 CFLAGS  = -Wall $(OPTIMIZE) $(DEBUG) $(INCLUDE)

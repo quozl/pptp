@@ -1,3 +1,8 @@
+Fri Jun  4 10:54:04 2010  Jan Just Keijser  <jan.just.keijser@gmail.com>
+
+	* pptp_ctrl.c: check for failure return by pptp_send_ctrl_packet
+	and avoid using freed struct conn.
+
 Tue Nov 10 15:39:33 2009  Charles Shen  <cshen@cisco.com>
 
 	* pptp_ctrl.c (ctrlp_disp): add call ID of outgoing call so that
