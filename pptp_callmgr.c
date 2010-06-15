@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.22 2008/07/24 05:37:47 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.23 2010/06/15 05:04:32 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -170,6 +170,7 @@ int callmgr_main(int argc, char **argv, char **envp)
     do {
         int rc;
         fd_set read_set = call_set, write_set;
+        if (pptp_conn_is_dead(conn)) break;
         FD_ZERO (&write_set);
         if (pptp_conn_established(conn)) {
 	  FD_SET (unix_sock, &read_set);
@@ -297,6 +298,7 @@ shutdown:
 	}
         /* with extreme prejudice */
         pptp_conn_destroy(conn);
+        pptp_conn_free(conn);
         vector_destroy(call_list);
     }
 cleanup:

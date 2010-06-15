@@ -1,3 +1,4 @@
+- move free of conn struct out of main loop [Cameron]
 - avoid using conn struct after it is freed [Keijser]
 - correct response to call disconnect notify [Shen]
 - avoid superfluous MPPE capability checks in pptpsetup [Howarth]
@@ -138,4 +139,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.66 2010/06/04 01:04:12 quozl Exp $	
+$Id: NEWS,v 1.67 2010/06/15 05:04:32 quozl Exp $	

@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.36 2010/06/04 01:04:12 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.37 2010/06/15 05:04:32 quozl Exp $
  */
 
 #include <errno.h>
@@ -62,8 +62,11 @@ static struct thread_specific {
 struct PPTP_CONN {
     int inet_sock;
     /* Connection States */
-    enum { 
-        CONN_IDLE, CONN_WAIT_CTL_REPLY, CONN_WAIT_STOP_REPLY, CONN_ESTABLISHED 
+    enum {
+      CONN_IDLE,
+      CONN_WAIT_CTL_REPLY, CONN_WAIT_STOP_REPLY,
+      CONN_ESTABLISHED,
+      CONN_DEAD
     } conn_state; /* on startup: CONN_IDLE */
     /* Keep-alive states */
     enum { 
@@ -454,6 +457,16 @@ void pptp_conn_destroy(PPTP_CONN * conn)
     close(conn->inet_sock);
     /* deallocate */
     vector_destroy(conn->call);
+    conn->conn_state = CONN_DEAD;
+}
+
+int pptp_conn_is_dead(PPTP_CONN * conn)
+{
+    return conn->conn_state == CONN_DEAD;
+}
+
+void pptp_conn_free(PPTP_CONN * conn)
+{
     free(conn);
 }
 
@@ -1046,11 +1059,13 @@ static void pptp_handle_timer()
     int i;
     /* "Keep Alives and Timers, 1": check connection state */
     if (global.conn->conn_state != CONN_ESTABLISHED) {
-        if (global.conn->conn_state == CONN_WAIT_STOP_REPLY) 
+        if (global.conn->conn_state == CONN_WAIT_STOP_REPLY) {
             /* hard close. */
             pptp_conn_destroy(global.conn);
-        else /* soft close */
-            pptp_conn_close(global.conn, PPTP_STOP_NONE);
+            return;
+        }
+        /* soft close */
+        pptp_conn_close(global.conn, PPTP_STOP_NONE);
     }
     /* "Keep Alives and Timers, 2": check echo status */
     if (global.conn->ka_state == KA_OUTSTANDING) {

@@ -1,3 +1,19 @@
+Tue Jun 15 15:02:28 2010  James Cameron  <quozl@us.netrek.org>
+
+	* pptp.c (open_callmgr): fix usage of status returned by waitpid;
+	it must be wrapped by WEXITSTATUS to shift bits as required.
+
+Tue Jun 15 15:00:40 2010  James Cameron  <quozl@laptop.org>
+
+	* pptp_ctrl.c (pptp_conn_is_dead): immediately destroying the
+	connection and freeing the structure has led to segmentation
+	faults on more recent heap implementations, since we use the
+	structure after it has been freed.
+
+	Defer the free of the structure until after all uses of it have
+	ceased, by adding a connection state for dead and terminating the
+	main loop once it is detected.
+
 Fri Jun  4 10:54:04 2010  Jan Just Keijser  <jan.just.keijser@gmail.com>
 
 	* pptp_ctrl.c: check for failure return by pptp_send_ctrl_packet
