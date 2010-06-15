@@ -459,7 +459,7 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
         if (connect(fd, (struct sockaddr *) &where, sizeof(where)) < 0) {
             /* couldn't connect.  We'll have to launch this guy. */
 
-            unlink (where.sun_path);	
+	  unlink (where.sun_path);	/* RACE CONDITION? */
 
             /* fork and launch call manager process */
             switch (pid = fork()) {
@@ -475,7 +475,7 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
                 }
                 default: /* parent */
                     waitpid(pid, &status, 0);
-                    if (status!= 0)
+                    if (WEXITSTATUS(status) != 0)
                         fatal("Call manager exited with error %d", status);
                     break;
             }
