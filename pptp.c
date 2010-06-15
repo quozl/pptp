@@ -459,7 +459,7 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
         if (connect(fd, (struct sockaddr *) &where, sizeof(where)) < 0) {
             /* couldn't connect.  We'll have to launch this guy. */
 
-	  unlink (where.sun_path);	/* RACE CONDITION? */
+            unlink (where.sun_path); /* FIXME: potential race condition */
 
             /* fork and launch call manager process */
             switch (pid = fork()) {
