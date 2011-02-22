@@ -1,3 +1,8 @@
+Mon Feb 21 15:01:14 2011  David Lamparter  <david.lamparter@adyton.net>
+
+	* pptp.c, pptp_callmgr.c, pptp_gre.c, pptp.8: add --rtmark option
+	for specifying the Linux policy routing / netfilter mark.
+
 Tue Jun 15 15:02:28 2010  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.c (open_callmgr): fix usage of status returned by waitpid;

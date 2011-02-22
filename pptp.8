@@ -82,6 +82,16 @@ Use <name> instead of 'anon' in syslog messages
 .B \-\-localbind <addr>
 Bind to specified IP address instead of wildcard
 .TP
+.B \-\-rtmark <n>
+Use specified policy routing mark for all packets.
+This causes both the TCP control connection's packets as well as the
+GRE packets to bear the given policy routing / netfilter mark. This
+can be used with
+.I ip rule
+(from iproute2) to use a separate routing table for the pptp client.
+
+(requires root privileges or the CAP_NET_ADMIN capability.)
+.TP
 .B \-\-loglevel <level>
 Sets the debugging level (0=low, 1=default, 2=high)
 

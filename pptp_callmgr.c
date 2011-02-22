@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.23 2010/06/15 05:04:32 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.24 2011/02/22 02:25:24 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -31,6 +31,7 @@
 #include "routing.h"
 
 extern struct in_addr localbind; /* from pptp.c */
+extern int rtmark;
 
 int open_inetsock(struct in_addr inetaddr);
 int open_unixsock(struct in_addr inetaddr);
@@ -321,6 +322,14 @@ int open_inetsock(struct in_addr inetaddr)
         warn("socket: %s", strerror(errno));
         return s;
     }
+#ifdef SO_MARK
+    if (rtmark) {
+        if (setsockopt(s, SOL_SOCKET, SO_MARK, &rtmark, sizeof(rtmark))) {
+            warn("setsockopt(SO_MARK): %s", strerror(errno));
+            close(s); return -1;
+        }
+    }
+#endif
     if (localbind.s_addr != INADDR_NONE) {
         bzero(&src, sizeof(src));
         src.sin_family = AF_INET;

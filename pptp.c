@@ -118,6 +118,9 @@ void usage(char *progname)
             "  --max-echo-wait		Time to wait before giving up on lack of reply\n"
             "  --logstring <name>	Use <name> instead of 'anon' in syslog messages\n"
             "  --localbind <addr>	Bind to specified IP address instead of wildcard\n"
+#ifdef SO_MARK
+            "  --rtmark <n>	Use specified policy routing mark for all packets\n"
+#endif
             "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n"
             "  --test-type <type>	Damage the packet stream by reordering\n"
             "  --test-rate <n>		Do the test every n packets\n",
@@ -132,6 +135,7 @@ struct in_addr localbind = { .s_addr = INADDR_ANY };
 #else
 struct in_addr localbind = { INADDR_NONE };
 #endif
+int rtmark = 0;
 static int signaled = 0;
 
 /*** do nothing signal handler ************************************************/
@@ -212,6 +216,7 @@ int main(int argc, char **argv, char **envp)
 	    {"version", 0, 0, 0},
 	    {"test-type", 1, 0, 0},
 	    {"test-rate", 1, 0, 0},
+	    {"rtmark", 1, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -290,6 +295,14 @@ int main(int argc, char **argv, char **envp)
 		    test_type = atoi(optarg);
 		} else if (option_index == 14) { /* --test-rate */
 		    test_rate = atoi(optarg);
+		} else if (option_index == 15) { /* --rtmark */
+#ifdef SO_MARK
+		    rtmark = atoi(optarg);
+#else
+		    fprintf(stderr, "--rtmark support was missing when "
+				    "this binary was compiled.\n");
+		    exit(2);
+#endif
                 }
                 break;
             case '?': /* unrecognised option */

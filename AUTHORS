@@ -26,7 +26,8 @@ Michael Adda <michael@hackers.co.il>
 Ilya Voronin <ivoronin@gmail.com>
 Charles Shen <cshen@cisco.com>
 Jan Just Keijser <jan.just.keijser@gmail.com>
+David Lamparter <equinox@diac24.net>
 
 Package renamed from pptp-linux to pptp after version 1.5.0.
 
-$Id: AUTHORS,v 1.20 2010/06/04 01:04:12 quozl Exp $
+$Id: AUTHORS,v 1.21 2011/02/22 02:25:24 quozl Exp $
