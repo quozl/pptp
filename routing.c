@@ -51,7 +51,7 @@ Design discussion.
 The primary task of this module is to add a host route to the PPTP
 server so that the kernel continues to deliver PPTP control and data
 connection packets to the server despite the new PPP interface that is
-created.  The flag --no-host-route is to disable this (not yet implemented).
+created.  The flag --nohostroute is to disable this.
 
 A secondary task may be to implement all-to-tunnel routing if the
 appropriate flag is specified on the command line.  The flag

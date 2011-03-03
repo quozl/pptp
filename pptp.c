@@ -121,6 +121,7 @@ void usage(char *progname)
 #ifdef SO_MARK
             "  --rtmark <n>	Use specified policy routing mark for all packets\n"
 #endif
+            "  --nohostroute		Do not add host route towards <hostname>\n"
             "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n"
             "  --test-type <type>	Damage the packet stream by reordering\n"
             "  --test-rate <n>		Do the test every n packets\n",
@@ -136,6 +137,7 @@ struct in_addr localbind = { .s_addr = INADDR_ANY };
 struct in_addr localbind = { INADDR_NONE };
 #endif
 int rtmark = 0;
+int nohostroute = 0;
 static int signaled = 0;
 
 /*** do nothing signal handler ************************************************/
@@ -217,6 +219,7 @@ int main(int argc, char **argv, char **envp)
 	    {"test-type", 1, 0, 0},
 	    {"test-rate", 1, 0, 0},
 	    {"rtmark", 1, 0, 0},
+	    {"nohostroute", 0, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -303,6 +306,8 @@ int main(int argc, char **argv, char **envp)
 				    "this binary was compiled.\n");
 		    exit(2);
 #endif
+		} else if (option_index == 16) { /* --nohostroute */
+		    nohostroute = 1;
                 }
                 break;
             case '?': /* unrecognised option */

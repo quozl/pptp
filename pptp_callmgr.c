@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.24 2011/02/22 02:25:24 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.25 2011/03/03 22:44:57 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -32,6 +32,7 @@
 
 extern struct in_addr localbind; /* from pptp.c */
 extern int rtmark;
+extern int nohostroute;
 
 int open_inetsock(struct in_addr inetaddr);
 int open_unixsock(struct in_addr inetaddr);
@@ -124,8 +125,10 @@ int callmgr_main(int argc, char **argv, char **envp)
     phonenr = argc == 3 ? argv[2] : NULL;
     if (inet_aton(argv[1], &inetaddr) == 0)
         fatal("Invalid IP address: %s", argv[1]);
-    routing_init(inet_ntoa(inetaddr));
-    routing_start();
+    if (!nohostroute) {
+        routing_init(inet_ntoa(inetaddr));
+        routing_start();
+    }
     /* Step 1: Open sockets. */
     if ((inet_sock = open_inetsock(inetaddr)) < 0)
         fatal("Could not open control connection to %s", argv[1]);
