@@ -9,6 +9,15 @@ Mon Feb 21 15:01:14 2011  David Lamparter  <david.lamparter@adyton.net>
 	* pptp.c, pptp_callmgr.c, pptp_gre.c, pptp.8: add --rtmark option
 	for specifying the Linux policy routing / netfilter mark.
 
+Thu Sep 30 16:16:58 2010  Paul Howarth  <paul@city-fan.org>
+
+	* pptp_ctrl.c: we could maintain a separate vector of peer call
+	IDs and use that when we get a call-disconnect-notify packet to
+	find our call ID and close that call, but as
+	call-disconnect-notify packets are relatively rare, I've tried a
+	slower but simpler approach of doing a linear search through the
+	existing vector to look for the peer's call ID.
+
 Tue Jun 15 15:02:28 2010  James Cameron  <quozl@us.netrek.org>
 
 	* pptp.c (open_callmgr): fix usage of status returned by waitpid;

@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.37 2010/06/15 05:04:32 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.38 2011/03/07 23:48:39 quozl Exp $
  */
 
 #include <errno.h>
@@ -914,7 +914,6 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                     call->callback(conn, call, CALL_OPEN_DONE);
                 log("Outgoing call established (call ID %u, peer's "
                         "call ID %u).\n", call->call_id, call->peer_call_id);
-                vector_insert(conn->call, call->peer_call_id, call);
             }
             break;
         }
@@ -946,15 +945,25 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
         {
             struct pptp_call_clear_ntfy *packet =
                 (struct pptp_call_clear_ntfy *)buffer;
+            int i;
+            u_int16_t our_call_id;
+            u_int16_t peer_call_id = ntoh16(packet->call_id);
             log("Call disconnect notification received (call id %d)",
-                    ntoh16(packet->call_id));
-            if (vector_contains(conn->call, ntoh16(packet->call_id))) {
-                PPTP_CALL * call;
-                ctrlp_error(packet->result_code, packet->error_code,
-                        packet->cause_code, pptp_call_disc_ntfy,
-                        MAX_CALL_DISC_NTFY);
-                vector_search(conn->call, ntoh16(packet->call_id), &call);
-                pptp_call_destroy(conn, call);
+                (int) peer_call_id);
+            /* See if we can map the peer's call id to our own */
+            for (i = 0; i < vector_size(conn->call); i++) {
+                PPTP_CALL * call = vector_get_Nth(conn->call, i);
+                if (call->peer_call_id == peer_call_id) {
+                    our_call_id = call->call_id;
+                    if (vector_contains(conn->call, our_call_id)) {
+                        ctrlp_error(packet->result_code, packet->error_code,
+                            packet->cause_code, pptp_call_disc_ntfy,
+                            MAX_CALL_DISC_NTFY);
+                        vector_search(conn->call, our_call_id, &call);
+                        pptp_call_destroy(conn, call);
+                    }
+                    break;
+                }
             }
             /* XXX we could log call stats here XXX */
             /* XXX not all servers send this XXX */
