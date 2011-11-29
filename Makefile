@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.50 2010/06/04 01:04:12 quozl Exp $
+# $Id: Makefile,v 1.51 2011/11/29 22:05:07 quozl Exp $
 VERSION=1.7.2
 RELEASE=
 
@@ -48,11 +48,13 @@ $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 pptpsetup.8: pptpsetup
 	pod2man $? > $@
 
-config.h: 
-	echo "/* text added by Makefile target config.h */" > config.h
-	echo "#define PPTP_LINUX_VERSION \"$(VERSION)$(RELEASE)\"" >> config.h
-	echo "#define PPPD_BINARY \"$(PPPD)\"" >> config.h
-	echo "#define IP_BINARY \"$(IP)\"" >> config.h
+config.h:
+	( \
+	echo "/* text added by Makefile target config.h */"; \
+	echo "#define PPTP_LINUX_VERSION \"$(VERSION)$(RELEASE)\""; \
+	echo "#define PPPD_BINARY \"$(PPPD)\""; \
+	echo "#define IP_BINARY \"$(IP)\"" \
+	) > config.h
 
 vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o

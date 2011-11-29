@@ -1,3 +1,8 @@
+Wed Nov 30 09:02:18 2011  Paul Howarth  <paul@city-fan.org>
+
+	* Makefile (config.h): fix unexpected build failure with a
+	highly-parallel build (-j16).
+
 Thu Mar  3 12:24:15 2011  David Lamparter  <david.lamparter@adyton.net>
 
 	* pptp.c, pptp_callmgr.c, pptp.8: add -nohostroute option to

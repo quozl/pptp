@@ -1,3 +1,4 @@
+- fix parallel build failure [Howarth]
 - fix call disconnect notify [Howarth]
 - add --nohostroute option to disable routing calls [Lamparter]
 - add --rtmark option for Linux policy routing [Lamparter]
@@ -142,4 +143,4 @@ Release 1.0.0:
 
 - This is the first public release of the pptp-linux package.
 
-$Id: NEWS,v 1.70 2011/03/07 23:48:39 quozl Exp $	
+$Id: NEWS,v 1.71 2011/11/29 22:05:07 quozl Exp $	
