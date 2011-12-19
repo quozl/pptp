@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.48 2011/12/19 07:15:42 quozl Exp $
+ * $Id: pptp_gre.c,v 1.49 2011/12/19 07:18:09 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -88,7 +88,10 @@ uint64_t time_now_usecs(void)
 /*** Open IP protocol socket **************************************************/
 int pptp_gre_bind(struct in_addr inetaddr)
 {
-    struct sockaddr_in src_addr, loc_addr;
+    union {
+        struct sockaddr a;
+        struct sockaddr_in i;
+    } loc_addr, src_addr;
     int s = socket(AF_INET, SOCK_RAW, PPTP_PROTO);
     if (s < 0) { warn("socket: %s", strerror(errno)); return -1; }
 #ifdef SO_MARK
@@ -101,16 +104,16 @@ int pptp_gre_bind(struct in_addr inetaddr)
 #endif
     if (localbind.s_addr != INADDR_NONE) {
         bzero(&loc_addr, sizeof(loc_addr));
-        loc_addr.sin_family = AF_INET;
-        loc_addr.sin_addr   = localbind;
-        if (bind(s, (struct sockaddr *) &loc_addr, sizeof(loc_addr)) != 0) {
+        loc_addr.i.sin_family = AF_INET;
+        loc_addr.i.sin_addr   = localbind;
+        if (bind(s, &loc_addr.a, sizeof(loc_addr.i)) != 0) {
             warn("bind: %s", strerror(errno)); close(s); return -1;
         }
     }
-    src_addr.sin_family = AF_INET;
-    src_addr.sin_addr   = inetaddr;
-    src_addr.sin_port   = 0;
-    if (connect(s, (struct sockaddr *) &src_addr, sizeof(src_addr)) < 0) {
+    src_addr.i.sin_family = AF_INET;
+    src_addr.i.sin_addr   = inetaddr;
+    src_addr.i.sin_port   = 0;
+    if (connect(s, &src_addr.a, sizeof(src_addr.i)) < 0) {
         warn("connect: %s", strerror(errno)); close(s); return -1;
     }
     my = test_redirections();

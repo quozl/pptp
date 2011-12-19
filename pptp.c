@@ -463,7 +463,10 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
         char **envp, int pty_fd, int gre_fd)
 {
     /* Try to open unix domain socket to call manager. */
-    struct sockaddr_un where;
+    union {
+        struct sockaddr a;
+        struct sockaddr_un u;
+    } where;
     const int NUM_TRIES = 3;
     int i, fd;
     pid_t pid;
@@ -473,12 +476,12 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
         fatal("Could not create unix domain socket: %s", strerror(errno));
     }
     /* Make address */
-    callmgr_name_unixsock(&where, inetaddr, localbind);
+    callmgr_name_unixsock(&where.u, inetaddr, localbind);
     for (i = 0; i < NUM_TRIES; i++) {
-        if (connect(fd, (struct sockaddr *) &where, sizeof(where)) < 0) {
+        if (connect(fd, &where.a, sizeof(where)) < 0) {
             /* couldn't connect.  We'll have to launch this guy. */
 
-            unlink (where.sun_path); /* FIXME: potential race condition */
+            unlink (where.u.sun_path); /* FIXME: potential race condition */
 
             /* fork and launch call manager process */
             switch (pid = fork()) {
