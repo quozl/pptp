@@ -565,10 +565,13 @@ int get_call_id(int sock, pid_t gre, pid_t pppd,
 void launch_pppd(char *ttydev, int argc, char **argv)
 {
     char *new_argv[argc + 4];/* XXX if not using GCC, hard code a limit here. */
+    char str_pppd[] = PPPD_BINARY;
+    char str_direct[] = "-direct";
+    char str_38400[] = "38400";
     int i = 0, j;
-    new_argv[i++] = PPPD_BINARY;
+    new_argv[i++] = str_pppd;
 #ifdef USER_PPP
-    new_argv[i++] = "-direct";
+    new_argv[i++] = str_direct;
     /* ppp expects to have stdin connected to ttydev */
     if ((j = open(ttydev, O_RDWR)) == -1)
         fatal("Cannot open %s: %s", ttydev, strerror(errno));
@@ -577,7 +580,7 @@ void launch_pppd(char *ttydev, int argc, char **argv)
     close(j);
 #else
     new_argv[i++] = ttydev;
-    new_argv[i++] = "38400";
+    new_argv[i++] = str_38400;
 #endif
     for (j = 0; j < argc; j++)
         new_argv[i++] = argv[j];

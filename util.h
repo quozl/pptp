@@ -1,7 +1,7 @@
 /* util.h ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.h,v 1.6 2005/03/10 01:18:20 quozl Exp $
+ * $Id: util.h,v 1.7 2011/12/19 07:12:29 quozl Exp $
  */
 
 #ifndef INC_UTIL_H
@@ -10,7 +10,7 @@
 /* log_string is an identifier for this pptp process, passed from
    command line using --log-string=X, and included with every log message.
    Useful for people with multiple pptp sessions open at a time */
-extern char * log_string;
+extern const char * log_string;
 
 /* log_level sets the logging verbosity. Values range from 0 (errors only)
    to 1 (errors and warnings) to 2 (high verbosity, for debugging) */

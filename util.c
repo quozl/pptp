@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.11 2005/08/22 00:49:48 quozl Exp $
+ * $Id: util.c,v 1.12 2011/12/19 07:12:29 quozl Exp $
  */
 
 #include <stdio.h>
@@ -16,7 +16,7 @@
 #endif
 
 /* implementation of log_string, defined as extern in util.h */
-char *log_string = "anon";
+const char *log_string = "anon";
 
 static void open_log(void) __attribute__ ((constructor));
 static void close_log(void) __attribute__ ((destructor));
