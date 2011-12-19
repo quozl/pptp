@@ -15,14 +15,14 @@ extern int packet_timeout_usecs;
 typedef struct pqueue {
   struct pqueue *next;
   struct pqueue *prev;
-  int seq;
+  u_int32_t seq;
   struct timeval expires;
   unsigned char *packet;
   int packlen;
   int capacity;
 } pqueue_t;
 
-int       pqueue_add  (int seq, unsigned char *packet, int packlen);
+int       pqueue_add  (u_int32_t seq, unsigned char *packet, int packlen);
 int       pqueue_del  (pqueue_t *point);
 pqueue_t *pqueue_head ();
 int       pqueue_expiry_time (pqueue_t *entry);

@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.38 2011/03/07 23:48:39 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.39 2011/12/19 07:11:45 quozl Exp $
  */
 
 #include <errno.h>
@@ -197,7 +197,7 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size);
 void pptp_set_link(PPTP_CONN * conn, int peer_call_id);
 
 /*** log error information in control packets *********************************/
-static void ctrlp_error( int result, int error, int cause,
+static void ctrlp_error( int result, u_int8_t error, int cause,
         const char *result_text[], int max_result)
 {
     if( cause >= 0)
@@ -242,7 +242,7 @@ static const char *ctrl_msg_types[] = {
 #define MAX_CTRLMSG_TYPE 15
          
 /*** report a sent packet ****************************************************/
-static void ctrlp_rep( void * buffer, int size, int isbuff)
+static void ctrlp_rep( void * buffer, size_t size, int isbuff)
 {
     struct pptp_header *packet = buffer;
     unsigned int type;
@@ -536,7 +536,7 @@ int pptp_write_some(PPTP_CONN * conn) {
 	    return -1;
         }
     }
-    assert(retval <= conn->write_size);
+    assert((size_t)retval <= conn->write_size);
     conn->write_size -= retval;
     memmove(conn->write_buffer, conn->write_buffer + retval, conn->write_size);
     ctrlp_rep(conn->write_buffer, retval, 0);

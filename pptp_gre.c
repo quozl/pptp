@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.45 2011/02/22 02:25:24 quozl Exp $
+ * $Id: pptp_gre.c,v 1.46 2011/12/19 07:11:45 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -203,8 +203,7 @@ void pptp_gre_copy(u_int16_t call_id, u_int16_t peer_call_id,
 int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
 {
     unsigned char buffer[PACKET_MAX];
-    unsigned int start = 0;
-    int end;
+    ssize_t start = 0, end;
     int status;
     static unsigned int len = 0, escape = 0;
     static unsigned char copy[PACKET_MAX];
@@ -213,7 +212,7 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
     /*  this is the only blocking read we will allow */
     if ((end = read (fd, buffer, sizeof(buffer))) <= 0) {
         int saved_errno = errno;
-        warn("short read (%d): %s", end, strerror(saved_errno));
+        warn("short read (%zd): %s", end, strerror(saved_errno));
 	switch (saved_errno) {
 	  case EMSGSIZE: {
 	    socklen_t optval, optlen = sizeof(optval);
@@ -502,7 +501,7 @@ int encaps_gre (int fd, void *pack, unsigned int len)
                 if (errno == ENOBUFS)
                     rc = 0;         /* Simply ignore it */
                 stats.tx_failed++;
-            } else if (rc < sizeof(u.header) - sizeof(u.header.seq)) {
+            } else if ((size_t)rc < sizeof(u.header) - sizeof(u.header.seq)) {
                 stats.tx_short++;
             } else {
                 stats.tx_acks++;
@@ -536,7 +535,7 @@ int encaps_gre (int fd, void *pack, unsigned int len)
         if (errno == ENOBUFS)
             rc = 0;         /* Simply ignore it */
         stats.tx_failed++;
-    } else if (rc < header_len + len) {
+    } else if ((size_t)rc < header_len + len) {
         stats.tx_short++;
     } else {
         stats.tx_sent++;
