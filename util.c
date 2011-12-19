@@ -1,7 +1,7 @@
 /* util.c ....... error message utilities.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: util.c,v 1.12 2011/12/19 07:12:29 quozl Exp $
+ * $Id: util.c,v 1.13 2011/12/19 07:15:03 quozl Exp $
  */
 
 #include <stdio.h>
@@ -87,7 +87,7 @@ int file2fd(const char *path, const char *mode, int fd)
 static int sigpipe[2];
 
 /* create a signal pipe, returns 0 for success, -1 with errno for failure */
-int sigpipe_create()
+int sigpipe_create(void)
 {
   int rc;
   
@@ -133,20 +133,20 @@ void sigpipe_assign(int signum)
 }
 
 /* return the signal pipe read file descriptor for select(2) */
-int sigpipe_fd()
+int sigpipe_fd(void)
 {
   return sigpipe[0];
 }
 
 /* read and return the pending signal from the pipe */
-int sigpipe_read()
+int sigpipe_read(void)
 {
   int signum;
   read(sigpipe[0], &signum, sizeof(signum));
   return signum;
 }
 
-void sigpipe_close()
+void sigpipe_close(void)
 {
   close(sigpipe[0]);
   close(sigpipe[1]);

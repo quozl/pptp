@@ -123,7 +123,7 @@ void routing_init(char *ip) {
 #endif /* Solaris */
 }
 
-void routing_start() {
+void routing_start(void) {
 #if defined (__SVR4) && defined (__sun) /* Solaris */
   if ( ! dorouting )
      return;
@@ -153,7 +153,7 @@ void routing_start() {
 #endif /* Solaris */
 }
 
-void routing_end() {
+void routing_end(void) {
 #if defined (__SVR4) && defined (__sun) /* Solaris */
   if ( ! dorouting)
     return;

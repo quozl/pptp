@@ -171,7 +171,7 @@ static ssize_t write_reordered(int fd, const void *buf, size_t count)
   }
 }
 
-struct test_redirections *test_redirections()
+struct test_redirections *test_redirections(void)
 {
   static struct test_redirections *my = NULL;
 

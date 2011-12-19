@@ -1,7 +1,7 @@
 /* pptp_ctrl.c ... handle PPTP control connection.
  *                 C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_ctrl.c,v 1.39 2011/12/19 07:11:45 quozl Exp $
+ * $Id: pptp_ctrl.c,v 1.40 2011/12/19 07:15:03 quozl Exp $
  */
 
 #include <errno.h>
@@ -178,7 +178,7 @@ int max_echo_wait = PPTP_TIMEOUT;
 
 /* Local prototypes */
 static void pptp_reset_timer(void);
-static void pptp_handle_timer();
+static void pptp_handle_timer(void);
 /* Write/read as much as we can without blocking. */
 int pptp_write_some(PPTP_CONN * conn);
 int pptp_read_some(PPTP_CONN * conn);
@@ -1063,7 +1063,7 @@ static void pptp_reset_timer(void)
 
 
 /*** Handle keep-alive timer **************************************************/
-static void pptp_handle_timer()
+static void pptp_handle_timer(void)
 {
     int i;
     /* "Keep Alives and Timers, 1": check connection state */

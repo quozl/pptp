@@ -7,5 +7,5 @@ struct rt_msg {
 };
 #endif /* Solaris */
 void routing_init(char *ip);
-void routing_start();
-void routing_end();
+void routing_start(void);
+void routing_end(void);

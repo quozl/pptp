@@ -217,7 +217,7 @@ int pqueue_del (pqueue_t *point) {
 
 
 
-pqueue_t *pqueue_head () {
+pqueue_t *pqueue_head (void) {
   return pq_head;
 }
 

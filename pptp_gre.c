@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.46 2011/12/19 07:11:45 quozl Exp $
+ * $Id: pptp_gre.c,v 1.47 2011/12/19 07:15:03 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -74,7 +74,7 @@ void print_packet(int fd, void *pack, unsigned int len)
 #endif
 
 /*** time_now_usecs ***********************************************************/
-uint64_t time_now_usecs()
+uint64_t time_now_usecs(void)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
