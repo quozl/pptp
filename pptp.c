@@ -151,13 +151,13 @@ void do_nothing(int sig)
 sigjmp_buf env;
 
 /*** signal handler ***********************************************************/
-void sighandler(int sig)
+void sighandler(int sig __attribute__ ((unused)))
 {
     siglongjmp(env, 1);
 }
 
 /*** report statistics signal handler (SIGUSR1) *******************************/
-void sigstats(int sig)
+void sigstats(int sig __attribute__ ((unused)))
 {
     syslog(LOG_NOTICE, "GRE statistics:\n");
 #define LOG(name,value) syslog(LOG_NOTICE, name "\n", stats .value)
@@ -508,7 +508,7 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
 }
 
 /*** call the call manager main ***********************************************/
-void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,
+void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc __attribute__ ((unused)),
         char**argv,char**envp) 
 {
       char *my_argv[3] = { argv[0], inet_ntoa(inetaddr), phonenr };
@@ -566,7 +566,7 @@ void launch_pppd(char *ttydev, int argc, char **argv)
 {
     char *new_argv[argc + 4];/* XXX if not using GCC, hard code a limit here. */
     char str_pppd[] = PPPD_BINARY;
-    char str_direct[] = "-direct";
+    char str_direct[] __attribute__ ((unused)) = "-direct";
     char str_38400[] = "38400";
     int i = 0, j;
     new_argv[i++] = str_pppd;

@@ -2,7 +2,7 @@
  *                    Handles TCP port 1723 protocol.
  *                    C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_callmgr.c,v 1.25 2011/03/03 22:44:57 quozl Exp $
+ * $Id: pptp_callmgr.c,v 1.26 2011/12/19 07:14:19 quozl Exp $
  */
 #include <signal.h>
 #include <sys/time.h>
@@ -41,12 +41,12 @@ void close_unixsock(int fd, struct in_addr inetaddr);
 
 sigjmp_buf callmgr_env;
 
-void callmgr_sighandler(int sig) {
+void callmgr_sighandler(int sig __attribute__ ((unused))) {
     /* TODO: according to signal(2), siglongjmp() is unsafe used here */
     siglongjmp (callmgr_env, 1);
 }
 
-void callmgr_do_nothing(int sig) {
+void callmgr_do_nothing(int sig __attribute__ ((unused))) {
     /* do nothing signal handler */
 }
 
@@ -107,7 +107,7 @@ void call_callback(PPTP_CONN *conn, PPTP_CALL *call, enum call_state state)
  *****************************************************************************/
 
 /*** Call Manager *************************************************************/
-int callmgr_main(int argc, char **argv, char **envp)
+int callmgr_main(int argc, char **argv, char **envp __attribute__ ((unused)))
 {
     struct in_addr inetaddr;
     int inet_sock, unix_sock;
@@ -380,7 +380,7 @@ int open_unixsock(struct in_addr inetaddr)
 }
 
 /*** close_inetsock ***********************************************************/
-void close_inetsock(int fd, struct in_addr inetaddr)
+void close_inetsock(int fd, struct in_addr inetaddr __attribute__ ((unused)))
 {
     close(fd);
 }
