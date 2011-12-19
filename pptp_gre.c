@@ -2,7 +2,7 @@
  *                Handle the IP Protocol 47 portion of PPTP.
  *                C. Scott Ananian <cananian@alumni.princeton.edu>
  *
- * $Id: pptp_gre.c,v 1.47 2011/12/19 07:15:03 quozl Exp $
+ * $Id: pptp_gre.c,v 1.48 2011/12/19 07:15:42 quozl Exp $
  */
 
 #include <sys/types.h>
@@ -25,6 +25,10 @@
 #include "util.h"
 #include "pqueue.h"
 #include "test.h"
+
+/* globals from pptp.c */
+extern struct in_addr localbind;
+extern int rtmark;
 
 #define PACKET_MAX 8196
 /* test for a 32 bit counter overflow */
@@ -85,8 +89,6 @@ uint64_t time_now_usecs(void)
 int pptp_gre_bind(struct in_addr inetaddr)
 {
     struct sockaddr_in src_addr, loc_addr;
-    extern struct in_addr localbind;
-    extern int rtmark;
     int s = socket(AF_INET, SOCK_RAW, PPTP_PROTO);
     if (s < 0) { warn("socket: %s", strerror(errno)); return -1; }
 #ifdef SO_MARK
