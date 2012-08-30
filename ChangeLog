@@ -1,3 +1,11 @@
+Thu Aug 30 13:45:26 2012  Paul Howarth <paul@city-fan.org>
+
+	* options.pptp: fix typo in 'Encryption' comment, add notes and
+	references regarding recent chapcrack exploit, note that the
+	ppp_mppe kernel module will not load into the kernel if it's
+	booted in FIPS mode (http://bugzilla.redhat.com/845112), and fix
+	broken link to Jan Dubiec's ppp_mppe_mppc code.
+
 Wed Nov 30 09:02:18 2011  Paul Howarth  <paul@city-fan.org>
 
 	* Makefile (config.h): fix unexpected build failure with a
