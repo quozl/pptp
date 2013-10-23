@@ -9,9 +9,8 @@ git pull
 VERSION=1.8.0
 RELEASE=
 
-TAG_VERSION=`echo ${VERSION}|tr . _`
-export VERSION RELEASE TAG_VERSION
-echo "VERSION=${VERSION} RELEASE=${RELEASE} TAG_VERSION=${TAG_VERSION}"
+export VERSION RELEASE
+echo "VERSION=${VERSION} RELEASE=${RELEASE}"
 
 # check and fix versions
 egrep "VERSION=|RELEASE=" Makefile
@@ -23,9 +22,7 @@ emacsclient ChangeLog
 git commit -m "release $VERSION$RELEASE" NEWS ChangeLog Makefile
 
 # tag
-TAG=pptp-${TAG_VERSION}${RELEASE}
-echo "TAG=${TAG}"
-git tag ${TAG}
+git tag ${VERSION}
 
 # mkdist
 make dist
@@ -62,7 +59,7 @@ Changes since 1.7.2 are:
 Can be downloaded from:
 	http://sourceforge.net/project/showfiles.php?group_id=33063
 
-??  pptp-1.8.0.tar.gz
+4efce9f263e2c3f38d79d9df222476de  pptp-1.8.0.tar.gz
 EOF
 
 # todo, version matrix, linux distribution down left side, pptp & ppp top,
