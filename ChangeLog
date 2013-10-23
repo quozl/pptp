@@ -1,3 +1,7 @@
+Wed Oct 23 19:04:57 2013  James Cameron  <quozl@laptop.org>
+
+	* pptp-1.8.0: released.
+
 Thu Aug 30 13:45:26 2012  Paul Howarth <paul@city-fan.org>
 
 	* options.pptp: fix typo in 'Encryption' comment, add notes and

@@ -1,3 +1,7 @@
+Release 1.8.0: (23rd October 2013)
+
+- options file, fix option documentation and links [Howarth]
+- fix many warnings [Howarth]
 - fix parallel build failure [Howarth]
 - fix call disconnect notify [Howarth]
 - add --nohostroute option to disable routing calls [Lamparter]
