@@ -149,7 +149,7 @@ int pqueue_add (u_int32_t seq, unsigned char *packet, int packlen) {
     if (point->seq == seq) {
       // queue already contains this packet
       warn("discarding duplicate packet %d", seq);
-      pq_freelist_add(pqueue_t *point);
+      pq_freelist_add(point);
       return -1;
     }
     if (point->seq > seq) {
