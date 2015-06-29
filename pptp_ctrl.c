@@ -928,6 +928,7 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                 PPTP_HEADER_CTRL(PPTP_CALL_CLEAR_NTFY), packet->call_id,
                 1, PPTP_GENERAL_ERROR_NONE, 0, 0, {0}
             };
+            int i;
             log("Received Call Clear Request.");
             if (vector_contains(conn->call, ntoh16(packet->call_id))) {
                 PPTP_CALL * call;
@@ -935,8 +936,9 @@ int ctrlp_disp(PPTP_CONN * conn, void * buffer, size_t size)
                 if (call->callback != NULL)
                     call->callback(conn, call, CALL_CLOSE_RQST);
                 if (pptp_send_ctrl_packet(conn, &reply, sizeof(reply))) {
+                    i = call->call_id;
                     pptp_call_destroy(conn, call);
-                    log("Call closed (RQST) (call id %d)", (int) call->call_id);
+                    log("Call closed (RQST) (call id %d)", i);
                 }
             }
             break;
