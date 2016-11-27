@@ -60,7 +60,7 @@ vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o
 
 clean:
-	$(RM) *.o config.h
+	$(RM) *.o config.h pptpsetup.8
 
 clobber: clean
 	$(RM) $(PPTP_BIN) vector_test
