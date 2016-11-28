@@ -20,3 +20,5 @@ config.h
 
 pptp
 vector_test
+
+pptpsetup.8
