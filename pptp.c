@@ -192,7 +192,7 @@ int main(int argc, char **argv, char **envp)
     struct in_addr inetaddr;
     volatile int callmgr_sock = -1;
     char ttydev[PATH_MAX];
-    char *tty_name;
+    char *pty_name;
     int pty_fd, tty_fd, gre_fd, rc;
     volatile pid_t parent_pid, child_pid;
     u_int16_t call_id, peer_call_id;
@@ -431,9 +431,9 @@ int main(int argc, char **argv, char **envp)
         file2fd("/dev/null", "wb", STDERR_FILENO);
     }
 
-    tty_name = ttyname(tty_fd);
+    pty_name = ttyname(pty_fd);
     snprintf(buf, sizeof(buf), "pptp: GRE-to-PPP gateway on %s",
-              tty_name ? tty_name : "(null)");
+              pty_name ? pty_name : "(null)");
 #ifdef PR_SET_NAME
     rc = prctl(PR_SET_NAME, "pptpgw", 0, 0, 0);
     if (rc != 0) perror("prctl");
