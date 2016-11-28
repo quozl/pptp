@@ -20,6 +20,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <time.h>
 #include "pptp_msg.h"
 #include "pptp_ctrl.h"
 #include "pptp_options.h"
@@ -325,6 +326,26 @@ int pptp_conn_established(PPTP_CONN *conn) {
   return (conn->conn_state == CONN_ESTABLISHED);
 }
 
+int randci ()
+{
+	unsigned short int i=0;
+	int fd;
+
+	fd = open("/dev/random", O_RDONLY);
+	if (fd >= 0) {
+		read(fd, &i, 2);
+		close(fd);
+	}
+
+	if (i == 0) {
+		log("problem: opening /dev/random or getting number");
+		log("using rand()");
+		srand(time(NULL));
+		i = (unsigned short int) (rand() & 0xffff);
+	}
+	return i;
+}
+
 /* This currently *only* works for client call requests.
  * We need to do something else to allocate calls for incoming requests.
  */
@@ -348,6 +369,8 @@ PPTP_CALL * pptp_call_open(PPTP_CONN * conn, pptp_call_cb callback,
     if (!vector_scan(conn->call, 0, PPTP_MAX_CHANNELS - 1, &i))
         /* no more calls available! */
         return NULL;
+    if (i == 0)
+        i = randci();
     /* allocate structure. */
     if ((call = malloc(sizeof(*call))) == NULL) return NULL;
     /* Initialize call structure */
