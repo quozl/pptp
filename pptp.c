@@ -79,6 +79,7 @@ int log_level = 1;
 int disable_buffer = 0;
 int test_type = 0;
 int test_rate = 100;
+int missing_window = MISSING_WINDOW;
 
 struct in_addr get_ip_address(char *name);
 int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd, int gre_fd);
@@ -125,7 +126,9 @@ void usage(char *progname)
             "  --nohostroute		Do not add host route towards <hostname>\n"
             "  --loglevel <level>	Sets the debugging level (0=low, 1=default, 2=high)\n"
             "  --test-type <type>	Damage the packet stream by reordering\n"
-            "  --test-rate <n>		Do the test every n packets\n",
+            "  --test-rate <n>          Do the test every n packets\n"
+            "  --missing-window <n>     Enable 'missing window' validation and set packet\n"
+            "                           polerance (300=default, 6000=recommended)\n",
 
             version, progname, progname);
     log("%s called with wrong arguments, program not started.", progname);
@@ -221,6 +224,7 @@ int main(int argc, char **argv, char **envp)
 	    {"test-rate", 1, 0, 0},
 	    {"rtmark", 1, 0, 0},
 	    {"nohostroute", 0, 0, 0},
+	    {"missing-window", 1, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -309,6 +313,26 @@ int main(int argc, char **argv, char **envp)
 #endif
 		} else if (option_index == 16) { /* --nohostroute */
 		    nohostroute = 1;
+		} else if (option_index == 17) { /* --missing window */
+		    int x = atoi(optarg);
+		    if (x <= 0) {
+			fprintf(stderr, "--missing-window must be integer "
+				"greater than zero\n");
+			log("--missing-window must be integer "
+			    "greater than zero\n");
+			exit(2);
+		    } else if (x < 300) {
+			fprintf(stderr, "--missing-window is set very low: "
+				"default=300, recommended=6000 - proceeding");
+			log("--missing-window is set very low: "
+			    "default=300, recommended=6000 - proceeding\n");
+		    } else {
+			fprintf(stderr, "--missing-window validation is active "
+				"and set to: %d\n", x);
+			log("--missing-window validation is active "
+			    "and set to: %d\n", x);
+			missing_window = x;
+		    }
                 }
                 break;
             case '?': /* unrecognised option */

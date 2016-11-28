@@ -421,8 +421,9 @@ int decaps_gre (int fd, callback_t callback, int cl)
                 seq, seq_recv + 1);
         stats.rx_underwin++;
     /* sequence number too high, is it reasonably close? */
-    } else if ( seq < seq_recv + MISSING_WINDOW ||
-                WRAPPED(seq, seq_recv + MISSING_WINDOW) ) {
+    } else if ( (seq < seq_recv + missing_window ||
+                 WRAPPED(seq, seq_recv + missing_window)) ||
+		(missing_window == -1) ) {
 	stats.rx_buffered++;
         if ( log_level >= 1 )
             log("%s packet %d (expecting %d, lost or reordered)",
