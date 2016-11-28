@@ -46,7 +46,7 @@ $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
 
 pptpsetup.8: pptpsetup
-	pod2man $? > $@
+	pod2man --section=8 $? > $@
 
 config.h:
 	( \
