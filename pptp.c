@@ -340,7 +340,6 @@ int main(int argc, char **argv, char **envp)
             default:
 		usage(argv[0]);
         }
-        if (c == -1) break;  /* no more options for pptp */
     }
 
     /* at least one argument is required */
