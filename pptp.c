@@ -361,7 +361,6 @@ int main(int argc, char **argv, char **envp)
        documented in <1026868263.2855.67.camel@jander> */
     gre_fd = pptp_gre_bind(inetaddr);
     if (gre_fd < 0) {
-        close(callmgr_sock);
         fatal("Cannot bind GRE socket, aborting.");
     }
 
@@ -369,7 +368,6 @@ int main(int argc, char **argv, char **envp)
     if(launchpppd){
         rc = openpty (&pty_fd, &tty_fd, ttydev, NULL, NULL);
         if (rc < 0) { 
-            close(callmgr_sock); 
             fatal("Could not find free pty.");
         }
 
