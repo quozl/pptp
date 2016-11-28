@@ -134,7 +134,7 @@ static const struct {
 #define PPTP_GENERAL_ERROR_BAD_CALLID           5
     { "(Bad-Call ID)", "The Call ID is invalid in this context" },
 #define PPTP_GENERAL_ERROR_PAC_ERROR            6
-    { "(PAC-Error)", "A generic vendor-specific error occured in the PAC" }
+    { "(PAC-Error)", "A generic vendor-specific error occurred in the PAC" }
 };
 
 #define  MAX_GENERAL_ERROR ( sizeof(pptp_general_errors) / \
