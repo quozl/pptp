@@ -19,7 +19,7 @@ RM	= rm -f
 OPTIMIZE= -O -Wuninitialized
 DEBUG	= -g
 INCLUDE =
-CFLAGS  = -Wall $(OPTIMIZE) $(DEBUG) $(INCLUDE)
+# CFLAGS  = -Wall $(OPTIMIZE) $(DEBUG) $(INCLUDE)
 # Solaris
 # CFLAGS +=  -D_XPG4_2 -D__EXTENSIONS__
 LIBS	= -lutil
@@ -27,7 +27,7 @@ LIBS	= -lutil
 # LIBS	= -lnsl -lsocket -lresolv
 # Solaris Nevada build 14 or above
 # LIBS    = -lnsl -lsocket
-LDFLAGS	=
+# LDFLAGS	=
 
 PPTP_BIN = pptp
 
