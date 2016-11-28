@@ -466,19 +466,27 @@ shutdown:
 /*** get the ipaddress coming from the command line ***************************/
 struct in_addr get_ip_address(char *name)
 {
+    int rc;
     struct in_addr retval;
-    struct hostent *host = gethostbyname(name);
-    if (host == NULL) {
-        if (h_errno == HOST_NOT_FOUND)
-            fatal("gethostbyname '%s': HOST NOT FOUND", name);
-        else if (h_errno == NO_ADDRESS)
-            fatal("gethostbyname '%s': NO IP ADDRESS", name);
-        else
-            fatal("gethostbyname '%s': name server error", name);
-    }
-    if (host->h_addrtype != AF_INET)
-        fatal("Host '%s' has non-internet address", name);
-    memcpy(&retval.s_addr, host->h_addr, sizeof(retval.s_addr));
+    struct addrinfo hints, *ai;
+
+    memset(&hints, '\0', sizeof(hints));
+    hints.ai_family = AF_INET;
+#if defined(__linux__) || defined(__FreeBSD__)
+    hints.ai_flags = AI_ADDRCONFIG;     /* Unknown in OpenBSD. */
+#endif
+
+    if ( (rc = getaddrinfo(name, NULL, &hints, &ai)) )
+        fatal("getaddrinfo(): %s", gai_strerror(rc));
+
+    if (ai->ai_addr->sa_family != AF_INET)       /* Should never happen. */
+        fatal("Host '%s' possesses no IPv4 address", name);
+
+    memcpy(&retval.s_addr,
+            &(((struct sockaddr_in *) ai->ai_addr)->sin_addr.s_addr),
+            sizeof(retval.s_addr));
+    freeaddrinfo(ai);
+
     return retval;
 }
 
