@@ -209,15 +209,16 @@ int pqueue_del (pqueue_t *point) {
   DEBUG_CMD(
     int pq_count = 0;
     int pq_freelist_count = 0;
-    pqueue_t *point;
-    for ( point = pq_head; point ; point = point->next) {
+    pqueue_t *dpoint;
+    for (dpoint = pq_head; dpoint ; dpoint = dpoint->next) {
       ++pq_count;
     }
 
-    for ( point = pq_freelist_head; point ; point = point->next) {
+    for (dpoint = pq_freelist_head; dpoint ; dpoint = dpoint->next) {
       ++pq_freelist_count;
     }
-    log("queue length is %d, freelist length is %d", pq_count, pq_freelist_count);
+    log("queue length is %d, freelist length is %d", pq_count,
+        pq_freelist_count);
     );
 
   return 0;
