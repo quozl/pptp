@@ -33,11 +33,11 @@ PPTP_BIN = pptp
 
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
-	    inststr.o util.o version.o test.o \
+	    inststr.o util.o version.o test-redirections.o \
 	    pptp_quirks.o orckit_quirks.o pqueue.o pptp_callmgr.o routing.o \
 	    pptp_compat.o
 
-PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h test.h \
+PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h test-redirections.h \
 	    pptp_quirks.h orckit_quirks.h config.h pqueue.h routing.h
 
 all: config.h $(PPTP_BIN) pptpsetup.8
@@ -152,7 +152,7 @@ pptp_gre.o: pptp_msg.h
 pptp_gre.o: pptp_gre.h
 pptp_gre.o: util.h
 pptp_gre.o: pqueue.h
-pptp_gre.o: test.h
+pptp_gre.o: test-redirections.h
 pptp_quirks.o: orckit_quirks.h
 pptp_quirks.o: pptp_options.h
 pptp_quirks.o: pptp_ctrl.h
@@ -162,8 +162,9 @@ pptp_quirks.o: pptp_quirks.h
 pqueue.o: util.h
 pqueue.o: pqueue.h
 routing.o: routing.h
-test.o: util.h
-test.o: test.h
+routing.o: config.h
+test-redirections.o: util.h
+test-redirections.o: test-redirections.h
 util.o: util.h
 vector.o: pptp_ctrl.h
 vector.o: pptp_compat.h
