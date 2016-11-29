@@ -6,7 +6,7 @@ git pull
 
 # set shell variables for version
 # (use -rc1 for release candidate 1, or blank for final release)
-VERSION=1.8.0
+VERSION=1.9.0
 RELEASE=
 
 export VERSION RELEASE
