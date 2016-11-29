@@ -54,6 +54,8 @@ int dequeue_gre(callback_t callback, int cl);
 /* test redirection function pointers */
 struct test_redirections *my;
 
+unsigned char dest[2 * PACKET_MAX + 2]; /* largest expansion possible */
+
 #undef PRINT_PACKETS
 #ifdef PRINT_PACKETS
 
@@ -305,7 +307,6 @@ int decaps_hdlc(int fd, int (*cb)(int cl, void *pack, unsigned int len), int cl)
 int encaps_hdlc(int fd, void *pack, unsigned int len)
 {
     unsigned char *source = (unsigned char *)pack;
-    unsigned char dest[2 * PACKET_MAX + 2]; /* largest expansion possible */
     unsigned int pos = 0, i;
     u_int16_t fcs;
     /* in synchronous mode there is little to do */
