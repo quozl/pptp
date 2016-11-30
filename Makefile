@@ -58,6 +58,7 @@ config.h:
 
 vector_test: vector_test.o vector.o
 	$(CC) -o vector_test vector_test.o vector.o
+	./vector_test
 
 clean:
 	$(RM) *.o config.h pptpsetup.8
