@@ -120,12 +120,13 @@ Options:
 
 pptpsetup - Point-to-Point Tunneling Protocol setup
 
-Copyright (C) 2006 Nelson Ferraz
+Copyright (C) 2006  Free Software Foundation
 
 pptpsetup comes with ABSOLUTELY NO WARRANTY; for details see source.
 This is free software, and you are welcome to redistribute it
 under certain conditions; see source for details.
 
+Written by Nelson Ferraz.
 EOF
 
     exit;
