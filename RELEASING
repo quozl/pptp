@@ -49,17 +49,33 @@ mv pptp-${VERSION}${RELEASE}.tar.gz.asc pptp-${VERSION}${RELEASE}.tar.gz.signatu
 # http://quozl.linux.org.au/pptp/
 # sign mail
 
-mutt -s "pptp-1.8.0 released" pptpclient-devel@lists.sourceforge.net <<EOF
+mutt -s "pptp-1.9.0 released" pptpclient-devel@lists.sourceforge.net <<EOF
 G'day,
 
-PPTP Client 1.8.0 is released.
+PPTP Client 1.9.0 is released.
 
-Changes since 1.7.2 are:
+Changes since 1.8.0 are:
+
+- close a memory leak in pqueue,
+- avoid spurious error about /bin/ip on FreeBSD,
+- fix compiler warnings,
+- avoid clobbering heap (RHBZ #1183627),
+- fix use after free in call close request handler,
+- make clean to clean pptpsetup.8 (Debian #831032),
+- add --missing-window option (Debian #680455, Ubuntu #681617),
+- randomise call-id (Debian #721963),
+- replace gethostbyname(3) with getaddrinfo(3),
+- fix typo in pptp_ctrl manpage,
+- place pptpsetup manpage in correct section,
+- don't set build flags; use defaults,
+- remove pptpsetup.8 from source as it is generated,
+- fix for (null) in "pptp: GRE-to-PPP gateway on (null)".
 
 Can be downloaded from:
-	http://sourceforge.net/project/showfiles.php?group_id=33063
+	https://sourceforge.net/projects/pptpclient/files/pptp/pptp-1.9.0/
+	https://quozl.linux.org.au/pptp/
 
-4efce9f263e2c3f38d79d9df222476de  pptp-1.8.0.tar.gz
+b2117b377f65294a9786f80f0235d308  pptp-1.9.0.tar.gz
 EOF
 
 # todo, version matrix, linux distribution down left side, pptp & ppp top,
