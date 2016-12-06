@@ -33,7 +33,7 @@ PPTP_BIN = pptp
 
 PPTP_OBJS = pptp.o pptp_gre.o ppp_fcs.o \
             pptp_ctrl.o dirutil.o vector.o \
-	    inststr.o util.o version.o test-redirections.o \
+	    util.o version.o test-redirections.o \
 	    pptp_quirks.o orckit_quirks.o pqueue.o pptp_callmgr.o routing.o \
 	    pptp_compat.o
 
@@ -123,7 +123,6 @@ pptp.o: pptp_callmgr.h
 pptp.o: pptp_gre.h
 pptp.o: pptp_compat.h
 pptp.o: version.h
-pptp.o: inststr.h
 pptp.o: util.h
 pptp.o: pptp_quirks.h
 pptp.o: pptp_msg.h
