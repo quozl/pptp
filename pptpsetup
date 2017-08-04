@@ -64,6 +64,7 @@ sub create {
     # create or add lines to the /etc/ppp/chap-secrets file,
     # which holds usernames and passwords
     my $chap_secrets_file = '/etc/ppp/chap-secrets';
+    umask( 0027 );
     open( FILE, ">>$chap_secrets_file" )
       or die "$0: can't write to '$chap_secrets_file': $!\n";
 
