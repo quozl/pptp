@@ -55,7 +55,6 @@ sub create {
     if ( !$PASSWORD ) {
         print "Password: ";
         $PASSWORD = <STDIN>;
-        chomp $PASSWORD;
     }
 
     # put '\' between domain and username IF specified a domain
