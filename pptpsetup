@@ -81,7 +81,7 @@ sub create {
 
     print FILE <<"TUNNEL";
 # written by pptpsetup
-pty "pptp $SERVER --nolaunchpppd"
+pty "/usr/sbin/pptp $SERVER --nolaunchpppd"
 lock
 noauth
 nobsdcomp
