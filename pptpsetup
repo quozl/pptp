@@ -55,6 +55,7 @@ sub create {
     if ( !$PASSWORD ) {
         print "Password: ";
         $PASSWORD = <STDIN>;
+        $PASSWORD =~ s/([^\x20\x21\x23-\x7e])/sprintf ("\\x%02x", ord ($1))/eg;
     }
 
     # put '\' between domain and username IF specified a domain
