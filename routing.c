@@ -112,13 +112,21 @@ void routing_init(char *ip) {
 #endif /* Solaris */ 
 #if defined(__linux)
   char buf[256];
+  char tbuf[256];
+  const char *uid;
   FILE *p;
 
   snprintf(buf, 255, "%s route get %s", IP_BINARY, ip);
   p = popen(buf, "r");
   fgets(buf, 255, p);
   /* TODO: check for failure of fgets */
-  route = strdup(buf);
+  uid = strstr(buf, " uid");
+  if (uid) {
+    snprintf(tbuf, uid - buf + 1, "%s", buf);
+    route = strdup(tbuf);
+  } else {
+    route = strdup(buf);
+  }
   pclose(p);
   /* TODO: check for failure of command */
 #endif /* __linux__ */
