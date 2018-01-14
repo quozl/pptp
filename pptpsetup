@@ -69,7 +69,7 @@ sub create {
       or die "$0: can't write to '$chap_secrets_file': $!\n";
 
     print FILE "\n";
-    print FILE "# added by pptpsetup for $TUNNEL\n"
+    print FILE "# added by pptpsetup for $TUNNEL\n";
     print FILE "$DOMAIN$USERNAME $TUNNEL \"$PASSWORD\" *\n";
 
     close FILE;
