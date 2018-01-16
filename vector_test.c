@@ -95,4 +95,5 @@ void main(void) {
     }
     assert(vector_size(v)==0);
     vector_destroy(v);
+    exit(0);
 }
