@@ -42,6 +42,8 @@ PPTP_DEPS = pptp_callmgr.h pptp_gre.h ppp_fcs.h util.h test-redirections.h \
 
 all: config.h $(PPTP_BIN) pptpsetup.8
 
+$(PPTP_OBJS): config.h
+
 $(PPTP_BIN): $(PPTP_OBJS) $(PPTP_DEPS)
 	$(CC) -o $(PPTP_BIN) $(PPTP_OBJS) $(LDFLAGS) $(LIBS)
 
