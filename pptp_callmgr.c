@@ -340,7 +340,7 @@ int open_inetsock(struct in_addr inetaddr)
     }
 #endif
     if (localbind.s_addr != INADDR_NONE) {
-        bzero(&src, sizeof(src));
+        memset(&src, 0, sizeof(src));
         src.i.sin_family = AF_INET;
         src.i.sin_addr   = localbind;
         if (bind(s, &src.a, sizeof(src.i)) != 0) {

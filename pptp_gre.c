@@ -109,7 +109,7 @@ int pptp_gre_bind(struct in_addr inetaddr)
     }
 #endif
     if (localbind.s_addr != INADDR_NONE) {
-        bzero(&loc_addr, sizeof(loc_addr));
+        memset(&loc_addr, 0, sizeof(loc_addr));
         loc_addr.i.sin_family = AF_INET;
         loc_addr.i.sin_addr   = localbind;
         if (bind(s, &loc_addr.a, sizeof(loc_addr.i)) != 0) {
