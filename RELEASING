@@ -14,11 +14,11 @@ echo "VERSION=${VERSION} RELEASE=${RELEASE}"
 
 # check and fix versions
 egrep "VERSION=|RELEASE=" Makefile
-emacsclient Makefile
+emacsclient -c Makefile
 
 # update ChangeLog and NEWS with a release date
-emacsclient NEWS
-emacsclient ChangeLog
+emacsclient -c NEWS
+emacsclient -c ChangeLog
 git commit -m "release $VERSION$RELEASE" NEWS ChangeLog Makefile
 
 # tag
@@ -30,17 +30,20 @@ mv pptp-${VERSION}${RELEASE}.tar.gz ../
 
 # publish
 cd ~/public_html/external/mine/pptp/
-cp /home/james/pptp-client/pptp-${VERSION}${RELEASE}.tar.gz ./
+cp ~/pptp-client/pptp-${VERSION}${RELEASE}.tar.gz ./
 
-gpg --detach-sign --armor --default-key ae2466c0 pptp-${VERSION}${RELEASE}.tar.gz 
-mv pptp-${VERSION}${RELEASE}.tar.gz.asc pptp-${VERSION}${RELEASE}.tar.gz.signature
+gpg --detach-sign --armor --default-key ae2466c0 \
+    pptp-${VERSION}${RELEASE}.tar.gz
+mv pptp-${VERSION}${RELEASE}.tar.gz.asc \
+    pptp-${VERSION}${RELEASE}.tar.gz.signature
 
 # update http://pptpclient.sourceforge.net/#download
+# include signature for debian
 
 # compose release candidate announcement
 # To: pptpclient-devel@lists.sourceforge.net		(candidates)
 # To: pptpclient-announce@lists.sourceforge.net		(final)
-# From: James Cameron <james.cameron@hp.com>
+# From: James Cameron <quozl@laptop.org>
 # Subject: pptp-${VERSION}${RELEASE} released
 # ...
 # include NEWS
