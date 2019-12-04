@@ -55,6 +55,7 @@ sub create {
     if ( !$PASSWORD ) {
         print "Password: ";
         $PASSWORD = <STDIN>;
+        chomp $PASSWORD;
         $PASSWORD =~ s/([^\x20\x21\x23-\x7e])/sprintf ("\\x%02x", ord ($1))/eg;
     }
 
