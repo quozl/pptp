@@ -4,7 +4,9 @@ use strict;
 use Getopt::Long;
 
 use vars qw($VERSION);
-$VERSION = '0.03';
+$VERSION = '0.04';
+
+require Term::ReadKey;
 
 # Command-line parameters:
 
@@ -53,10 +55,11 @@ sub create {
 
     # ask password
     if ( !$PASSWORD ) {
-        print "Password: ";
-        $PASSWORD = <STDIN>;
-        chomp $PASSWORD;
-        $PASSWORD =~ s/([^\x20\x21\x23-\x7e])/sprintf ("\\x%02x", ord ($1))/eg;
+	Term::ReadKey::ReadMode('noecho');
+	print "Password: ";
+	$PASSWORD = Term::ReadKey::ReadLine(0);
+	$PASSWORD =~ s/\R\z//;
+	Term::ReadKey::ReadMode('restore');
     }
 
     # put '\' between domain and username IF specified a domain
