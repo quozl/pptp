@@ -119,6 +119,15 @@ Sets the number of packets to pass before causing a reordering test.
 Default is 100.  Has no effect if test-type is zero.  The result of
 test types 2 and 3 are undefined if this value is less than ten.
 
+.TP
+.B \-\-missing-window <n>
+Enable 'missing window' validation and set packet tolerance
+(300=default, 6000=recommended).
+
+.TP
+.B \-\-version
+Display version.
+
 
 .SH "ROUTING"
 When PPTP is used in conjunction with a default route on top of the

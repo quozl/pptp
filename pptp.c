@@ -127,7 +127,7 @@ void usage(char *progname)
             "  --test-type <type>	Damage the packet stream by reordering\n"
             "  --test-rate <n>          Do the test every n packets\n"
             "  --missing-window <n>     Enable 'missing window' validation and set packet\n"
-            "                           polerance (300=default, 6000=recommended)\n",
+            "                           tolerance (300=default, 6000=recommended)\n",
 
             version, progname, progname);
     log("%s called with wrong arguments, program not started.", progname);
