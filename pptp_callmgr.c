@@ -153,8 +153,9 @@ int callmgr_main(int argc, char **argv, char **envp __attribute__ ((unused)))
     signal(SIGPIPE, callmgr_do_nothing);
     signal(SIGUSR1, callmgr_do_nothing); /* signal state change
                                             wake up accept */
-    /* Step 2: Open control connection and register callback */
-    if ((conn = pptp_conn_open(inet_sock, 1, NULL/* callback */)) == NULL) {
+    /* Step 2: Open control connection and register callback
+     * argv[3] = client_hostname, will pass in header's hostname field */
+    if ((conn = pptp_conn_open(inet_sock, 1, argv[3], NULL/* callback */)) == NULL) {
         close(unix_sock); close(inet_sock); fatal("Could not open connection.");
     }
     FD_ZERO(&call_set);

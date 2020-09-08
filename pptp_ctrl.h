@@ -24,7 +24,7 @@ typedef void (*pptp_conn_cb)(PPTP_CONN*, enum conn_state);
  * not necessary if this is being opened by a server process after
  * receiving a conn_open packet from client. 
  */
-PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, 
+PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, char *client_hostname,
 			   pptp_conn_cb callback);
 PPTP_CALL * pptp_call_open(PPTP_CONN * conn, 
 			   pptp_call_cb callback, char *phonenr);

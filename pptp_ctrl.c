@@ -263,7 +263,8 @@ static void ctrlp_rep( void * buffer, size_t size, int isbuff)
     
 
 /* Open new pptp_connection.  Returns NULL on failure. */
-PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
+PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, char *client_hostname,
+        pptp_conn_cb callback)
 {
     PPTP_CONN *conn;
     /* Allocate structure */
@@ -299,6 +300,12 @@ PPTP_CONN * pptp_conn_open(int inet_sock, int isclient, pptp_conn_cb callback)
             hton16(PPTP_MAX_CHANNELS), hton16(PPTP_FIRMWARE_VERSION), 
             PPTP_HOSTNAME, PPTP_VENDOR
         };
+
+        /* If a custom hostname value was passed, use that instead of
+         * default 'local'. */
+        if (client_hostname != NULL)
+            memcpy(packet.hostname, client_hostname, sizeof(packet.hostname));
+
         /* fix this packet, if necessary */
         int idx, rc;
         idx = get_quirk_index();

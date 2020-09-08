@@ -81,8 +81,8 @@ int test_rate = 100;
 int missing_window = MISSING_WINDOW;
 
 struct in_addr get_ip_address(char *name);
-int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp, int pty_fd, int gre_fd);
-void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc,char **argv,char **envp);
+int open_callmgr(struct in_addr inetaddr, char *phonenr, char *client_hostname, int argc, char **argv,char **envp, int pty_fd, int gre_fd);
+void launch_callmgr(struct in_addr inetaddr, char *phonenr, char *client_hostname, int argc, char **argv,char **envp);
 int get_call_id(int sock, pid_t gre, pid_t pppd, 
 		 u_int16_t *call_id, u_int16_t *peer_call_id);
 void launch_pppd(char *ttydev, int argc, char **argv);
@@ -127,7 +127,8 @@ void usage(char *progname)
             "  --test-type <type>	Damage the packet stream by reordering\n"
             "  --test-rate <n>          Do the test every n packets\n"
             "  --missing-window <n>     Enable 'missing window' validation and set packet\n"
-            "                           tolerance (300=default, 6000=recommended)\n",
+            "                           tolerance (300=default, 6000=recommended)\n"
+            "  --client-hostname <name> Specify client hostname (used by Cisco VPDN Groups)\n",
 
             version, progname, progname);
     log("%s called with wrong arguments, program not started.", progname);
@@ -200,6 +201,8 @@ int main(int argc, char **argv, char **envp)
     char **pppdargv;
     char phonenrbuf[65]; /* maximum length of field plus one for the trailing
                           * '\0' */
+    char client_hostname_buf[64] = {0}; /* maximum length plus trailing '\0' */
+    char * volatile client_hostname = NULL;
     char * volatile phonenr = NULL;
     volatile int launchpppd = 1, debug = 0;
 
@@ -224,6 +227,7 @@ int main(int argc, char **argv, char **envp)
 	    {"rtmark", 1, 0, 0},
 	    {"nohostroute", 0, 0, 0},
 	    {"missing-window", 1, 0, 0},
+	    {"client-hostname", 1, 0, 0},
             {0, 0, 0, 0}
         };
         int option_index = 0;
@@ -330,7 +334,12 @@ int main(int argc, char **argv, char **envp)
 			    "and set to: %d\n", x);
 			missing_window = x;
 		    }
-                }
+		} else if (option_index == 18) { /* --client-hostname */
+		    strncpy(client_hostname_buf, optarg, sizeof(client_hostname_buf));
+		    client_hostname_buf[63] = '\0'; /* Terminate string to be safe */
+		    log("client-hostname set to %s\n", client_hostname_buf);
+		    client_hostname = client_hostname_buf;
+		}
                 break;
             case '?': /* unrecognised option */
                 /* fall through */
@@ -409,8 +418,8 @@ int main(int argc, char **argv, char **envp)
         /*
          * Open connection to call manager (Launch call manager if necessary.)
          */
-        callmgr_sock = open_callmgr(inetaddr, phonenr, argc, argv, envp,
-		pty_fd, gre_fd);
+        callmgr_sock = open_callmgr(inetaddr, phonenr, client_hostname, argc,
+		argv, envp, pty_fd, gre_fd);
         /* Exchange PIDs, get call ID */
     } while (get_call_id(callmgr_sock, parent_pid, child_pid, 
                 &call_id, &peer_call_id) < 0);
@@ -483,8 +492,8 @@ struct in_addr get_ip_address(char *name)
 }
 
 /*** start the call manager ***************************************************/
-int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
-        char **envp, int pty_fd, int gre_fd)
+int open_callmgr(struct in_addr inetaddr, char *phonenr, char *client_hostname,
+        int argc, char **argv, char **envp, int pty_fd, int gre_fd)
 {
     /* Try to open unix domain socket to call manager. */
     union {
@@ -517,7 +526,8 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
                     /* close the pty and gre in the call manager */
                     close(pty_fd);
                     close(gre_fd);
-                    launch_callmgr(inetaddr, phonenr, argc, argv, envp);
+                    launch_callmgr(inetaddr, phonenr, client_hostname, argc,
+                        argv, envp);
                 }
                 default: /* parent */
                     waitpid(pid, &status, 0);
@@ -535,10 +545,10 @@ int open_callmgr(struct in_addr inetaddr, char *phonenr, int argc, char **argv,
 }
 
 /*** call the call manager main ***********************************************/
-void launch_callmgr(struct in_addr inetaddr, char *phonenr, int argc __attribute__ ((unused)),
-        char**argv,char**envp) 
+void launch_callmgr(struct in_addr inetaddr, char *phonenr, char *client_hostname,
+        int argc __attribute__ ((unused)), char**argv, char**envp)
 {
-      char *my_argv[3] = { argv[0], inet_ntoa(inetaddr), phonenr };
+      char *my_argv[4] = { argv[0], inet_ntoa(inetaddr), phonenr, client_hostname };
       char buf[128];
       snprintf(buf, sizeof(buf), "pptp: call manager for %s", my_argv[1]);
 #ifdef PR_SET_NAME
